@@ -1,0 +1,83 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:14
+    ports:
+      - '5432:5432'
+    command: ['postgres', '-cshared_preload_libraries=pg_stat_statements', '-cmax_connections=200']
+    environment:
+      POSTGRES_USER: graph-node
+      POSTGRES_PASSWORD: let-me-in
+      POSTGRES_DB: graph-node
+      POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
+    volumes:
+      - ./docker/data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -q -d graph-node -U graph-node']
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  ipfs:
+    image: ipfs/kubo:v0.14.0
+    ports:
+      - '5001:5001'
+    volumes:
+      - ./docker/data/ipfs:/data/ipfs
+    healthcheck:
+      test: ['CMD', 'ipfs', 'id']
+      interval: 1s
+      timeout: 5s
+      retries: 5
+
+  # slower startup but faster re-indexing on graph updates.
+  # finer control over the cache and retry logic.
+  # auto-switches endpoints on 429 or failed requests.
+  rpc-proxy-cache-arbitrum:
+    image: makemake1337/blutgang:0.3.0
+    ports:
+      - 3000:3000
+    volumes:
+      - ./docker/data/rpc-proxy-cache/arbitrum:/db
+      - ./docker/rpc-proxy/config-arbitrum.toml:/app/config.toml
+
+  rpc-healthcheck:
+    image: alpine/curl:8.5.0
+    depends_on:
+      rpc-proxy-cache-arbitrum:
+        condition: service_started
+    command: ['sh', '/app/healthcheck-cmd.sh']
+    volumes:
+      - ./docker/rpc-proxy/healthcheck-cmd.sh:/app/healthcheck-cmd.sh
+      - ./docker/rpc-proxy/healthcheck-test.sh:/app/healthcheck-test.sh
+    healthcheck:
+      test: ['CMD', 'sh', '/app/healthcheck-test.sh']
+      interval: 1s
+      timeout: 5m
+      retries: 5000
+
+  graph-node:
+    image: graphprotocol/graph-node
+    ports:
+      - '8000:8000'
+      - '8001:8001'
+      - '8020:8020'
+      - '8030:8030'
+      - '8040:8040'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+      rpc-proxy-cache-arbitrum:
+        condition: service_started
+      rpc-healthcheck:
+        condition: service_healthy
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    volumes:
+      - ./docker/graph-node:/etc/graph-node
+    environment:
+      ipfs: 'ipfs:5001'
+      GRAPH_LOG: info
+      GRAPH_NODE_CONFIG: /etc/graph-node/config.toml

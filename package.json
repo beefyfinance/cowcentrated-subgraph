@@ -1,0 +1,23 @@
+{
+  "name": "subgraphs",
+  "private": true,
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "create-local": "graph create beefyfinance/cl-subgraph --node http://127.0.0.1:8020",
+    "deploy-local": "graph deploy beefyfinance/cl-subgraph --node http://127.0.0.1:8020 --ipfs http://localhost:5001",
+    "remove-local": "graph remove beefyfinance/cl-subgraph --node http://127.0.0.1:8020"
+  },
+  "main": "./bin/index.js",
+  "bin": {
+    "subgraph-cli": "./bin/index.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@graphprotocol/graph-cli": "^0.68.0",
+    "@graphprotocol/graph-ts": "^0.33.0",
+    "blockchain-addressbook": "^0.46.28",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
+  }
+}

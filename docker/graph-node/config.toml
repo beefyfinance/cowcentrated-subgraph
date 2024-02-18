@@ -1,0 +1,24 @@
+# A simple store configuration: we use one database for everything
+# This is equivalent to the old way of configuring the store for tests
+# by just setting the environment variable THEGRAPH_STORE_POSTGRES_DIESEL_URL
+
+[store]
+[store.primary]
+connection = "postgresql://graph-node:let-me-in@postgres:5432/graph-node"
+pool_size = 10
+
+[deployment]
+[[deployment.rule]]
+store = "primary"
+indexers = ["default"]
+
+[chains]
+ingestor = "default"
+
+[chains.arbitrum]
+shard = "primary"
+provider = [
+  { label = "blutgang-http", url = "http://rpc-proxy-cache-arbitrum:3000", features = [
+    "archive",
+  ] },
+]

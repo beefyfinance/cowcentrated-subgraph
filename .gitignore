@@ -1,0 +1,8 @@
+generated
+build
+dist
+node_modules
+
+**/tests/.*/
+.vscode
+

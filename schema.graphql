@@ -1,0 +1,157 @@
+##################################
+##### Common dimensions ##########
+##################################
+
+type Account @entity {
+  # account address
+  id: Bytes!
+
+  createdVaultCount: Int!
+
+  createdVaults: [BeefyVaultConcLiq!]! @derivedFrom(field: "createdBy")
+  userPositions: [UserPosition!]! @derivedFrom(field: "user")
+}
+
+type Token @entity {
+  # token address
+  id: Bytes!
+  symbol: String
+  name: String
+  decimals: Int
+
+  totalSupply: BigInt
+}
+
+#########################
+##### Fee Management ####
+#########################
+
+#type FeeManager {
+#  # beefy fee config address
+#  id: ID!
+#
+#  # beefy fee
+#  beefyFee: BigInt!
+#  # strategist fee
+#  strategistFee: BigInt!
+#}
+
+#############################
+##### CL Vault Contracts ####
+#############################
+
+type BeefyVaultConcLiqFactory @entity {
+  # factory address
+  id: Bytes!
+
+  # === factory
+  vaults: [BeefyVaultConcLiq!]! @derivedFrom(field: "factory")
+
+  # === stats
+  # amount of vaults created
+  vaultCount: Int!
+}
+
+####################
+##### CL Vaults ####
+####################
+
+type BeefyVaultConcLiq @entity {
+  # vault address
+  id: Bytes!
+
+  # === creation
+  factory: BeefyVaultConcLiqFactory!
+  createdBy: Account!
+  createdWithTransaction: Bytes!
+  createdAtTimestamp: BigInt!
+  createdAtBlock: BigInt!
+
+  # all values below will be undefined before the vault is initialized
+
+  # === Ownable
+  owner: Account
+
+  # === erc20
+  sharesToken: Token
+
+  # === vault
+  strategy: Bytes
+  underlyingToken0: Token
+  underlyingToken1: Token
+  underlyingAmount0: BigInt
+  underlyingAmount1: BigInt
+
+  # === user positions
+  positions: [UserPosition!]! @derivedFrom(field: "vault")
+  positionChanges: [UserPositionChanged!]! @derivedFrom(field: "vault")
+}
+
+###########################
+##### CL User Position ####
+###########################
+
+type UserPosition @entity {
+  # vault address + user account address
+  id: Bytes!
+
+  vault: BeefyVaultConcLiq!
+  user: Account!
+
+  # FIXME: use BigDecimal to avoid passing decimal count around
+  sharesBalance: BigInt!
+  underlyingBalance0: BigInt!
+  underlyingBalance1: BigInt!
+
+  positionChanges: [UserPositionChanged!]! @derivedFrom(field: "userPosition")
+}
+
+type UserPositionChanged @entity {
+  # transaction hash + log index
+  id: Bytes!
+
+  vault: BeefyVaultConcLiq!
+  userPosition: UserPosition!
+
+  createdWithTransaction: Bytes!
+  createdAtTimestamp: BigInt!
+  createdAtBlock: BigInt!
+
+  # TODO: use BigDecimal to avoid passing decimal count around
+  # event data
+  sharesDelta: BigInt!
+  underlyingDelta0: BigInt!
+  underlyingDelta1: BigInt!
+
+  # derived data
+  sharesBalance: BigInt!
+  underlyingBalance0: BigInt!
+  underlyingBalance1: BigInt!
+}
+
+#type Harvest @entity {
+#  # strategy address + block number
+#  id: ID!
+#
+#  vault: BeefyVaultConcLiq!
+#  transaction: Transaction!
+#
+#  fee0: BigInt!
+#  fee1: BigInt!
+#}
+#
+#type ChargedFees @entity {
+#  # vault address + block number
+#  id: ID!
+#
+#  vault: BeefyVaultConcLiq!
+#  transaction: Transaction!
+#
+#  callFeeAmount: BigInt!
+#  beefyFeeAmount: BigInt!
+#  strategistFeeAmount: BigInt!
+#}
+
+##################################
+#### Historical Snapshot Data ####
+##################################
