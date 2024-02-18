@@ -1,26 +1,40 @@
-import { Address, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
-import { Account, BeefyVaultConcLiq, UserPosition, UserPositionChanged, Token } from '../generated/schema'
-import { BeefyVaultConcLiq as BeefyVaultConcLiqContract } from '../generated/templates/BeefyVaultConcLiq/BeefyVaultConcLiq'
-import { IERC20 } from '../generated/templates/BeefyVaultConcLiq/IERC20'
+import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
+import { BeefyVaultConcLiqStrategy, UserPosition, UserPositionChanged } from '../generated/schema'
 import {
+  BeefyVaultConcLiq as BeefyVaultConcLiqContract,
   Deposit,
   Initialized,
   OwnershipTransferred,
   Transfer,
   Withdraw,
 } from '../generated/templates/BeefyVaultConcLiq/BeefyVaultConcLiq'
+import {
+  getExistingVault,
+  getOrCreateAccount,
+  getOrCreateToken,
+  getEventIdentifier,
+  getOrCreateTransaction,
+  getInitializedVaultTotalSupply,
+} from './common'
+
+import { BeefyVaultConcLiqStrategy as BeefyVaultConcLiqStrategyTemplate } from '../generated/templates'
 
 export function handleInitialized(event: Initialized): void {
   // TODO: add a view function to get all these values in one call
 
   let vault = getExistingVault(event.address)
-
   let vaultContract = BeefyVaultConcLiqContract.bind(event.address)
-  vault.strategy = vaultContract.strategy()
+  let strategyAddress = vaultContract.strategy()
+  let strategy = BeefyVaultConcLiqStrategy.load(strategyAddress)
+  if (strategy == null) {
+    strategy = new BeefyVaultConcLiqStrategy(strategyAddress)
+    strategy.vault = vault.id
+    strategy.save()
+  }
+  // start indexing the strategy  let strategyId = strategyAddress
+  BeefyVaultConcLiqStrategyTemplate.create(strategyAddress)
 
   let sharesToken = getOrCreateToken(event.address)
-  sharesToken.save()
-
   let wants = vaultContract.wants()
   let token0Address = wants.value0
   let token0 = getOrCreateToken(token0Address)
@@ -32,7 +46,6 @@ export function handleInitialized(event: Initialized): void {
   vault.underlyingToken1 = token1.id
   vault.underlyingAmount0 = BigInt.fromI32(0)
   vault.underlyingAmount1 = BigInt.fromI32(0)
-
   vault.save()
 }
 
@@ -75,107 +88,54 @@ function updateUserPosition(
 ): void {
   let vault = getExistingVault(event.address)
   let user = getOrCreateAccount(userAddress)
-  let userPosition = getOrCreateUserPosition(vault, user)
+  let tx = getOrCreateTransaction(event.block, event.transaction)
 
-  let changedEvent = new UserPositionChanged(event.transaction.hash.concat(Bytes.fromI32(event.logIndex.toI32())))
-
-  changedEvent.vault = vault.id
-  changedEvent.userPosition = userPosition.id
-
-  changedEvent.createdWithTransaction = event.transaction.hash
-  changedEvent.createdAtTimestamp = event.block.timestamp
-  changedEvent.createdAtBlock = event.block.number
-
-  changedEvent.sharesDelta = sharesDelta
-  changedEvent.underlyingDelta0 = underlyingDelta0
-  changedEvent.underlyingDelta1 = underlyingDelta1
-
+  // fetch needed values
   // TODO: use a view function to get these values in one call
   let vaultContract = BeefyVaultConcLiqContract.bind(event.address)
   let sharesBalance = vaultContract.balanceOf(userAddress)
   let tokenShares = vaultContract.getTokensPerShare(sharesBalance)
 
-  userPosition.sharesBalance = sharesBalance
-  userPosition.underlyingBalance0 = tokenShares.value0
-  userPosition.underlyingBalance1 = tokenShares.value1
+  // update vault stats
+  let currentUnderlyingAmount0 = vault.underlyingAmount0
+  if (currentUnderlyingAmount0 === null) throw Error('Vault not initialized')
+  vault.underlyingAmount0 = currentUnderlyingAmount0.plus(underlyingDelta0)
+  let currentUnderlyingAmount1 = vault.underlyingAmount1
+  if (currentUnderlyingAmount1 === null) throw Error('Vault not initialized')
+  vault.underlyingAmount1 = currentUnderlyingAmount1.plus(underlyingDelta1)
+  vault.save()
+  let currentTotalSupply = getInitializedVaultTotalSupply(vault)
+  let sharesToken = getOrCreateToken(event.address)
+  sharesToken.totalSupply = currentTotalSupply.plus(sharesDelta)
+  sharesToken.save()
 
-  changedEvent.sharesBalance = sharesBalance
-  changedEvent.underlyingBalance0 = tokenShares.value0
-  changedEvent.underlyingBalance1 = tokenShares.value1
-
-  userPosition.save()
-  changedEvent.save()
-}
-
-function getOrCreateUserPosition(vault: BeefyVaultConcLiq, user: Account): UserPosition {
+  // init user position
   let id = vault.id.concat(user.id)
   let userPosition = UserPosition.load(id)
   if (userPosition == null) {
     userPosition = new UserPosition(id)
     userPosition.vault = vault.id
     userPosition.user = user.id
+    userPosition.createdWith = tx.id
     userPosition.sharesBalance = BigInt.fromI32(0)
     userPosition.underlyingBalance0 = BigInt.fromI32(0)
     userPosition.underlyingBalance1 = BigInt.fromI32(0)
   }
+  userPosition.sharesBalance = sharesBalance
+  userPosition.underlyingBalance0 = tokenShares.value0
+  userPosition.underlyingBalance1 = tokenShares.value1
+  userPosition.save()
 
-  return userPosition
-}
-
-function getOrCreateAccount(accountAddress: Address): Account {
-  let accountId = accountAddress
-  let account = Account.load(accountId)
-  if (account == null) {
-    account = new Account(accountId)
-    account.createdVaultCount = 0
-    account.save()
-  }
-
-  return account
-}
-
-function getOrCreateToken(tokenAddress: Address): Token {
-  let token = Token.load(tokenAddress)
-  if (token == null) {
-    let tokenContract = IERC20.bind(tokenAddress)
-    token = new Token(tokenAddress)
-
-    let nameRes = tokenContract.try_name()
-    if (!nameRes.reverted) {
-      token.name = nameRes.value
-    }
-
-    let symbolRes = tokenContract.try_symbol()
-    if (!symbolRes.reverted) {
-      token.symbol = symbolRes.value
-    }
-
-    let decimalsRes = tokenContract.try_decimals()
-    if (!decimalsRes.reverted) {
-      token.decimals = decimalsRes.value
-    } else {
-      token.decimals = 18
-    }
-
-    let totalSupplyRes = tokenContract.try_totalSupply()
-    if (!totalSupplyRes.reverted) {
-      token.totalSupply = totalSupplyRes.value
-    } else {
-      token.totalSupply = BigInt.fromI32(0)
-    }
-
-    token.save()
-  }
-
-  return token
-}
-
-function getExistingVault(vaultAddress: Address): BeefyVaultConcLiq {
-  let vaultId = vaultAddress
-  let vault = BeefyVaultConcLiq.load(vaultId)
-  if (vault == null) {
-    throw Error('Vault not found')
-  }
-
-  return vault
+  // create a new change
+  let changedEvent = new UserPositionChanged(getEventIdentifier(event))
+  changedEvent.vault = vault.id
+  changedEvent.userPosition = userPosition.id
+  changedEvent.createdWith = tx.id
+  changedEvent.sharesDelta = sharesDelta
+  changedEvent.underlyingDelta0 = underlyingDelta0
+  changedEvent.underlyingDelta1 = underlyingDelta1
+  changedEvent.sharesBalance = sharesBalance
+  changedEvent.underlyingBalance0 = tokenShares.value0
+  changedEvent.underlyingBalance1 = tokenShares.value1
+  changedEvent.save()
 }

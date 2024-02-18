@@ -3,23 +3,44 @@
 ##################################
 
 type Account @entity {
-  # account address
+  "The account address"
   id: Bytes!
 
+  "The number of vaults created by the user"
   createdVaultCount: Int!
 
-  createdVaults: [BeefyVaultConcLiq!]! @derivedFrom(field: "createdBy")
+  "All user beefy positions"
   userPositions: [UserPosition!]! @derivedFrom(field: "user")
+  "All user transactions in beefy"
+  transactions: [Transaction!]! @derivedFrom(field: "sender")
 }
 
 type Token @entity {
   # token address
   id: Bytes!
+
+  "The token symbol"
   symbol: String
+  "The token name"
   name: String
+  "The number of decimals the token uses"
   decimals: Int
 
+  "The total supply of the token"
   totalSupply: BigInt
+}
+
+type Transaction @entity {
+  "The transaction hash"
+  id: Bytes!
+
+  "The block number the transaction was included in"
+  blockNumber: BigInt!
+  "The timestamp of the block the transaction was included in"
+  blockTimestamp: BigInt!
+
+  "The sender of the transaction"
+  sender: Account!
 }
 
 #########################
@@ -41,14 +62,13 @@ type Token @entity {
 #############################
 
 type BeefyVaultConcLiqFactory @entity {
-  # factory address
+  "The factory address"
   id: Bytes!
 
-  # === factory
+  "All vaults created by the factory"
   vaults: [BeefyVaultConcLiq!]! @derivedFrom(field: "factory")
 
-  # === stats
-  # amount of vaults created
+  "The number of vaults created by the factory"
   vaultCount: Int!
 }
 
@@ -57,34 +77,75 @@ type BeefyVaultConcLiqFactory @entity {
 ####################
 
 type BeefyVaultConcLiq @entity {
-  # vault address
+  "The vault address"
   id: Bytes!
 
-  # === creation
+  "The factory that created the vault"
   factory: BeefyVaultConcLiqFactory!
-  createdBy: Account!
-  createdWithTransaction: Bytes!
-  createdAtTimestamp: BigInt!
-  createdAtBlock: BigInt!
+  "The transaction that created the vault"
+  createdWith: Transaction!
 
   # all values below will be undefined before the vault is initialized
 
-  # === Ownable
+  "Current owner of the vault"
   owner: Account
-
-  # === erc20
+  "The token data of the vault. The vault is also an ERC20 token. This tokens represents the shares of the vault."
   sharesToken: Token
+  "The strategy of the vault. The strategy is responsible for managing the vault's assets."
+  strategy: BeefyVaultConcLiqStrategy @derivedFrom(field: "vault")
 
-  # === vault
-  strategy: Bytes
+  "The underlying tokens contained in the vault. This is the first token."
   underlyingToken0: Token
+  "The underlying tokens contained in the vault. This is the second token."
   underlyingToken1: Token
+  "The total amount of underlying tokens in the vault. This is the first token."
   underlyingAmount0: BigInt
+  "The total amount of underlying tokens in the vault. This is the second token."
   underlyingAmount1: BigInt
 
   # === user positions
+  "All user positions in the vault"
   positions: [UserPosition!]! @derivedFrom(field: "vault")
+  "All user position updates"
   positionChanges: [UserPositionChanged!]! @derivedFrom(field: "vault")
+
+  # === harvests
+  "All harvests of the vault. A harvest is a transaction that collects yield and compounds it back into the vault."
+  harvests: [Harvest!]! @derivedFrom(field: "vault")
+}
+
+type BeefyVaultConcLiqStrategy @entity {
+  "The strategy address"
+  id: Bytes!
+
+  # === vault
+  "The vault the strategy is managing"
+  vault: BeefyVaultConcLiq!
+
+  # === harvests
+  "All harvests of the strategy. A harvest is a transaction that collects yield and compounds it back into the vault."
+  harvests: [Harvest!]! @derivedFrom(field: "strategy")
+}
+
+type Harvest @entity {
+  "transaction hash + log index"
+  id: Bytes!
+
+  "The vault the harvest was performed on"
+  vault: BeefyVaultConcLiq!
+  "The strategy that performed the harvest"
+  strategy: BeefyVaultConcLiqStrategy!
+  "The transaction that initiated the harvest"
+  createdWith: Transaction!
+
+  # event data
+  "Fee amount in the first token"
+  fee0: BigInt!
+  "Fee amount in the second token"
+  fee1: BigInt!
+
+  # derived data
+  # TODO
 }
 
 ###########################
@@ -92,53 +153,57 @@ type BeefyVaultConcLiq @entity {
 ###########################
 
 type UserPosition @entity {
-  # vault address + user account address
+  "Vault address + user account address"
   id: Bytes!
 
+  "The vault the user has a position in"
   vault: BeefyVaultConcLiq!
+  "The user that has a position in the vault"
   user: Account!
+  "The transaction that created the user position"
+  createdWith: Transaction!
 
   # FIXME: use BigDecimal to avoid passing decimal count around
+  "The amount of shares the user has in the vault"
   sharesBalance: BigInt!
+  "The amount of underlying tokens the user has in the vault. This is the first token."
   underlyingBalance0: BigInt!
+  "The amount of underlying tokens the user has in the vault. This is the second token."
   underlyingBalance1: BigInt!
 
+  "All position changes of the user position"
   positionChanges: [UserPositionChanged!]! @derivedFrom(field: "userPosition")
 }
 
 type UserPositionChanged @entity {
-  # transaction hash + log index
+  "Transaction hash + log index"
   id: Bytes!
 
+  "The vault the user has a position in"
   vault: BeefyVaultConcLiq!
+  "The user that has a position in the vault"
   userPosition: UserPosition!
-
-  createdWithTransaction: Bytes!
-  createdAtTimestamp: BigInt!
-  createdAtBlock: BigInt!
+  "The transaction that initiated the position change"
+  createdWith: Transaction!
 
   # TODO: use BigDecimal to avoid passing decimal count around
   # event data
+  "Amount of shares added or removed from the user position. Positive for added, negative for removed."
   sharesDelta: BigInt!
+  "Amount of underlying tokens added or removed from the user position. This is the first token. Positive for added, negative for removed."
   underlyingDelta0: BigInt!
+  "Amount of underlying tokens added or removed from the user position. This is the second token. Positive for added, negative for removed."
   underlyingDelta1: BigInt!
 
   # derived data
+  "The amount of shares the user has in the vault after the position change"
   sharesBalance: BigInt!
+  "The amount of underlying tokens the user has in the vault after the position change. This is the first token."
   underlyingBalance0: BigInt!
+  "The amount of underlying tokens the user has in the vault after the position change. This is the second token."
   underlyingBalance1: BigInt!
 }
 
-#type Harvest @entity {
-#  # strategy address + block number
-#  id: ID!
-#
-#  vault: BeefyVaultConcLiq!
-#  transaction: Transaction!
-#
-#  fee0: BigInt!
-#  fee1: BigInt!
-#}
 #
 #type ChargedFees @entity {
 #  # vault address + block number

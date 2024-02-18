@@ -46,8 +46,11 @@ templates:
       file: ./src/vault.ts
       entities:
         - BeefyVaultConcLiq
+        - BeefyVaultConcLiqStrategy
         - UserPosition
-        - UserPositionChange
+        - UserPositionChanged
+        - Account
+        - Token
       abis:
         - name: BeefyVaultConcLiq
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
@@ -66,3 +69,22 @@ templates:
           handler: handleOwnershipTransferred
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+
+  - name: BeefyVaultConcLiqStrategy
+    kind: ethereum/contract
+    network: arbitrum
+    source:
+      abi: StrategyPassiveManagerUniswap
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.8
+      language: wasm/assemblyscript
+      file: ./src/strategy.ts
+      entities:
+        - Harvest
+      abis:
+        - name: StrategyPassiveManagerUniswap
+          file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+      eventHandlers:
+        - event: Harvest(uint256,uint256)
+          handler: handleHarvest

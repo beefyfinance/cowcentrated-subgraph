@@ -1,6 +1,7 @@
 import { ProxyCreated } from '../generated/BeefyVaultConcLiqFactory/BeefyVaultConcLiqFactory'
 import { BeefyVaultConcLiqFactory, BeefyVaultConcLiq, Account } from '../generated/schema'
 import { BeefyVaultConcLiq as BeefyVaultConcLiqTemplate } from '../generated/templates'
+import { getOrCreateTransaction } from './common'
 
 export function handleNewBeefyVaultConcLiq(event: ProxyCreated): void {
   let factoryId = event.address
@@ -18,13 +19,12 @@ export function handleNewBeefyVaultConcLiq(event: ProxyCreated): void {
   creatorAccount.createdVaultCount = creatorAccount.createdVaultCount + 1
   creatorAccount.save()
 
+  let tx = getOrCreateTransaction(event.block, event.transaction)
+
   let vaultId = event.params.proxy
   let vault = new BeefyVaultConcLiq(vaultId)
   vault.factory = factory.id
-  vault.createdBy = creatorAccount.id
-  vault.createdWithTransaction = event.transaction.hash
-  vault.createdAtTimestamp = event.block.timestamp
-  vault.createdAtBlock = event.block.number
+  vault.createdWith = tx.id
   vault.save()
 
   factory.vaultCount = factory.vaultCount + 1
