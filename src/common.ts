@@ -30,19 +30,9 @@ export function getOrCreateToken(tokenAddress: Bytes): Token {
       token.symbol = symbolRes.value
     }
 
-    let decimalsRes = tokenContract.try_decimals()
-    if (!decimalsRes.reverted) {
-      token.decimals = decimalsRes.value
-    } else {
-      token.decimals = 18
-    }
-
-    let totalSupplyRes = tokenContract.try_totalSupply()
-    if (!totalSupplyRes.reverted) {
-      token.totalSupply = totalSupplyRes.value
-    } else {
-      token.totalSupply = BigInt.fromI32(0)
-    }
+    // at least ensure that decimals and totalSupply are set
+    token.decimals = tokenContract.decimals()
+    token.totalSupply = BigInt.fromI32(0)
 
     token.save()
   }
@@ -84,13 +74,4 @@ export function getOrCreateTransaction(block: ethereum.Block, transaction: ether
   }
 
   return tx
-}
-
-export function getInitializedVaultTotalSupply(vault: BeefyVaultConcLiq): BigInt {
-  let sharesToken = getOrCreateToken(vault.id)
-  let currentTotalSupply = sharesToken.totalSupply
-  if (currentTotalSupply === null) {
-    throw Error('Vault not initialized')
-  }
-  return currentTotalSupply
 }

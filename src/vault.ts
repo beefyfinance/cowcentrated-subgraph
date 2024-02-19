@@ -14,7 +14,6 @@ import {
   getOrCreateToken,
   getEventIdentifier,
   getOrCreateTransaction,
-  getInitializedVaultTotalSupply,
 } from './common'
 
 import { BeefyVaultConcLiqStrategy as BeefyVaultConcLiqStrategyTemplate } from '../generated/templates'
@@ -104,9 +103,8 @@ function updateUserPosition(
   if (currentUnderlyingAmount1 === null) throw Error('Vault not initialized')
   vault.underlyingAmount1 = currentUnderlyingAmount1.plus(underlyingDelta1)
   vault.save()
-  let currentTotalSupply = getInitializedVaultTotalSupply(vault)
-  let sharesToken = getOrCreateToken(event.address)
-  sharesToken.totalSupply = currentTotalSupply.plus(sharesDelta)
+  let sharesToken = getOrCreateToken(vault.id)
+  sharesToken.totalSupply = sharesToken.totalSupply.plus(sharesDelta)
   sharesToken.save()
 
   // init user position

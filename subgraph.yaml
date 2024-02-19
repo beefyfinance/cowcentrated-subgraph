@@ -82,9 +82,17 @@ templates:
       file: ./src/strategy.ts
       entities:
         - Harvest
+        - Token
+        - Account
+        - UserPosition
+        - BeefyVaultConcLiq
       abis:
+        - name: BeefyVaultConcLiq
+          file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
         - name: StrategyPassiveManagerUniswap
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+        - name: IERC20
+          file: ./abis/IERC20/IERC20.json
       eventHandlers:
         - event: Harvest(uint256,uint256)
           handler: handleHarvest

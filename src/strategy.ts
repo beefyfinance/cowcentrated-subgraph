@@ -4,7 +4,7 @@ import {
   getEventIdentifier,
   getExistingStrategy,
   getExistingVault,
-  getInitializedVaultTotalSupply,
+  getOrCreateToken,
   getOrCreateTransaction,
 } from './common'
 import { BeefyVaultConcLiq as BeefyVaultConcLiqContract } from '../generated/templates/BeefyVaultConcLiq/BeefyVaultConcLiq'
@@ -13,8 +13,10 @@ import { Address, BigInt } from '@graphprotocol/graph-ts'
 export function handleHarvest(event: HarvestEvent): void {
   let strategy = getExistingStrategy(event.address)
   let tx = getOrCreateTransaction(event.block, event.transaction)
+  let vault = getExistingVault(strategy.vault)
 
   let harvest = new HarvestSchema(getEventIdentifier(event))
+  harvest.vault = vault.id
   harvest.strategy = strategy.id
   harvest.createdWith = tx.id
   harvest.fee0 = event.params.fee0
@@ -26,10 +28,9 @@ export function handleHarvest(event: HarvestEvent): void {
   let pricesPerToken = vaultContract.getTokensPerShare(BigInt.fromI32(1))
 
   // update the vault
-  let vault = getExistingVault(strategy.vault)
-  let currentTotalSupply = getInitializedVaultTotalSupply(vault)
-  vault.underlyingAmount0 = currentTotalSupply.times(pricesPerToken.value0)
-  vault.underlyingAmount1 = currentTotalSupply.times(pricesPerToken.value1)
+  let sharesToken = getOrCreateToken(vault.id)
+  vault.underlyingAmount0 = sharesToken.totalSupply.times(pricesPerToken.value0)
+  vault.underlyingAmount1 = sharesToken.totalSupply.times(pricesPerToken.value1)
   vault.save()
 
   // update all the current positions
