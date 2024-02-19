@@ -104,7 +104,9 @@ function updateUserPosition(
   vault.underlyingAmount1 = currentUnderlyingAmount1.plus(underlyingDelta1)
   vault.save()
   let sharesToken = getOrCreateToken(vault.id)
-  sharesToken.totalSupply = sharesToken.totalSupply.plus(sharesDelta)
+  let currentTotalSupply = sharesToken.totalSupply
+  if (currentTotalSupply === null) throw Error('Vault not initialized')
+  sharesToken.totalSupply = currentTotalSupply.plus(sharesDelta)
   sharesToken.save()
 
   // init user position

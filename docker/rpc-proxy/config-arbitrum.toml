@@ -53,35 +53,51 @@ flush_every_ms = 24_000
 
 [llamarpc]
 url = "https://arbitrum.llamarpc.com" # RPC url
-max_consecutive = 1                   # The maximum amount of time we can use this RPC in a row.
+max_consecutive = 50                  # The maximum amount of time we can use this RPC in a row.
 max_per_second = 1                    # Max ammount of queries per second. Note: Does nothing ATM
 
 [ankr]
 url = "https://rpc.ankr.com/arbitrum"
-max_consecutive = 1
+max_consecutive = 50
 max_per_second = 1
 
 [1rpc]
 url = "https://1rpc.io/arb"
-max_consecutive = 1
+max_consecutive = 50
 max_per_second = 1
 
 [tornadoeth]
 url = "https://rpc.tornadoeth.cash/arbitrum"
-max_consecutive = 1
+max_consecutive = 50
 max_per_second = 1
 
 [blockpi]
 url = "https://arbitrum.blockpi.network/v1/rpc/public"
-max_consecutive = 1
+max_consecutive = 50
 max_per_second = 1
 
-[blastapi]
-url = "https://arbitrum-one.public.blastapi.io"
-max_consecutive = 1
-max_per_second = 1
+# 'eth_getLogs' is unavailable on our public API! Head over to https://bit.ly/gettinganodewithblast for more information.
+#[blastapi]
+#url = "https://arbitrum-one.public.blastapi.io"
+#max_consecutive = 50
+#max_per_second = 1
 
 [omniatech]
 url = "https://endpoints.omniatech.io/v1/arbitrum/one/public"
-max_consecutive = 1
+max_consecutive = 50
+max_per_second = 1
+
+[zantop]
+url = "https://api.zan.top/node/v1/arb/one/public"
+max_consecutive = 50
+max_per_second = 1
+
+[drpc]
+url = "https://arbitrum.drpc.org"
+max_consecutive = 50
+max_per_second = 1
+
+[nodies]
+url = "https://arb-pokt.nodies.app"
+max_consecutive = 50
 max_per_second = 1

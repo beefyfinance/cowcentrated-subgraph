@@ -29,8 +29,10 @@ export function handleHarvest(event: HarvestEvent): void {
 
   // update the vault
   let sharesToken = getOrCreateToken(vault.id)
-  vault.underlyingAmount0 = sharesToken.totalSupply.times(pricesPerToken.value0)
-  vault.underlyingAmount1 = sharesToken.totalSupply.times(pricesPerToken.value1)
+  let currentTotalSupply = sharesToken.totalSupply
+  if (currentTotalSupply === null) throw Error('Vault not initialized')
+  vault.underlyingAmount0 = currentTotalSupply.times(pricesPerToken.value0)
+  vault.underlyingAmount1 = currentTotalSupply.times(pricesPerToken.value1)
   vault.save()
 
   // update all the current positions

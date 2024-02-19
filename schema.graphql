@@ -24,10 +24,10 @@ type Token @entity {
   "The token name"
   name: String
   "The number of decimals the token uses"
-  decimals: Int!
+  decimals: Int
 
   "The total supply of the token"
-  totalSupply: BigInt!
+  totalSupply: BigInt
 }
 
 type Transaction @entity {
