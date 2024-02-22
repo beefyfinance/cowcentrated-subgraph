@@ -2,12 +2,35 @@
 ##### Common dimensions ##########
 ##################################
 
-type Account @entity {
-  "The account address"
+"""
+A user of the protocol.
+A user is a unique address that interacts with the protocol, but not necessarily a unique person.
+All users are identified by their address, wether they are an investor, strategist or harvester.
+"""
+type UserAccount @entity {
+  "The user address"
   id: Bytes!
 
   "The number of vaults created by the user"
   createdVaultCount: Int!
+
+  "The timestamp of the last transaction the user was involved in"
+  lastInteractionTimestamp: BigInt!
+
+  "Total amount of seconds the user has been active in the protocol"
+  investedDuration: BigInt!
+
+  "Current position value in USD as the sum of all user ongoing positions"
+  totalPositionValueUSD: BigDecimal!
+
+  """
+  Current time-weighted position value in USD.
+  This is the amount of seconds times the position value has been active.
+  """
+  timeWeightedPositionValueUSD: BigDecimal!
+
+  "The transactions count that the user was the sender of"
+  interactionsCount: Int!
 
   "All user beefy positions"
   userPositions: [UserPosition!]! @derivedFrom(field: "user")
@@ -15,6 +38,10 @@ type Account @entity {
   transactions: [Transaction!]! @derivedFrom(field: "sender")
 }
 
+"""
+A token is a representation of a fungible asset on the blockchain
+as specified by the ERC20 standard.
+"""
 type Token @entity {
   # token address
   id: Bytes!
@@ -24,12 +51,13 @@ type Token @entity {
   "The token name"
   name: String
   "The number of decimals the token uses"
-  decimals: Int
-
-  "The total supply of the token"
-  totalSupply: BigInt
+  decimals: Int!
 }
 
+"""
+A transaction is a record of an event that happened on the blockchain.
+Transactions are identified by their hash.
+"""
 type Transaction @entity {
   "The transaction hash"
   id: Bytes!
@@ -40,112 +68,196 @@ type Transaction @entity {
   blockTimestamp: BigInt!
 
   "The sender of the transaction"
-  sender: Account!
+  sender: UserAccount!
+
+  "Gas fee paid for the transaction in the native token"
+  gasFee: BigDecimal!
 }
 
 #########################
-##### Fee Management ####
+##### Protocol Data #####
 #########################
 
-#type FeeManager {
-#  # beefy fee config address
-#  id: ID!
-#
-#  # beefy fee
-#  beefyFee: BigInt!
-#  # strategist fee
-#  strategistFee: BigInt!
-#}
+"""
+The Protocol entity is the main entity of the Beefy Finance subgraph.
+It represents the Beefy Finance protocol.
+This is where all stats and data about the protocol is stored.
+"""
+type Protocol @entity {
+  """
+  The protocol identifier:
+  - 1: BeefyCL
+  """
+  id: Int8!
+
+  "Protocol name"
+  name: String!
+
+  "The current TVL in the protocol in USD"
+  totalValueLockedUSD: BigDecimal!
+
+  "The current number of active vaults in the protocol"
+  activeVaultCount: Int!
+  "The current number of invested users in the protocol"
+  activeUserCount: Int!
+  "The number of transactions that ever happened in the protocol"
+  transactionCount: Int!
+
+  "A timeseries of the protocol's stats"
+  dailySnapshots: [DailyProtocolSnapshot!]! @derivedFrom(field: "protocol")
+}
+
+"""
+A daily snapshot of the protocol's stats.
+Any event that happens in the protocol is recorded in a daily snapshot.
+"""
+type DailyProtocolSnapshot @entity {
+  "protocol.id + day timestamp (ts truncated to day)"
+  id: Bytes!
+
+  "The protocol the snapshot is for"
+  protocol: Protocol!
+
+  "Timestamp of the snapshot, truncated to day"
+  day: BigInt!
+
+  "Value locked in the protocol in USD at the time of the snapshot"
+  totalValueLockedUSD: BigDecimal!
+
+  "Number of vaults in the protocol at the time of the snapshot"
+  activeVaultCount: Int!
+  "Number of users in the protocol at the time of the snapshot"
+  activeUserCount: Int!
+  "Number of users interacting with the protocol for the first time at the time of the snapsho"
+  newUserCount: Int!
+  "Number of transactions in the protocol at the time of the snapshot"
+  transactionCount: Int!
+
+  "Amount of fees collected by the protocol in the native token at the time of the snapshot"
+  protocolFeesCollectedNative: BigDecimal!
+  "Total amount of fees collected by the protocol in USD at the time of the snapshot"
+  protocolFeesCollectedUSD: BigDecimal!
+
+  "Harvest incentive fees collected by the protocol in the native token at the time of the snapshot"
+  harvesterFeesCollectedNative: BigDecimal!
+  "Total amount of harvest incentive fees collected by the protocol in USD at the time of the snapshot"
+  harvesterFeesCollectedUSD: BigDecimal!
+
+  "Strategist incentive fees collected by the protocol in the native token at the time of the snapshot"
+  strategistFeesCollectedNative: BigDecimal!
+  "Total amount of strategist incentive fees collected by the protocol in USD at the time of the snapshot"
+  strategistFeesCollectedUSD: BigDecimal!
+
+  "Zap fees collected by the protocol in the native token at the time of the snapshot"
+  zapFeesCollectedNative: BigDecimal!
+  "Total amount of zap fees collected by the protocol in USD at the time of the snapshot"
+  zapFeesCollectedUSD: BigDecimal!
+}
 
 #############################
 ##### CL Vault Contracts ####
 #############################
 
-type BeefyVaultConcLiqFactory @entity {
-  "The factory address"
-  id: Bytes!
-
-  "All vaults created by the factory"
-  vaults: [BeefyVaultConcLiq!]! @derivedFrom(field: "factory")
-
-  "The number of vaults created by the factory"
-  vaultCount: Int!
-}
-
-####################
-##### CL Vaults ####
-####################
-
-type BeefyVaultConcLiq @entity {
+type BeefyCLVault @entity {
   "The vault address"
   id: Bytes!
 
-  "The factory that created the vault"
-  factory: BeefyVaultConcLiqFactory!
+  "Protocol the vault belongs to"
+  protocol: Protocol!
+
   "The transaction that created the vault"
   createdWith: Transaction!
 
-  # all values below will be undefined before the vault is initialized
-
-  "Current owner of the vault"
-  owner: Account
+  "Current owner of the vault. The owner has additional permissions to manage the vault."
+  owner: UserAccount!
   "The token data of the vault. The vault is also an ERC20 token. This tokens represents the shares of the vault."
-  sharesToken: Token
+  sharesToken: Token!
   "The strategy of the vault. The strategy is responsible for managing the vault's assets."
-  strategy: BeefyVaultConcLiqStrategy @derivedFrom(field: "vault")
+  strategy: BeefyCLStrategy! @derivedFrom(field: "vault")
 
   "The underlying tokens contained in the vault. This is the first token."
-  underlyingToken0: Token
+  underlyingToken0: Token!
   "The underlying tokens contained in the vault. This is the second token."
-  underlyingToken1: Token
-  "The total amount of underlying tokens in the vault. This is the first token."
-  underlyingAmount0: BigInt
-  "The total amount of underlying tokens in the vault. This is the second token."
-  underlyingAmount1: BigInt
+  underlyingToken1: Token!
 
-  # === user positions
+  "Technical field to remember if the vault was already initialized"
+  isInitialized: Boolean!
+
   "All user positions in the vault"
   positions: [UserPosition!]! @derivedFrom(field: "vault")
-  "All user position updates"
-  positionChanges: [UserPositionChanged!]! @derivedFrom(field: "vault")
-
-  # === harvests
-  "All harvests of the vault. A harvest is a transaction that collects yield and compounds it back into the vault."
-  harvests: [Harvest!]! @derivedFrom(field: "vault")
 }
 
-type BeefyVaultConcLiqStrategy @entity {
+"""
+A daily snapshot of the vault's stats.
+Any event that happens in the vault is recorded in a daily snapshot.
+"""
+type DailyBeefyCLVaultSnapshot @entity {
+  "vault.id + day timestamp (ts truncated to day)"
+  id: Bytes!
+
+  "The vault the snapshot is for"
+  vault: BeefyCLVault!
+
+  "Timestamp of the snapshot, truncated to day"
+  day: BigInt!
+
+  "Amount of underlying tokens in the vault. This is the first token."
+  underlyingAmount0: BigDecimal!
+  "Amount of underlying tokens in the vault. This is the second token."
+  underlyingAmount1: BigDecimal!
+
+  "Amount of underlying tokens in the vault in USD. This is the first token."
+  underlyingAmount0USD: BigDecimal!
+  "Amount of underlying tokens in the vault in USD. This is the second token."
+  underlyingAmount1USD: BigDecimal!
+
+  "Total count of harvests for that vault"
+  harvestCount: Int!
+  "Deposit count for that vault"
+  depositCount: Int!
+  "Withdraw count for that vault"
+  withdrawCount: Int!
+  "Transfer count for that vault"
+  transferCount: Int!
+
+  "The harvested amount of the first token"
+  harvestedAmount0: BigDecimal!
+  "The harvested amount of the second token"
+  harvestedAmount1: BigDecimal!
+
+  "The harvested amount of the first token in USD"
+  harvestedAmount0USD: BigDecimal!
+  "The harvested amount of the second token in USD"
+  harvestedAmount1USD: BigDecimal!
+
+  "Amount of native token charged as call fee incentive"
+  harvesterFeeAmountNative: BigDecimal!
+  "Amount of native token charged as protocol fee"
+  protocolFeeAmountNative: BigDecimal!
+  "Amount of native token charged as strategist fee incentive"
+  strategistFeeAmountNative: BigDecimal!
+
+  "Amount of native token charged as call fee incentive in USD"
+  harvesterFeeAmountUSD: BigDecimal!
+  "Amount of native token charged as protocol fee in USD"
+  protocolFeeAmountUSD: BigDecimal!
+  "Amount of native token charged as strategist fee incentive in USD"
+  strategistFeeAmountUSD: BigDecimal!
+}
+
+"""
+A strategy is a contract that manages the assets of a vault.
+This is mostly used to start tracking the events and link them to the vault.
+"""
+type BeefyCLStrategy @entity {
   "The strategy address"
   id: Bytes!
 
-  # === vault
   "The vault the strategy is managing"
-  vault: BeefyVaultConcLiq!
+  vault: BeefyCLVault!
 
-  # === harvests
-  "All harvests of the strategy. A harvest is a transaction that collects yield and compounds it back into the vault."
-  harvests: [Harvest!]! @derivedFrom(field: "strategy")
-}
-
-type Harvest @entity {
-  "transaction hash + log index"
-  id: Bytes!
-
-  "The vault the harvest was performed on"
-  vault: BeefyVaultConcLiq!
-  "The strategy that performed the harvest"
-  strategy: BeefyVaultConcLiqStrategy!
-  "The transaction that initiated the harvest"
-  createdWith: Transaction!
-
-  # event data
-  "Fee amount in the first token"
-  fee0: BigInt!
-  "Fee amount in the second token"
-  fee1: BigInt!
-
-  # derived data
-  # TODO
+  "Technical field to remember if the strategy was already initialized"
+  isInitialized: Boolean!
 }
 
 ###########################
@@ -153,70 +265,34 @@ type Harvest @entity {
 ###########################
 
 type UserPosition @entity {
-  "Vault address + user account address"
+  "Vault address + user user address"
   id: Bytes!
 
   "The vault the user has a position in"
-  vault: BeefyVaultConcLiq!
+  vault: BeefyCLVault!
   "The user that has a position in the vault"
-  user: Account!
+  user: UserAccount!
   "The transaction that created the user position"
   createdWith: Transaction!
 
-  # FIXME: use BigDecimal to avoid passing decimal count around
-  "The amount of shares the user has in the vault"
-  sharesBalance: BigInt!
-  "The amount of underlying tokens the user has in the vault. This is the first token."
-  underlyingBalance0: BigInt!
-  "The amount of underlying tokens the user has in the vault. This is the second token."
-  underlyingBalance1: BigInt!
+  "The amount of shares the user holds"
+  sharesBalance: BigDecimal!
 
-  "All position changes of the user position"
-  positionChanges: [UserPositionChanged!]! @derivedFrom(field: "userPosition")
+  "The amount of first underlying tokens the user is entitled to"
+  underlyingBalance0: BigDecimal!
+  "The amount of second underlying tokens the user is entitled to"
+  underlyingBalance1: BigDecimal!
+
+  "The amount of first underlying tokens the user is entitled to in USD"
+  underlyingBalance0USD: BigDecimal!
+  "The amount of second underlying tokens the user is entitled to in USD"
+  underlyingBalance1USD: BigDecimal!
+
+  "Current position value in USD"
+  positionValueUSD: BigDecimal!
+
+  "Time that the position was last updated. Used to calculate the position's time-weighted size."
+  lastUpdated: BigInt!
+  "Total time the position has been active"
+  totalActiveTime: BigInt!
 }
-
-type UserPositionChanged @entity {
-  "Transaction hash + log index"
-  id: Bytes!
-
-  "The vault the user has a position in"
-  vault: BeefyVaultConcLiq!
-  "The user that has a position in the vault"
-  userPosition: UserPosition!
-  "The transaction that initiated the position change"
-  createdWith: Transaction!
-
-  # TODO: use BigDecimal to avoid passing decimal count around
-  # event data
-  "Amount of shares added or removed from the user position. Positive for added, negative for removed."
-  sharesDelta: BigInt!
-  "Amount of underlying tokens added or removed from the user position. This is the first token. Positive for added, negative for removed."
-  underlyingDelta0: BigInt!
-  "Amount of underlying tokens added or removed from the user position. This is the second token. Positive for added, negative for removed."
-  underlyingDelta1: BigInt!
-
-  # derived data
-  "The amount of shares the user has in the vault after the position change"
-  sharesBalance: BigInt!
-  "The amount of underlying tokens the user has in the vault after the position change. This is the first token."
-  underlyingBalance0: BigInt!
-  "The amount of underlying tokens the user has in the vault after the position change. This is the second token."
-  underlyingBalance1: BigInt!
-}
-
-#
-#type ChargedFees @entity {
-#  # vault address + block number
-#  id: ID!
-#
-#  vault: BeefyVaultConcLiq!
-#  transaction: Transaction!
-#
-#  callFeeAmount: BigInt!
-#  beefyFeeAmount: BigInt!
-#  strategistFeeAmount: BigInt!
-#}
-
-##################################
-#### Historical Snapshot Data ####
-##################################
