@@ -36,9 +36,7 @@ ARB requirements:
     - Snapshot by day (-> user position incentive snapshot entity)
 
 - Incentivized User List & Gini: The list should include users incentivized by the protocol along with their performance metrics. For instance, if trading volume is incentivized, this would be a list of traders with their respective trading volumes. If liquidity providers are incentivized, it would include a list of LPs and their liquidities in USD. Protocols should also strive for more uniform engagement levels across a wide user base for long-term sustainability, which will be measured through a gini coefficient across reward recipients. 
-    - LP is incentivized????
-    - Boosted LP is incentivized????
-    - Zapping is incentivized????
+    - LP incentivized with a boost
 
 - TVL: A daily time series expressed in USD.
     - Events: Deposit/Withdraw/Transfer + Some Daily Clock event (to make sure we update daily)
@@ -60,9 +58,28 @@ ARB requirements:
     -> Snapshot by day ( -> user position snapshot entity)
 
 
+- Exogenous User Growth: Growing the daily active users of the protocol
+
+- Fee Generation: Increase daily protocol fee generation to surpass distributed ARB rewards, promoting sustainable growth.
+
+- User Utilization Balance: Achieve more uniform engagement levels across a wide user base for long-term sustainability and to prevent reliance on a small subset of users.
+
+- Arbitrum Sequencer Revenue: Increase user activity across projects to boost Arbitrum Sequencer revenue. This can be achieved by actively collaborating with projects on the Arbitrum network to enhance user experiences.
+
+- Capital Inflow Rate: The rate at which new capital is deposited into yield-generating products, indicating trust and attractiveness.
+
+- Reinvestment Rate: The rate at which earned yields are reinvested into the protocol, showing user confidence and compounding interest potential.
+Diversification of Yield Sources: A variety of yield-generating strategies employed, reducing risk and improving stability.
+
+- Average Yield Rate: The average yield rate provided to investors, showcasing the platform's performance and attractiveness.
+
+
+
+
+
+
 Assumptions to build this with thegraph quickly:
 - We have a uniswap-view-quoter deployed on ARB
 - We have good zap events
 - We will build a boost factory and boost lens
-
 

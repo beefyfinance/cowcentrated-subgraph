@@ -104,22 +104,26 @@ type Protocol @entity {
   transactionCount: Int!
 
   "A timeseries of the protocol's stats"
-  dailySnapshots: [DailyProtocolSnapshot!]! @derivedFrom(field: "protocol")
+  snapshots: [ProtocolSnapshot!]! @derivedFrom(field: "protocol")
 }
 
 """
-A daily snapshot of the protocol's stats.
-Any event that happens in the protocol is recorded in a daily snapshot.
+A snapshot of the protocol's stats.
+Any event that happens in the protocol is recorded in a snapshot.
+We keep multiple snapshots time frames as noted by the "period" field.
+Snapshots include: daily, weekly, monthly, yearly.
 """
-type DailyProtocolSnapshot @entity {
-  "protocol.id + day timestamp (ts truncated to day)"
+type ProtocolSnapshot @entity {
+  "protocol.id + period + timestamp"
   id: Bytes!
 
   "The protocol the snapshot is for"
   protocol: Protocol!
 
-  "Timestamp of the snapshot, truncated to day"
-  day: BigInt!
+  "The period of the snapshot"
+  period: BigInt!
+  "Timestamp of the snapshot, truncated to the period"
+  timestamp: BigInt!
 
   "Value locked in the protocol in USD at the time of the snapshot"
   totalValueLockedUSD: BigDecimal!
@@ -130,8 +134,37 @@ type DailyProtocolSnapshot @entity {
   activeUserCount: Int!
   "Number of users interacting with the protocol for the first time at the time of the snapsho"
   newUserCount: Int!
-  "Number of transactions in the protocol at the time of the snapshot"
-  transactionCount: Int!
+
+  "Total number of transactions in the protocol at the time of the snapshot"
+  totalTransactionCount: Int!
+  "Number of transactions initiated by investors at the time of the snapshot"
+  investorTransactionsCount: Int!
+  "Number of transactions initiated by harvesters at the time of the snapshot"
+  harvesterTransactionsCount: Int!
+
+  "Total amount of gas spent by anyone at the time of the snapshot"
+  totalGasSpent: BigDecimal!
+  "Total amount of gas spent by anyone in USD at the time of the snapshot"
+  totalGasSpentUSD: BigDecimal!
+  "Total amount of gas spent by investors at the time of the snapshot"
+  investorGasSpent: BigDecimal!
+  "Total amount of gas spent by investors in USD at the time of the snapshot"
+  investorGasSpentUSD: BigDecimal!
+  "Total amount of gas spent by harvesters at the time of the snapshot"
+  harvesterGasSpent: BigDecimal!
+  "Total amount of gas spent by harvesters in USD at the time of the snapshot"
+  harvesterGasSpentUSD: BigDecimal!
+
+  """
+  Total amount of gas saved by the protocol at the time of the snapshot.
+  Each time an harvest transaction is executed, this value is increased by the amount of gas saved.
+  Gas saved is equal the the number of gas units that would have been spent if the transaction was executed on-chain
+  by each user instead of using the Beefy Finance protocol.
+  It is expressed in native token.
+  """
+  protocolGasSavedNative: BigDecimal!
+  "Total amount of gas saved by the protocol in USD at the time of the snapshot"
+  protocolGasSavedUSD: BigDecimal!
 
   "Amount of fees collected by the protocol in the native token at the time of the snapshot"
   protocolFeesCollectedNative: BigDecimal!
@@ -180,26 +213,36 @@ type BeefyCLVault @entity {
   "The underlying tokens contained in the vault. This is the second token."
   underlyingToken1: Token!
 
+  "The current TVL in the vault in USD"
+  totalValueLockedUSD: BigDecimal!
+
   "Technical field to remember if the vault was already initialized"
   isInitialized: Boolean!
 
   "All user positions in the vault"
   positions: [UserPosition!]! @derivedFrom(field: "vault")
+
+  "Snapshot of the vault's stats"
+  snapshots: [BeefyCLVaultSnapshot!]! @derivedFrom(field: "vault")
 }
 
 """
-A daily snapshot of the vault's stats.
-Any event that happens in the vault is recorded in a daily snapshot.
+A snapshot of the vault's stats.
+Any event that happens in the vault is recorded in a snapshot.
+We keep multiple snapshots time frames as noted by the "period" field.
+Snapshots include: daily, weekly, monthly, yearly.
 """
-type DailyBeefyCLVaultSnapshot @entity {
-  "vault.id + day timestamp (ts truncated to day)"
+type BeefyCLVaultSnapshot @entity {
+  "vault.id + period + timestamp"
   id: Bytes!
 
   "The vault the snapshot is for"
   vault: BeefyCLVault!
 
-  "Timestamp of the snapshot, truncated to day"
-  day: BigInt!
+  "The period of the snapshot"
+  period: BigInt!
+  "Timestamp of the snapshot, truncated to the period"
+  timestamp: BigInt!
 
   "Amount of underlying tokens in the vault. This is the first token."
   underlyingAmount0: BigDecimal!
@@ -210,6 +253,9 @@ type DailyBeefyCLVaultSnapshot @entity {
   underlyingAmount0USD: BigDecimal!
   "Amount of underlying tokens in the vault in USD. This is the second token."
   underlyingAmount1USD: BigDecimal!
+
+  "The current TVL in the vault in USD"
+  totalValueLockedUSD: BigDecimal!
 
   "Total count of harvests for that vault"
   harvestCount: Int!
@@ -260,6 +306,61 @@ type BeefyCLStrategy @entity {
   isInitialized: Boolean!
 }
 
+#######################
+##### CL Incentive ####
+#######################
+
+"""
+A vault incentive is a reward given to the investors of a vault.
+The reward is given in a dedicated incentive token during a set period of time.
+This is most commonly referred to as a "boost".
+"""
+type BeefyVaultIncentive @entity {
+  "The vault address"
+  id: Bytes!
+
+  "The vault the incentive is for"
+  vault: BeefyCLVault!
+
+  "The transaction that created the vault incentive"
+  createdWith: Transaction!
+
+  "The token used for the incentive"
+  incentiveRewardedIn: Token!
+
+  "Amount of incentive tokens left to be distributed"
+  incentiveAmount: BigDecimal!
+
+  "The amount of incentive tokens distributed so far"
+  claimedAmount: BigDecimal!
+  "Amount of incentive tokens distributed so far in USD"
+  claimedAmountUSD: BigDecimal!
+
+  "All claims of the vault incentive"
+  claims: [BeefyVaultIncentiveClaimEvent!]! @derivedFrom(field: "vaultIncentive")
+}
+
+"""
+A vault incentive claim is a record of an investor claiming a vault incentive.
+As incentives are time-released, investors can claim their share of the incentive at any time.
+"""
+type BeefyVaultIncentiveClaimEvent @entity {
+  "The vault incentive claim id"
+  id: Bytes!
+
+  "The vault incentive the claim is for"
+  vaultIncentive: BeefyVaultIncentive!
+
+  "The user that claimed the incentive"
+  user: UserAccount!
+
+  "The transaction that created the vault incentive claim"
+  createdWith: Transaction!
+
+  "The amount of incentive tokens claimed"
+  claimedAmount: BigDecimal!
+}
+
 ###########################
 ##### CL User Position ####
 ###########################
@@ -274,6 +375,54 @@ type UserPosition @entity {
   user: UserAccount!
   "The transaction that created the user position"
   createdWith: Transaction!
+
+  "The amount of shares the user holds"
+  sharesBalance: BigDecimal!
+
+  "The amount of first underlying tokens the user is entitled to"
+  underlyingBalance0: BigDecimal!
+  "The amount of second underlying tokens the user is entitled to"
+  underlyingBalance1: BigDecimal!
+
+  "The amount of first underlying tokens the user is entitled to in USD"
+  underlyingBalance0USD: BigDecimal!
+  "The amount of second underlying tokens the user is entitled to in USD"
+  underlyingBalance1USD: BigDecimal!
+
+  "Current position value in USD"
+  positionValueUSD: BigDecimal!
+
+  """
+  Current time-weighted position value in USD.
+  This is the amount of seconds times the position value has been active.
+  """
+  timeWeightedPositionValueUSD: BigDecimal!
+
+  "Time that the position was last updated. Used to calculate the position's time-weighted size."
+  lastUpdated: BigInt!
+  "Total time the position has been active"
+  totalActiveTime: BigInt!
+
+  "All user position snapshots"
+  snapshots: [UserPositionSnapshot!]! @derivedFrom(field: "userPosition")
+}
+
+"""
+A snapshot of the user's position in a vault.
+Any event that happens in the user's position is recorded in a snapshot.
+We keep multiple snapshots time frames as noted by the "period" field.
+Snapshots include: daily, weekly, monthly, yearly.
+"""
+type UserPositionSnapshot @entity {
+  "userPosition.id + period + timestamp"
+  id: Bytes!
+
+  "The user position the snapshot is for"
+  userPosition: UserPosition!
+  "The period of the snapshot"
+  period: BigInt!
+  "Timestamp of the snapshot, truncated to the period"
+  timestamp: BigInt!
 
   "The amount of shares the user holds"
   sharesBalance: BigDecimal!
