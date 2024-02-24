@@ -8,11 +8,11 @@ export let ONE_ETH_BD = BigDecimal.fromString('1000000000000000000')
 export let ONE_GWEI_BI = BigInt.fromI32(1000000000)
 export let ONE_GWEI_BD = BigDecimal.fromString('1000000000')
 
-export function tokenAmountToDecimal(tokenAmount: BigInt, decimals: BigInt): BigDecimal {
-  if (decimals == ZERO_BI) {
+export function tokenAmountToDecimal(tokenAmount: BigInt, tokenDecimals: i32): BigDecimal {
+  if (tokenDecimals == 0) {
     return tokenAmount.toBigDecimal()
   }
-  let div = BigDecimal.fromString('1'.concat('0'.repeat(decimals.toI32())))
+  let div = BigDecimal.fromString('1'.concat('0'.repeat(tokenDecimals)))
   return tokenAmount.toBigDecimal().div(div)
 }
 

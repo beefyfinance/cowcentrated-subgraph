@@ -15,7 +15,7 @@ interface EvmAddress {
 A token is a representation of a fungible asset on the blockchain
 as specified by the ERC20 standard.
 """
-type Token @entity {
+type Token @entity(immutable: true) {
   # token address
   id: Bytes!
 
@@ -31,7 +31,7 @@ type Token @entity {
 A transaction is a record of an event that happened on the blockchain.
 Transactions are identified by their hash.
 """
-type Transaction @entity {
+type Transaction @entity(immutable: true) {
   "The transaction hash"
   id: Bytes!
 
@@ -205,19 +205,71 @@ type BeefyCLVault implements EvmAddress @entity {
   "The strategy of the vault. The strategy is responsible for managing the vault's assets."
   strategy: BeefyCLStrategy!
 
-  "The underlying tokens contained in the vault. This is the first token."
-  underlyingToken0: Token!
-  "The underlying tokens contained in the vault. This is the second token."
-  underlyingToken1: Token!
-
-  "The current TVL in the vault in USD"
-  totalValueLockedUSD: BigDecimal!
-
   "Technical field to remember if the vault was already initialized"
   isInitialized: Boolean!
 
   "The current lifecycle status of the vault"
   lifecycle: VaultLifecycle!
+
+  "The underlying tokens contained in the vault. This is the first token."
+  underlyingToken0: Token!
+  "The underlying tokens contained in the vault. This is the second token."
+  underlyingToken1: Token!
+
+  "Price range start this vault is currently configured to operate in"
+  priceRangeMin1: BigDecimal!
+  "Price range end this vault is currently configured to operate in"
+  priceRangeMax1: BigDecimal!
+  "Price range start this vault is currently configured to operate in in USD"
+  priceRangeMin1USD: BigDecimal!
+  "Price range end this vault is currently configured to operate in in USD"
+  priceRangeMax1USD: BigDecimal!
+
+  "Amount of underlying tokens in the vault. This is the first token."
+  underlyingAmount0: BigDecimal!
+  "Amount of underlying tokens in the vault. This is the second token."
+  underlyingAmount1: BigDecimal!
+
+  "Amount of underlying tokens in the vault in USD. This is the first token."
+  underlyingAmount0USD: BigDecimal!
+  "Amount of underlying tokens in the vault in USD. This is the second token."
+  underlyingAmount1USD: BigDecimal!
+
+  "The current TVL in the vault in USD"
+  totalValueLockedUSD: BigDecimal!
+
+  "Total count of harvests for that vault"
+  totalHarvestCount: Int!
+  "Deposit count for that vault"
+  totalDepositCount: Int!
+  "Withdraw count for that vault"
+  totalWithdrawCount: Int!
+  "Transfer count for that vault"
+  totalTransferCount: Int!
+
+  "The harvested amount of the first token"
+  totalHarvestedAmount0: BigDecimal!
+  "The harvested amount of the second token"
+  totalHarvestedAmount1: BigDecimal!
+
+  "The harvested amount of the first token in USD"
+  totalHarvestedAmount0USD: BigDecimal!
+  "The harvested amount of the second token in USD"
+  totalHarvestedAmount1USD: BigDecimal!
+
+  "Amount of native token charged as call fee incentive"
+  totalHarvesterFeeAmountNative: BigDecimal!
+  "Amount of native token charged as protocol fee"
+  totalProtocolFeeAmountNative: BigDecimal!
+  "Amount of native token charged as strategist fee incentive"
+  totalStrategistFeeAmountNative: BigDecimal!
+
+  "Amount of native token charged as call fee incentive in USD"
+  totalHarvesterFeeAmountUSD: BigDecimal!
+  "Amount of native token charged as protocol fee in USD"
+  totalProtocolFeeAmountUSD: BigDecimal!
+  "Amount of native token charged as strategist fee incentive in USD"
+  totalStrategistFeeAmountUSD: BigDecimal!
 
   "All investors positions in the vault"
   positions: [InvestorPosition!]! @derivedFrom(field: "vault")
@@ -245,6 +297,15 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   roundedTimestamp: BigInt!
   "Actual timestamp snapshot was initiated at"
   timestamp: BigInt!
+
+  "Price range start this vault is currently configured to operate in"
+  priceRangeMin1: BigDecimal!
+  "Price range end this vault is currently configured to operate in"
+  priceRangeMax1: BigDecimal!
+  "Price range start this vault is currently configured to operate in in USD"
+  priceRangeMin1USD: BigDecimal!
+  "Price range end this vault is currently configured to operate in in USD"
+  priceRangeMax1USD: BigDecimal!
 
   "Amount of underlying tokens in the vault. This is the first token."
   underlyingAmount0: BigDecimal!
@@ -295,7 +356,7 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
 
 """
 A strategy is a contract that manages the assets of a vault.
-This is mostly used to start tracking the events and link them to the vault.
+This is mostly used to start tracking the events and link them to the vault on new event
 """
 type BeefyCLStrategy implements EvmAddress @entity {
   "The strategy address"
@@ -349,7 +410,7 @@ type BeefyVaultIncentive implements EvmAddress @entity {
 A vault incentive claim is a record of an investor claiming a vault incentive.
 As incentives are time-released, investors can claim their share of the incentive at any time.
 """
-type BeefyVaultIncentiveClaimEvent @entity {
+type BeefyVaultIncentiveClaimEvent @entity(immutable: true) {
   "The vault incentive claim id"
   id: Bytes!
 
@@ -377,11 +438,23 @@ type Investor implements EvmAddress @entity {
   "The timestamp of the last transaction the investor was involved in"
   lastInteractionTimestamp: BigInt!
 
+  "Number of positions the investor has in the protocol"
+  positionCount: Int!
+
   "Total amount of seconds the investor has been active in the protocol"
   investedDuration: BigInt!
 
   "Current position value in USD as the sum of all the investor ongoing positions"
   totalPositionValueUSD: BigDecimal!
+
+  """
+  Time-weighted position value in USD for the period.
+  This is the amount of seconds times the position value has been active.
+  """
+  timeWeightedPositionValueUSD: BigDecimal!
+
+  "The transactions count that the investor was the sender of"
+  totalInteractionsCount: Int!
 
   "All investor beefy positions"
   positions: [InvestorPosition!]! @derivedFrom(field: "investor")
@@ -500,9 +573,4 @@ type InvestorPositionSnapshot implements Snapshot @entity {
 
   "Current position value in USD"
   positionValueUSD: BigDecimal!
-
-  "Time that the position was last updated. Used to calculate the position's time-weighted size."
-  lastUpdated: BigInt!
-  "Total time the position has been active"
-  totalActiveTime: BigInt!
 }

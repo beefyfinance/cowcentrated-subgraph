@@ -32,6 +32,8 @@ export function handleVaultCreated(event: VaultCreatedEvent): void {
 
   // start indexing the new vault
   BeefyCLVaultTemplate.create(vaultAddress)
+
+  log.info('handleVaultCreated: Vault {} created on block {}', [vault.id.toHexString(), event.block.number.toString()])
 }
 
 export function handleVaultInitialized(event: VaultInitialized): void {
@@ -40,7 +42,10 @@ export function handleVaultInitialized(event: VaultInitialized): void {
   const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
   const strategyAddressRes = vaultContract.try_strategy()
   if (strategyAddressRes.reverted) {
-    log.error('handleInitialized: strategy() reverted for vault {}', [vaultAddress.toHexString()])
+    log.error('handleInitialized: strategy() reverted for vault {} on block {}', [
+      vaultAddress.toHexString(),
+      event.block.number.toString(),
+    ])
     throw Error('handleInitialized: strategy() reverted')
   }
   const strategyAddress = strategyAddressRes.value
@@ -48,9 +53,16 @@ export function handleVaultInitialized(event: VaultInitialized): void {
   let vault = getBeefyCLVault(vaultAddress)
   vault.isInitialized = true
   vault.strategy = strategyAddress
+  vault.save() // needs to be saved before we can use it in the strategy events
 
   // we start watching strategy events
   BeefyCLStrategyTemplate.create(strategyAddress)
+
+  log.info('handleVaultInitialized: Vault {} initialized with strategy {} on block {}', [
+    vault.id.toHexString(),
+    vault.strategy.toHexString(),
+    event.block.number.toString(),
+  ])
 
   const strategy = getBeefyCLStrategy(strategyAddress)
   // the strategy may or may not be initialized
@@ -58,16 +70,18 @@ export function handleVaultInitialized(event: VaultInitialized): void {
   const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
   const strategyPool = strategyContract.try_pool()
   if (strategyPool.reverted) {
-    log.error('handleInitialized: pool() reverted for strategy {}', [strategyAddress.toHexString()])
+    log.error('handleInitialized: pool() reverted for strategy {} on block {}', [
+      strategyAddress.toHexString(),
+      event.block.number.toString(),
+    ])
     throw Error('handleInitialized: pool() reverted')
   }
   strategy.isInitialized = !strategyPool.value.equals(ADDRESS_ZERO)
 
   if (strategy.isInitialized) {
     vault = fetchInitialVaultData(event.block.timestamp, vault)
+    vault.save()
   }
-
-  vault.save()
 }
 
 export function handleStrategyInitialized(event: StrategyInitializedEvent): void {
@@ -76,7 +90,10 @@ export function handleStrategyInitialized(event: StrategyInitializedEvent): void
   const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
   const vaultAddressRes = strategyContract.try_vault()
   if (vaultAddressRes.reverted) {
-    log.error('handleInitialized: vault() reverted for strategy {}', [strategyAddress.toHexString()])
+    log.error('handleInitialized: vault() reverted for strategy {} on block {}', [
+      strategyAddress.toHexString(),
+      event.block.number.toString(),
+    ])
     throw Error('handleInitialized: vault() reverted')
   }
   const vaultAddress = vaultAddressRes.value
@@ -85,6 +102,12 @@ export function handleStrategyInitialized(event: StrategyInitializedEvent): void
   strategy.isInitialized = true
   strategy.vault = vaultAddress
   strategy.save()
+
+  log.info('handleStrategyInitialized: Strategy {} initialized for vault {} on block {}', [
+    strategy.id.toHexString(),
+    strategy.vault.toHexString(),
+    event.block.number.toString(),
+  ])
 
   let vault = getBeefyCLVault(vaultAddress)
   if (vault.isInitialized) {
@@ -153,6 +176,11 @@ function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLV
   vault.underlyingToken1 = underlyingToken1.id
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_RUNNING
 
+  log.info('fetchInitialVaultData: Vault {} now running with strategy {}.', [
+    vault.id.toHexString(),
+    vault.strategy.toHexString(),
+  ])
+
   return vault
 }
 
@@ -161,6 +189,11 @@ export function handleStrategyPaused(event: PausedEvent): void {
   const vault = getBeefyCLVault(strategy.vault)
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_PAUSED
   vault.save()
+
+  log.info('handleStrategyPaused: Strategy {} paused for vault {}.', [
+    strategy.id.toHexString(),
+    vault.id.toHexString(),
+  ])
 }
 
 export function handleStrategyUnpaused(event: UnpausedEvent): void {
@@ -168,4 +201,9 @@ export function handleStrategyUnpaused(event: UnpausedEvent): void {
   const vault = getBeefyCLVault(strategy.vault)
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_RUNNING
   vault.save()
+
+  log.info('handleStrategyUnpaused: Strategy {} unpaused for vault {}.', [
+    strategy.id.toHexString(),
+    vault.id.toHexString(),
+  ])
 }

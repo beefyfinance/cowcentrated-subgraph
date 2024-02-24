@@ -62,10 +62,10 @@ templates:
           handler: handleInitialized
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
-        #- event: Deposit(indexed address,uint256,uint256,uint256)
-        #  handler: handleDeposit
-        #- event: Withdraw(indexed address,uint256,uint256,uint256)
-        #  handler: handleWithdraw
+        - event: Deposit(indexed address,uint256,uint256,uint256)
+          handler: handleDeposit
+        - event: Withdraw(indexed address,uint256,uint256,uint256)
+          handler: handleWithdraw
         #- event: Transfer(indexed address,indexed address,uint256)
         #  handler: handleTransfer
 
