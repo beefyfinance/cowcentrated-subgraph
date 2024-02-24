@@ -190,6 +190,15 @@ type ProtocolSnapshot @entity {
 ##### CL Vault Contracts ####
 #############################
 
+enum VaultLifecycle {
+  "The vault is in the process of being initialized"
+  INITIALIZING
+  "The vault is able to accept deposits and earn yield"
+  RUNNING
+  "A vault can be paused for a variety of reasons, this is always to protect users funds"
+  PAUSED
+}
+
 type BeefyCLVault @entity {
   "The vault address"
   id: Bytes!
@@ -217,6 +226,9 @@ type BeefyCLVault @entity {
 
   "Technical field to remember if the vault was already initialized"
   isInitialized: Boolean!
+
+  "The current lifecycle status of the vault"
+  lifecycle: VaultLifecycle!
 
   "All user positions in the vault"
   positions: [UserPosition!]! @derivedFrom(field: "vault")
@@ -305,6 +317,9 @@ type BeefyCLStrategy @entity {
 
   "The transaction that created the strategy"
   createdWith: Transaction!
+
+  "The owner of the strategy. The owner has additional permissions to manage the strategy."
+  owner: UserAccount!
 
   "Technical field to remember if the strategy was already initialized"
   isInitialized: Boolean!

@@ -36,3 +36,45 @@ export function createCallData(signature: string, parameters: ethereum.Value[]):
 
   return callData
 }
+
+/*
+  TODO: make a multicall to fetch all data from the vault
+  // fetch all data from a multicall
+  const res = multicallContract.aggregate3([
+    new Multicall3__aggregate3InputCallsStruct(
+      ethereum.Value.fromAddress(vaultAddress),
+      ethereum.Value.fromBoolean(false),
+      ethereum.Value.fromBytes(createCallData('wants()', [])),
+    ),
+    new Multicall3__aggregate3InputCallsStruct(
+      ethereum.Value.fromAddress(vaultAddress),
+      ethereum.Value.fromBoolean(false),
+      ethereum.Value.fromBytes(createCallData('symbol()', [])),
+    ),
+    new Multicall3__aggregate3InputCallsStruct(
+      ethereum.Value.fromAddress(vaultAddress),
+      ethereum.Value.fromBoolean(false),
+      ethereum.Value.fromBytes(createCallData('name()', [])),
+    ),
+    new Multicall3__aggregate3InputCallsStruct(
+      ethereum.Value.fromAddress(vaultAddress),
+      ethereum.Value.fromBoolean(false),
+      ethereum.Value.fromBytes(createCallData('decimals()', [])),
+    ),
+  ])
+
+  const wantsRes = ethereum.decode('(address,address)', res[0].returnData)
+  if (!wantsRes) throw Error('Wants not found')
+  const symbolRes = ethereum.decode('(string)', res[1].returnData)
+  if (!symbolRes) throw Error('Symbol not found')
+  const nameRes = ethereum.decode('(string)', res[2].returnData)
+  if (!nameRes) throw Error('Name not found')
+  const decimalsRes = ethereum.decode('(uint8)', res[3].returnData)
+  if (!decimalsRes) throw Error('Decimals not found')
+
+  const wantRes = wantsRes.toTuple()
+  const want0 = wantRes[0].toAddress()
+  const want1 = wantRes[1].toAddress()
+  const shareTokenSymbol = symbolRes.toString()
+  const shareTokenName = nameRes.toString()
+  const shareTokenDecimals = decimalsRes.toI32()*/

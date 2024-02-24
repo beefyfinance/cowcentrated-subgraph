@@ -6,6 +6,7 @@ export function getUserAccount(accountAddress: Bytes): UserAccount {
   let account = UserAccount.load(accountAddress)
   if (!account) {
     account = new UserAccount(accountAddress)
+    account.lastInteractionTimestamp = ZERO_BI
     account.investedDuration = ZERO_BI
     account.totalPositionValueUSD = ZERO_BD
     account.timeWeightedPositionValueUSD = ZERO_BD

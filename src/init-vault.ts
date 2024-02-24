@@ -1,61 +1,18 @@
-import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
-import { BeefyCLStrategy, BeefyCLVault, Token } from '../generated/schema'
-import { createCallData, multicallContract } from './utils/multicall'
-import { Multicall3__aggregate3InputCallsStruct } from '../generated/templates/BeefyCLVault/Multicall3'
+import { Address, BigInt } from '@graphprotocol/graph-ts'
+import { BeefyCLVault } from '../generated/schema'
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
 import { IERC20 as IERC20Contract } from '../generated/templates/BeefyCLVault/IERC20'
 import { getToken } from './entity/token'
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from './entity/protocol'
 import { PERIODS } from './utils/time'
+import { BEEFY_CL_VAULT_LIFECYCLE_RUNNING } from './entity/vault'
 
 /**
  * Initialize the vault data.
  * Call this when both the vault and the strategy are initialized.
  */
-export function initVaultData(timestamp: BigInt, vault: BeefyCLVault, strategy: BeefyCLStrategy): void {
+export function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLVault {
   const vaultAddress = Address.fromBytes(vault.id)
-  /*
-  TODO: make a multicall to fetch all data from the vault
-  // fetch all data from a multicall
-  const res = multicallContract.aggregate3([
-    new Multicall3__aggregate3InputCallsStruct(
-      ethereum.Value.fromAddress(vaultAddress),
-      ethereum.Value.fromBoolean(false),
-      ethereum.Value.fromBytes(createCallData('wants()', [])),
-    ),
-    new Multicall3__aggregate3InputCallsStruct(
-      ethereum.Value.fromAddress(vaultAddress),
-      ethereum.Value.fromBoolean(false),
-      ethereum.Value.fromBytes(createCallData('symbol()', [])),
-    ),
-    new Multicall3__aggregate3InputCallsStruct(
-      ethereum.Value.fromAddress(vaultAddress),
-      ethereum.Value.fromBoolean(false),
-      ethereum.Value.fromBytes(createCallData('name()', [])),
-    ),
-    new Multicall3__aggregate3InputCallsStruct(
-      ethereum.Value.fromAddress(vaultAddress),
-      ethereum.Value.fromBoolean(false),
-      ethereum.Value.fromBytes(createCallData('decimals()', [])),
-    ),
-  ])
-
-  const wantsRes = ethereum.decode('(address,address)', res[0].returnData)
-  if (!wantsRes) throw Error('Wants not found')
-  const symbolRes = ethereum.decode('(string)', res[1].returnData)
-  if (!symbolRes) throw Error('Symbol not found')
-  const nameRes = ethereum.decode('(string)', res[2].returnData)
-  if (!nameRes) throw Error('Name not found')
-  const decimalsRes = ethereum.decode('(uint8)', res[3].returnData)
-  if (!decimalsRes) throw Error('Decimals not found')
-
-  const wantRes = wantsRes.toTuple()
-  const want0 = wantRes[0].toAddress()
-  const want1 = wantRes[1].toAddress()
-  const shareTokenSymbol = symbolRes.toString()
-  const shareTokenName = nameRes.toString()
-  const shareTokenDecimals = decimalsRes.toI32()*/
-
   const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
   const wants = vaultContract.wants()
   const underlyingToken0Address = wants.value0
@@ -94,10 +51,6 @@ export function initVaultData(timestamp: BigInt, vault: BeefyCLVault, strategy: 
   underlyingToken1.decimals = underlyingToken1Decimals
   underlyingToken1.save()
 
-  vault.underlyingToken0 = underlyingToken0.id
-  vault.underlyingToken1 = underlyingToken1.id
-  vault.save()
-
   const protocol = getBeefyCLProtocol()
   protocol.activeVaultCount += 1
   protocol.save()
@@ -108,4 +61,11 @@ export function initVaultData(timestamp: BigInt, vault: BeefyCLVault, strategy: 
     protocolSnapshot.activeVaultCount += 1
     protocolSnapshot.save()
   }
+
+  vault.sharesToken = sharesToken.id
+  vault.underlyingToken0 = underlyingToken0.id
+  vault.underlyingToken1 = underlyingToken1.id
+  vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_RUNNING
+
+  return vault
 }

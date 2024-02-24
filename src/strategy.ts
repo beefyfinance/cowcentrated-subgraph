@@ -1,26 +1,66 @@
+import { log } from '@graphprotocol/graph-ts'
 import {
   Initialized,
   StrategyPassiveManagerUniswap as BeefyCLStrategyContract,
+  OwnershipTransferred,
+  Paused,
+  Unpaused,
 } from '../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
-import { getBeefyCLStrategy, getBeefyCLVault } from './entity/vault'
-import { initVaultData } from './init-vault'
+import {
+  BEEFY_CL_VAULT_LIFECYCLE_PAUSED,
+  BEEFY_CL_VAULT_LIFECYCLE_RUNNING,
+  getBeefyCLStrategy,
+  getBeefyCLVault,
+} from './entity/vault'
+import { fetchInitialVaultData } from './init-vault'
+import { getUserAccount } from './entity/user-account'
 
-export function handleInitialized(event: Initialized) {
+export function handleInitialized(event: Initialized): void {
   const strategyAddress = event.address
 
   const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
-  const vaultAddress = strategyContract.vault()
+  const vaultAddressRes = strategyContract.try_vault()
+  if (vaultAddressRes.reverted) {
+    log.error('handleInitialized: vault() reverted for strategy {}', [strategyAddress.toHexString()])
+    throw Error('handleInitialized: vault() reverted')
+  }
+  const vaultAddress = vaultAddressRes.value
 
-  let strategy = getBeefyCLStrategy(strategyAddress)
+  const strategy = getBeefyCLStrategy(strategyAddress)
   strategy.isInitialized = true
   strategy.vault = vaultAddress
   strategy.save()
 
-  const vault = getBeefyCLVault(vaultAddress)
-
+  let vault = getBeefyCLVault(vaultAddress)
   if (vault.isInitialized) {
-    initVaultData(vault, strategy)
+    vault = fetchInitialVaultData(event.block.timestamp, vault)
+    vault.save()
   }
+}
+
+export function handleOwnershipTransferred(event: OwnershipTransferred): void {
+  const strategy = getBeefyCLStrategy(event.address)
+  const owner = getUserAccount(event.params.newOwner)
+  owner.lastInteractionTimestamp = event.block.timestamp
+  owner.interactionsCount = owner.interactionsCount + 1
+  owner.save()
+
+  strategy.owner = owner.id
+  strategy.save()
+}
+
+export function handlePaused(event: Paused): void {
+  const strategy = getBeefyCLStrategy(event.address)
+  const vault = getBeefyCLVault(strategy.vault)
+  vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_PAUSED
+  vault.save()
+}
+
+export function handleUnpaused(event: Unpaused): void {
+  const strategy = getBeefyCLStrategy(event.address)
+  const vault = getBeefyCLVault(strategy.vault)
+  vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_RUNNING
+  vault.save()
 }
 
 /*
