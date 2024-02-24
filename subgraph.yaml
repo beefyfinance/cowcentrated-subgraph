@@ -15,11 +15,12 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.8
       language: wasm/assemblyscript
-      file: ./src/factory.ts
+      file: ./src/mapping/factory.ts
       entities:
         - UserAccount
         - Transaction
         - BeefyCLVault
+        - BeefyCLStrategy
         - Protocol
         - ProtocolSnapshot
       abis:
@@ -28,31 +29,6 @@ dataSources:
       eventHandlers:
         - event: ProxyCreated(address)
           handler: handleVaultCreated
-          receipt: true
-  - kind: ethereum/contract
-    name: BeefyCLStrategyFactory
-    network: arbitrum
-    source:
-      address: '0xE88d3cE8538E3BEFDF65A6b1040F33E708b11402'
-      abi: StrategyPassiveManagerUniswapFactory
-      startBlock: 182836286
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.8
-      language: wasm/assemblyscript
-      file: ./src/factory.ts
-      entities:
-        - UserAccount
-        - Transaction
-        - BeefyCLStrategy
-        - Protocol
-        - ProtocolSnapshot
-      abis:
-        - name: StrategyPassiveManagerUniswapFactory
-          file: ./abis/beefy/concliq/StrategyPassiveManagerUniswapFactory.json
-      eventHandlers:
-        - event: ProxyCreated(string,uint32,address)
-          handler: handleStrategyCreated
           receipt: true
 templates:
   - name: BeefyCLVault
@@ -64,7 +40,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.8
       language: wasm/assemblyscript
-      file: ./src/vault.ts
+      file: ./src/mapping/vault.ts
       entities:
         - UserAccount
         - Transaction
@@ -102,7 +78,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.8
       language: wasm/assemblyscript
-      file: ./src/strategy.ts
+      file: ./src/mapping/strategy.ts
       entities:
         - UserAccount
         - Transaction

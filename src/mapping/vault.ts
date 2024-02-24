@@ -1,43 +1,6 @@
-import { Initialized, OwnershipTransferred } from '../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
-import { getBeefyCLStrategy, getBeefyCLVault } from './entity/vault'
-import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
-import { fetchInitialVaultData } from './init-vault'
-import { log } from '@graphprotocol/graph-ts'
-import { getUserAccount } from './entity/user-account'
+export { handleVaultInitialized as handleInitialized } from '../vault-lifecycle'
+export { handleVaultOwnershipTransferred as handleOwnershipTransferred } from '../ownership'
 
-export function handleInitialized(event: Initialized): void {
-  const vaultAddress = event.address
-
-  const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
-  const strategyAddressRes = vaultContract.try_strategy()
-  if (strategyAddressRes.reverted) {
-    log.error('handleInitialized: strategy() reverted for vault {}', [vaultAddress.toHexString()])
-    throw Error('handleInitialized: strategy() reverted')
-  }
-  const strategyAddress = strategyAddressRes.value
-
-  let vault = getBeefyCLVault(vaultAddress)
-  vault.isInitialized = true
-  vault.strategy = strategyAddress
-
-  const strategy = getBeefyCLStrategy(strategyAddress)
-  if (strategy.isInitialized) {
-    vault = fetchInitialVaultData(event.block.timestamp, vault)
-  }
-
-  vault.save()
-}
-
-export function handleOwnershipTransferred(event: OwnershipTransferred): void {
-  let vault = getBeefyCLVault(event.address)
-  let owner = getUserAccount(event.params.newOwner)
-  owner.lastInteractionTimestamp = event.block.timestamp
-  owner.interactionsCount = owner.interactionsCount + 1
-  owner.save()
-
-  vault.owner = owner.id
-  vault.save()
-}
 /*
 export function handleOwnershipTransferred(event: OwnershipTransferred): void {
   let vault = getExistingVault(event.address)

@@ -12,6 +12,11 @@ services:
       POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
     volumes:
       - ./docker/data/postgres:/var/lib/postgresql/data
+    logging:
+      driver: 'local'
+      options:
+        max-size: '5M'
+        max-file: '3'
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -q -d graph-node -U graph-node']
       interval: 1s
@@ -24,6 +29,11 @@ services:
       - '5001:5001'
     volumes:
       - ./docker/data/ipfs:/data/ipfs
+    logging:
+      driver: 'local'
+      options:
+        max-size: '5M'
+        max-file: '3'
     healthcheck:
       test: ['CMD', 'ipfs', 'id']
       interval: 1s
@@ -40,6 +50,11 @@ services:
     volumes:
       - ./docker/data/rpc-proxy-cache/arbitrum:/db
       - ./docker/rpc-proxy/config-arbitrum.toml:/app/config.toml
+    logging:
+      driver: 'local'
+      options:
+        max-size: '50M'
+        max-file: '3'
 
   rpc-healthcheck:
     image: alpine/curl:8.5.0
@@ -50,6 +65,11 @@ services:
     volumes:
       - ./docker/rpc-proxy/healthcheck-cmd.sh:/app/healthcheck-cmd.sh
       - ./docker/rpc-proxy/healthcheck-test.sh:/app/healthcheck-test.sh
+    logging:
+      driver: 'local'
+      options:
+        max-size: '5M'
+        max-file: '3'
     healthcheck:
       test: ['CMD', 'sh', '/app/healthcheck-test.sh']
       interval: 1s
@@ -77,6 +97,11 @@ services:
       - host.docker.internal:host-gateway
     volumes:
       - ./docker/graph-node:/etc/graph-node
+    logging:
+      driver: 'local'
+      options:
+        max-size: '10M'
+        max-file: '3'
     environment:
       ipfs: 'ipfs:5001'
       GRAPH_LOG: info

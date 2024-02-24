@@ -2,7 +2,7 @@
   "name": "subgraphs",
   "private": true,
   "scripts": {
-    "codegen": "graph codegen",
+    "codegen": "rm -Rf generated && graph codegen",
     "build": "graph build",
     "test": "graph test",
     "create-local": "graph create beefyfinance/cl-subgraph --node http://127.0.0.1:8020",

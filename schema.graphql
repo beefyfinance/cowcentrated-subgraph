@@ -315,9 +315,6 @@ type BeefyCLStrategy @entity {
   "The vault the strategy is managing"
   vault: BeefyCLVault!
 
-  "The transaction that created the strategy"
-  createdWith: Transaction!
-
   "The owner of the strategy. The owner has additional permissions to manage the strategy."
   owner: UserAccount!
 

@@ -31,8 +31,8 @@ export function getBeefyCLStrategy(strategyAddress: Bytes): BeefyCLStrategy {
   if (!strategy) {
     strategy = new BeefyCLStrategy(strategyAddress)
     strategy.vault = ADDRESS_ZERO
-    strategy.isInitialized = false
     strategy.owner = ADDRESS_ZERO
+    strategy.isInitialized = false
   }
   return strategy
 }
