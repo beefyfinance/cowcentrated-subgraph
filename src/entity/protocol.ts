@@ -14,7 +14,7 @@ export function getBeefyCLProtocol(): Protocol {
     protocol.name = 'Beefy CL'
     protocol.totalValueLockedUSD = ZERO_BD
     protocol.activeVaultCount = 0
-    protocol.activeUserCount = 0
+    protocol.activeInvestorCount = 0
     protocol.transactionCount = 0
   }
   return protocol
@@ -35,8 +35,8 @@ export function getBeefyCLProtocolSnapshot(timestamp: BigInt, period: BigInt): P
     snapshot.period = period
     snapshot.totalValueLockedUSD = ZERO_BD
     snapshot.activeVaultCount = 0
-    snapshot.activeUserCount = 0
-    snapshot.newUserCount = 0
+    snapshot.activeInvestorCount = 0
+    snapshot.newInvestorCount = 0
     snapshot.totalTransactionCount = 0
     snapshot.investorTransactionsCount = 0
     snapshot.harvesterTransactionsCount = 0

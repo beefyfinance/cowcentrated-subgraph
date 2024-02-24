@@ -19,17 +19,10 @@ import {
 } from '../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { ProxyCreated as VaultCreatedEvent } from '../generated/BeefyCLVaultFactory/BeefyVaultConcLiqFactory'
 import { BeefyCLVault as BeefyCLVaultTemplate } from '../generated/templates'
-import { getUserAccount } from './entity/user-account'
 import { getTransaction } from './entity/transaction'
 
 export function handleVaultCreated(event: VaultCreatedEvent): void {
-  const accountAddress = event.transaction.from
-  const account = getUserAccount(accountAddress)
-  account.lastInteractionTimestamp = event.block.timestamp
-  account.interactionsCount = account.interactionsCount + 1
-  account.save()
-
-  const tx = getTransaction(event.block, event.transaction, event.receipt, account)
+  const tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
 
   const vaultAddress = event.params.proxy
