@@ -1,15 +1,29 @@
-import { Harvest as HarvestSchema } from '../generated/schema'
-import { Harvest as HarvestEvent } from '../generated/templates/BeefyVaultConcLiqStrategy/StrategyPassiveManagerUniswap'
 import {
-  getEventIdentifier,
-  getExistingStrategy,
-  getExistingVault,
-  getOrCreateToken,
-  getOrCreateTransaction,
-} from './common'
-import { BeefyVaultConcLiq as BeefyVaultConcLiqContract } from '../generated/templates/BeefyVaultConcLiq/BeefyVaultConcLiq'
-import { Address, BigInt } from '@graphprotocol/graph-ts'
+  Initialized,
+  StrategyPassiveManagerUniswap as BeefyCLStrategyContract,
+} from '../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
+import { getBeefyCLStrategy, getBeefyCLVault } from './entity/vault'
+import { initVaultData } from './init-vault'
 
+export function handleInitialized(event: Initialized) {
+  const strategyAddress = event.address
+
+  const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
+  const vaultAddress = strategyContract.vault()
+
+  let strategy = getBeefyCLStrategy(strategyAddress)
+  strategy.isInitialized = true
+  strategy.vault = vaultAddress
+  strategy.save()
+
+  const vault = getBeefyCLVault(vaultAddress)
+
+  if (vault.isInitialized) {
+    initVaultData(vault, strategy)
+  }
+}
+
+/*
 export function handleHarvest(event: HarvestEvent): void {
   let strategy = getExistingStrategy(event.address)
   let tx = getOrCreateTransaction(event.block, event.transaction)
@@ -44,3 +58,4 @@ export function handleHarvest(event: HarvestEvent): void {
     userPosition.save()
   }
 }
+*/

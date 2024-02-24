@@ -22,21 +22,7 @@
     "name": "SafeERC20FailedOperation",
     "type": "error"
   },
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "internalType": "address", "name": "previousAdmin", "type": "address" },
-      { "indexed": false, "internalType": "address", "name": "newAdmin", "type": "address" }
-    ],
-    "name": "AdminChanged",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [{ "indexed": true, "internalType": "address", "name": "beacon", "type": "address" }],
-    "name": "BeaconUpgraded",
-    "type": "event"
-  },
+  { "inputs": [], "name": "TooMuchSlippage", "type": "error" },
   {
     "anonymous": false,
     "inputs": [
@@ -100,6 +86,15 @@
   },
   {
     "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "int56", "name": "oldDeviation", "type": "int56" },
+      { "indexed": false, "internalType": "int56", "name": "deviation", "type": "int56" }
+    ],
+    "name": "SetDeviation",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
     "inputs": [{ "indexed": false, "internalType": "address", "name": "keeper", "type": "address" }],
     "name": "SetKeeper",
     "type": "event"
@@ -151,12 +146,6 @@
   },
   {
     "anonymous": false,
-    "inputs": [{ "indexed": true, "internalType": "address", "name": "implementation", "type": "address" }],
-    "name": "Upgraded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
     "inputs": [
       { "indexed": false, "internalType": "uint256", "name": "bal0", "type": "uint256" },
       { "indexed": false, "internalType": "uint256", "name": "bal1", "type": "uint256" }
@@ -193,7 +182,11 @@
     "name": "balancesOfPool",
     "outputs": [
       { "internalType": "uint256", "name": "token0Bal", "type": "uint256" },
-      { "internalType": "uint256", "name": "token1Bal", "type": "uint256" }
+      { "internalType": "uint256", "name": "token1Bal", "type": "uint256" },
+      { "internalType": "uint256", "name": "mainAmount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "mainAmount1", "type": "uint256" },
+      { "internalType": "uint256", "name": "altAmount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "altAmount1", "type": "uint256" }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -234,6 +227,27 @@
   {
     "inputs": [],
     "name": "depositFee",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "deviation",
+    "outputs": [{ "internalType": "int56", "name": "", "type": "int56" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fees0",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fees1",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
     "type": "function"
@@ -337,8 +351,8 @@
     "inputs": [],
     "name": "lockedProfit",
     "outputs": [
-      { "internalType": "uint256", "name": "", "type": "uint256" },
-      { "internalType": "uint256", "name": "", "type": "uint256" }
+      { "internalType": "uint256", "name": "locked0", "type": "uint256" },
+      { "internalType": "uint256", "name": "locked1", "type": "uint256" }
     ],
     "stateMutability": "view",
     "type": "function"
@@ -399,7 +413,16 @@
     "stateMutability": "view",
     "type": "function"
   },
-  { "inputs": [], "name": "panic", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_minAmount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "_minAmount1", "type": "uint256" }
+    ],
+    "name": "panic",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
   {
     "inputs": [],
     "name": "paused",
@@ -448,13 +471,6 @@
     "stateMutability": "view",
     "type": "function"
   },
-  {
-    "inputs": [],
-    "name": "proxiableUUID",
-    "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
   { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
   {
     "inputs": [{ "internalType": "address", "name": "_beefyFeeConfig", "type": "address" }],
@@ -466,6 +482,13 @@
   {
     "inputs": [{ "internalType": "address", "name": "_beefyFeeRecipient", "type": "address" }],
     "name": "setBeefyFeeRecipient",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "int56", "name": "_deviation", "type": "int56" }],
+    "name": "setDeviation",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -587,23 +610,6 @@
     "type": "function"
   },
   { "inputs": [], "name": "unpause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
-  {
-    "inputs": [{ "internalType": "address", "name": "newImplementation", "type": "address" }],
-    "name": "upgradeTo",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "internalType": "address", "name": "newImplementation", "type": "address" },
-      { "internalType": "bytes", "name": "data", "type": "bytes" }
-    ],
-    "name": "upgradeToAndCall",
-    "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
   {
     "inputs": [],
     "name": "vault",

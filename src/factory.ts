@@ -1,35 +1,47 @@
-import { ProxyCreated } from '../generated/BeefyVaultConcLiqFactory/BeefyVaultConcLiqFactory'
-import { BeefyVaultConcLiqFactory, BeefyVaultConcLiq, Account } from '../generated/schema'
-import { BeefyVaultConcLiq as BeefyVaultConcLiqTemplate } from '../generated/templates'
-import { getOrCreateTransaction } from './common'
+import { ProxyCreated as VaultCreatedEvent } from '../generated/BeefyCLVaultFactory/BeefyVaultConcLiqFactory'
+import { ProxyCreated as StrategyCreatedEvent } from '../generated/BeefyCLStrategyFactory/StrategyPassiveManagerUniswapFactory'
+import {
+  BeefyCLVault as BeefyCLVaultTemplate,
+  BeefyCLStrategy as BeefyCLStrategyTemplate,
+} from '../generated/templates'
+import { getUserAccount } from './entity/user-account'
+import { getTransaction } from './entity/transaction'
+import { getBeefyCLStrategy, getBeefyCLVault } from './entity/vault'
 
-export function handleNewBeefyVaultConcLiq(event: ProxyCreated): void {
-  let factoryId = event.address
-  let factory = BeefyVaultConcLiqFactory.load(factoryId)
-  if (factory == null) {
-    factory = new BeefyVaultConcLiqFactory(factoryId)
-    factory.vaultCount = 0
-  }
+export function handleVaultCreated(event: VaultCreatedEvent): void {
+  const accountAddress = event.transaction.from
+  const account = getUserAccount(accountAddress)
+  account.lastInteractionTimestamp = event.block.timestamp
+  account.interactionsCount = account.interactionsCount + 1
+  account.save()
 
-  let creatorAccountId = event.transaction.from
-  let creatorAccount = Account.load(creatorAccountId)
-  if (creatorAccount == null) {
-    creatorAccount = new Account(creatorAccountId)
-  }
-  creatorAccount.createdVaultCount = creatorAccount.createdVaultCount + 1
-  creatorAccount.save()
+  const tx = getTransaction(event.block, event.transaction, event.receipt, account)
+  tx.save()
 
-  let tx = getOrCreateTransaction(event.block, event.transaction)
-
-  let vaultId = event.params.proxy
-  let vault = new BeefyVaultConcLiq(vaultId)
-  vault.factory = factory.id
+  const vaultAddress = event.params.proxy
+  const vault = getBeefyCLVault(vaultAddress)
   vault.createdWith = tx.id
   vault.save()
 
-  factory.vaultCount = factory.vaultCount + 1
-  factory.save()
-
   // start indexing the new vault
-  BeefyVaultConcLiqTemplate.create(event.params.proxy)
+  BeefyCLVaultTemplate.create(vaultAddress)
+}
+
+export function handleStrategyCreated(event: StrategyCreatedEvent): void {
+  const accountAddress = event.transaction.from
+  const account = getUserAccount(accountAddress)
+  account.lastInteractionTimestamp = event.block.timestamp
+  account.interactionsCount = account.interactionsCount + 1
+  account.save()
+
+  const tx = getTransaction(event.block, event.transaction, event.receipt, account)
+  tx.save()
+
+  const strategyAddress = event.params.proxy
+  const strategy = getBeefyCLStrategy(strategyAddress)
+  strategy.createdWith = tx.id
+  strategy.save()
+
+  // start indexing the new strategy
+  BeefyCLStrategyTemplate.create(strategyAddress)
 }

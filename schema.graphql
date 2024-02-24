@@ -11,9 +11,6 @@ type UserAccount @entity {
   "The user address"
   id: Bytes!
 
-  "The number of vaults created by the user"
-  createdVaultCount: Int!
-
   "The timestamp of the last transaction the user was involved in"
   lastInteractionTimestamp: BigInt!
 
@@ -88,7 +85,7 @@ type Protocol @entity {
   The protocol identifier:
   - 1: BeefyCL
   """
-  id: Int8!
+  id: String!
 
   "Protocol name"
   name: String!
@@ -120,9 +117,11 @@ type ProtocolSnapshot @entity {
   "The protocol the snapshot is for"
   protocol: Protocol!
 
-  "The period of the snapshot"
+  "Duration of the snapshot period in seconds"
   period: BigInt!
-  "Timestamp of the snapshot, truncated to the period"
+  "Timestamp the snapshot was initiated at, rounded to period"
+  roundedTimestamp: BigInt!
+  "Actual timestamp snapshot was initiated at"
   timestamp: BigInt!
 
   "Value locked in the protocol in USD at the time of the snapshot"
@@ -206,7 +205,7 @@ type BeefyCLVault @entity {
   "The token data of the vault. The vault is also an ERC20 token. This tokens represents the shares of the vault."
   sharesToken: Token!
   "The strategy of the vault. The strategy is responsible for managing the vault's assets."
-  strategy: BeefyCLStrategy! @derivedFrom(field: "vault")
+  strategy: BeefyCLStrategy!
 
   "The underlying tokens contained in the vault. This is the first token."
   underlyingToken0: Token!
@@ -239,9 +238,11 @@ type BeefyCLVaultSnapshot @entity {
   "The vault the snapshot is for"
   vault: BeefyCLVault!
 
-  "The period of the snapshot"
+  "Duration of the snapshot period in seconds"
   period: BigInt!
-  "Timestamp of the snapshot, truncated to the period"
+  "Timestamp the snapshot was initiated at, rounded to period"
+  roundedTimestamp: BigInt!
+  "Actual timestamp snapshot was initiated at"
   timestamp: BigInt!
 
   "Amount of underlying tokens in the vault. This is the first token."
@@ -301,6 +302,9 @@ type BeefyCLStrategy @entity {
 
   "The vault the strategy is managing"
   vault: BeefyCLVault!
+
+  "The transaction that created the strategy"
+  createdWith: Transaction!
 
   "Technical field to remember if the strategy was already initialized"
   isInitialized: Boolean!
@@ -419,9 +423,12 @@ type UserPositionSnapshot @entity {
 
   "The user position the snapshot is for"
   userPosition: UserPosition!
-  "The period of the snapshot"
+
+  "Duration of the snapshot period in seconds"
   period: BigInt!
-  "Timestamp of the snapshot, truncated to the period"
+  "Timestamp the snapshot was initiated at, rounded to period"
+  roundedTimestamp: BigInt!
+  "Actual timestamp snapshot was initiated at"
   timestamp: BigInt!
 
   "The amount of shares the user holds"

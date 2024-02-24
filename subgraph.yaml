@@ -5,36 +5,57 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: BeefyVaultConcLiqFactory
+    name: BeefyCLVaultFactory
     network: arbitrum
     source:
-      address: '0x1249737a25E24b32EFA00e11636Facd9eF27CdD8'
+      address: '0x0Fc6daA59c04A8B49E8cB0E7e3ff230c643856B9'
       abi: BeefyVaultConcLiqFactory
-      startBlock: 181426517
-    #  networkName: 
-    #    type: String
-    #    data: ARBITRUM
-    #  chainId:
-    #    type: Bytes
-    #    data: 0xa4b1
+      startBlock: 182836248
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.8
       language: wasm/assemblyscript
       file: ./src/factory.ts
       entities:
-        - BeefyVaultConcLiqFactory
-        - BeefyVaultConcLiq
-        - Account
+        - UserAccount
+        - Transaction
+        - BeefyCLVault
+        - Protocol
+        - ProtocolSnapshot
       abis:
         - name: BeefyVaultConcLiqFactory
           file: ./abis/beefy/concliq/BeefyVaultConcLiqFactory.json
       eventHandlers:
         - event: ProxyCreated(address)
-          handler: handleNewBeefyVaultConcLiq
+          handler: handleVaultCreated
+          receipt: true
+  - kind: ethereum/contract
+    name: BeefyCLStrategyFactory
+    network: arbitrum
+    source:
+      address: '0xE88d3cE8538E3BEFDF65A6b1040F33E708b11402'
+      abi: StrategyPassiveManagerUniswapFactory
+      startBlock: 182836286
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.8
+      language: wasm/assemblyscript
+      file: ./src/factory.ts
+      entities:
+        - UserAccount
+        - Transaction
+        - BeefyCLStrategy
+        - Protocol
+        - ProtocolSnapshot
+      abis:
+        - name: StrategyPassiveManagerUniswapFactory
+          file: ./abis/beefy/concliq/StrategyPassiveManagerUniswapFactory.json
+      eventHandlers:
+        - event: ProxyCreated(string,uint32,address)
+          handler: handleStrategyCreated
           receipt: true
 templates:
-  - name: BeefyVaultConcLiq
+  - name: BeefyCLVault
     kind: ethereum/contract
     network: arbitrum
     source:
@@ -45,12 +66,12 @@ templates:
       language: wasm/assemblyscript
       file: ./src/vault.ts
       entities:
-        - BeefyVaultConcLiq
-        - BeefyVaultConcLiqStrategy
-        - UserPosition
-        - UserPositionChanged
-        - Account
-        - Token
+        - UserAccount
+        - Transaction
+        - BeefyCLVault
+        - BeefyCLStrategy
+        - Protocol
+        - ProtocolSnapshot
       abis:
         - name: BeefyVaultConcLiq
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
@@ -58,19 +79,21 @@ templates:
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
+        - name: Multicall3
+          file: ./abis/Multicall3.json
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
-        - event: Deposit(indexed address,uint256,uint256,uint256)
-          handler: handleDeposit
-        - event: Withdraw(indexed address,uint256,uint256,uint256)
-          handler: handleWithdraw
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
+        #- event: Deposit(indexed address,uint256,uint256,uint256)
+        #  handler: handleDeposit
+        #- event: Withdraw(indexed address,uint256,uint256,uint256)
+        #  handler: handleWithdraw
+        #- event: OwnershipTransferred(indexed address,indexed address)
+        #  handler: handleOwnershipTransferred
+        #- event: Transfer(indexed address,indexed address,uint256)
+        #  handler: handleTransfer
 
-  - name: BeefyVaultConcLiqStrategy
+  - name: BeefyCLStrategy
     kind: ethereum/contract
     network: arbitrum
     source:
@@ -79,13 +102,14 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.8
       language: wasm/assemblyscript
-      file: ./src/strategy.ts
+      file: ./src/vault.ts
       entities:
-        - Harvest
-        - Token
-        - Account
-        - UserPosition
-        - BeefyVaultConcLiq
+        - UserAccount
+        - Transaction
+        - BeefyCLVault
+        - BeefyCLStrategy
+        - Protocol
+        - ProtocolSnapshot
       abis:
         - name: BeefyVaultConcLiq
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
@@ -93,6 +117,34 @@ templates:
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
+        - name: Multicall3
+          file: ./abis/Multicall3.json
       eventHandlers:
-        - event: Harvest(uint256,uint256)
-          handler: handleHarvest
+        - event: Initialized(uint8)
+          handler: handleInitialized
+#   - name: BeefyVaultConcLiqStrategy
+#     kind: ethereum/contract
+#     network: arbitrum
+#     source:
+#       abi: StrategyPassiveManagerUniswap
+#     mapping:
+#       kind: ethereum/events
+#       apiVersion: 0.0.8
+#       language: wasm/assemblyscript
+#       file: ./src/strategy.ts
+#       entities:
+#         - Harvest
+#         - Token
+#         - Account
+#         - UserPosition
+#         - BeefyVaultConcLiq
+#       abis:
+#         - name: BeefyVaultConcLiq
+#           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
+#         - name: StrategyPassiveManagerUniswap
+#           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+#         - name: IERC20
+#           file: ./abis/IERC20/IERC20.json
+#       eventHandlers:
+#         - event: Harvest(uint256,uint256)
+#           handler: handleHarvest

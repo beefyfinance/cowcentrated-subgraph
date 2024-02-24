@@ -1,53 +1,26 @@
-import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
-import { BeefyVaultConcLiqStrategy, UserPosition, UserPositionChanged } from '../generated/schema'
-import {
-  BeefyVaultConcLiq as BeefyVaultConcLiqContract,
-  Deposit,
-  Initialized,
-  OwnershipTransferred,
-  Transfer,
-  Withdraw,
-} from '../generated/templates/BeefyVaultConcLiq/BeefyVaultConcLiq'
-import {
-  getExistingVault,
-  getOrCreateAccount,
-  getOrCreateToken,
-  getEventIdentifier,
-  getOrCreateTransaction,
-} from './common'
-
-import { BeefyVaultConcLiqStrategy as BeefyVaultConcLiqStrategyTemplate } from '../generated/templates'
+import { Initialized } from '../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
+import { getBeefyCLStrategy, getBeefyCLVault } from './entity/vault'
+import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
+import { initVaultData } from './init-vault'
 
 export function handleInitialized(event: Initialized): void {
-  // TODO: add a view function to get all these values in one call
+  const vaultAddress = event.address
 
-  let vault = getExistingVault(event.address)
-  let vaultContract = BeefyVaultConcLiqContract.bind(event.address)
-  let strategyAddress = vaultContract.strategy()
-  let strategy = BeefyVaultConcLiqStrategy.load(strategyAddress)
-  if (strategy == null) {
-    strategy = new BeefyVaultConcLiqStrategy(strategyAddress)
-    strategy.vault = vault.id
-    strategy.save()
-  }
-  // start indexing the strategy  let strategyId = strategyAddress
-  BeefyVaultConcLiqStrategyTemplate.create(strategyAddress)
+  const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
+  const strategyAddress = vaultContract.strategy()
 
-  let sharesToken = getOrCreateToken(event.address)
-  let wants = vaultContract.wants()
-  let token0Address = wants.value0
-  let token0 = getOrCreateToken(token0Address)
-  let token1Address = wants.value0
-  let token1 = getOrCreateToken(token1Address)
-
-  vault.sharesToken = sharesToken.id
-  vault.underlyingToken0 = token0.id
-  vault.underlyingToken1 = token1.id
-  vault.underlyingAmount0 = BigInt.fromI32(0)
-  vault.underlyingAmount1 = BigInt.fromI32(0)
+  const vault = getBeefyCLVault(vaultAddress)
+  vault.isInitialized = true
+  vault.strategy = strategyAddress
   vault.save()
-}
 
+  const strategy = getBeefyCLStrategy(strategyAddress)
+
+  if (strategy.isInitialized) {
+    initVaultData(event.block.timestamp, vault, strategy)
+  }
+}
+/*
 export function handleOwnershipTransferred(event: OwnershipTransferred): void {
   let vault = getExistingVault(event.address)
   let owner = getOrCreateAccount(event.params.newOwner)
@@ -139,3 +112,4 @@ function updateUserPosition(
   changedEvent.underlyingBalance1 = tokenShares.value1
   changedEvent.save()
 }
+*/

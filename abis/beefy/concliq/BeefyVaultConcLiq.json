@@ -149,26 +149,6 @@
     "type": "function"
   },
   {
-    "inputs": [
-      { "internalType": "uint256", "name": "_amount0", "type": "uint256" },
-      { "internalType": "uint256", "name": "_amount1", "type": "uint256" }
-    ],
-    "name": "getShares",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "uint256", "name": "_shares", "type": "uint256" }],
-    "name": "getTokensPerShare",
-    "outputs": [
-      { "internalType": "uint256", "name": "amount0", "type": "uint256" },
-      { "internalType": "uint256", "name": "amount1", "type": "uint256" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [{ "internalType": "address", "name": "_token", "type": "address" }],
     "name": "inCaseTokensGetStuck",
     "outputs": [],
@@ -187,7 +167,7 @@
   },
   {
     "inputs": [
-      { "internalType": "contract IStrategyConcLiq", "name": "_strategy", "type": "address" },
+      { "internalType": "address", "name": "_strategy", "type": "address" },
       { "internalType": "string", "name": "_name", "type": "string" },
       { "internalType": "string", "name": "_symbol", "type": "string" }
     ],
@@ -207,6 +187,26 @@
     "inputs": [],
     "name": "owner",
     "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_amount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "_amount1", "type": "uint256" }
+    ],
+    "name": "previewDeposit",
+    "outputs": [{ "internalType": "uint256", "name": "shares", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "_shares", "type": "uint256" }],
+    "name": "previewWithdraw",
+    "outputs": [
+      { "internalType": "uint256", "name": "amount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "amount1", "type": "uint256" }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
