@@ -50,7 +50,7 @@ function updateUserPosition(
 ): void {
   const periods = PERIODS
   let vault = getBeefyCLVault(event.address)
-  if (isVaultRunning(vault)) {
+  if (!isVaultRunning(vault)) {
     log.error('updateUserPosition: vault {} not active at block {}: {}', [
       vault.id.toHexString(),
       event.block.number.toString(),

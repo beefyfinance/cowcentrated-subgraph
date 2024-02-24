@@ -10,7 +10,7 @@ export const BEEFY_CL_VAULT_LIFECYCLE_RUNNING = 'RUNNING'
 export const BEEFY_CL_VAULT_LIFECYCLE_PAUSED = 'PAUSED'
 
 export function isVaultRunning(vault: BeefyCLVault): boolean {
-  return vault.lifecycle.toString() == BEEFY_CL_VAULT_LIFECYCLE_RUNNING.toString()
+  return vault.lifecycle == BEEFY_CL_VAULT_LIFECYCLE_RUNNING
 }
 
 export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {

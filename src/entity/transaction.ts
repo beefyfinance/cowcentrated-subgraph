@@ -1,4 +1,4 @@
-import { ethereum } from '@graphprotocol/graph-ts'
+import { ethereum, log } from '@graphprotocol/graph-ts'
 import { Transaction } from '../../generated/schema'
 import { weiToDecimal } from '../utils/decimal'
 
@@ -14,7 +14,13 @@ export function getTransaction(
     tx.blockNumber = block.number
     tx.blockTimestamp = block.timestamp
     tx.sender = transaction.from
-    if (!receipt) throw Error('No receipt. Set "receipt: true" on the event handler configuration in subgraph.yaml')
+    if (!receipt) {
+      log.warning(
+        'No receipt for transaction {}. Set "receipt: true" on the event handler configuration in subgraph.yaml',
+        [transactionHash.toHexString()],
+      )
+      throw Error('No receipt. Set "receipt: true" on the event handler configuration in subgraph.yaml')
+    }
     tx.gasFee = weiToDecimal(transaction.gasPrice.times(receipt.gasUsed))
   }
   return tx
