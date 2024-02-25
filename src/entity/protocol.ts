@@ -16,6 +16,7 @@ export function getBeefyCLProtocol(): Protocol {
     protocol.activeVaultCount = 0
     protocol.activeInvestorCount = 0
     protocol.transactionCount = 0
+    protocol.harvestCount = 0
   }
   return protocol
 }

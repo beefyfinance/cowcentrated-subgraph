@@ -15,7 +15,7 @@ indexers = ["default"]
 [chains]
 ingestor = "default"
 
-[chains.arbitrum]
+[chains.arbitrum-one]
 shard = "primary"
 
 # archive node test: 

@@ -1,6 +1,6 @@
 import { assert, clearStore, test, describe, afterAll } from 'matchstick-as/assembly/index'
 import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
-import { exponentToBigDecimal, tokenAmountToDecimal } from '../../src/utils/decimal'
+import { decimalToTokenAmount, exponentToBigDecimal, tokenAmountToDecimal } from '../../src/utils/decimal'
 
 describe('decimals.tokenAmountToDecimal', () => {
   afterAll(() => {
@@ -29,6 +29,36 @@ describe('decimals.tokenAmountToDecimal', () => {
     const value = BigInt.fromString('123456789012345678901234567890')
     const res = tokenAmountToDecimal(value, BigInt.fromI32(18))
     assert.stringEquals(res.toString(), '123456789012.34567890123456789', 'Decimal value should match')
+  })
+})
+
+describe('decimals.decimalToTokenAmount', () => {
+  afterAll(() => {
+    clearStore()
+  })
+
+  test('Can transform a simple decimal value into a token amount', () => {
+    const value = BigDecimal.fromString('1')
+    const res = decimalToTokenAmount(value, BigInt.fromI32(18))
+    assert.stringEquals(res.toString(), '1000000000000000000', 'Token amount should match')
+  })
+
+  test('Can transform a simple decimal value with 6 decimals into a token amount', () => {
+    const value = BigDecimal.fromString('1')
+    const res = decimalToTokenAmount(value, BigInt.fromI32(6))
+    assert.stringEquals(res.toString(), '1000000', 'Token amount should match')
+  })
+
+  test('Can transform a simple decimal value with 0 decimals into a token amount', () => {
+    const value = BigDecimal.fromString('1000000')
+    const res = decimalToTokenAmount(value, BigInt.fromI32(0))
+    assert.stringEquals(res.toString(), '1000000', 'Token amount should match')
+  })
+
+  test('Can transform a decimal value with many decimals into a token amount', () => {
+    const value = BigDecimal.fromString('123456789012.34567890123456789')
+    const res = decimalToTokenAmount(value, BigInt.fromI32(18))
+    assert.stringEquals(res.toString(), '123456789012345678901234567890', 'Token amount should match')
   })
 })
 

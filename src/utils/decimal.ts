@@ -23,6 +23,14 @@ export function tokenAmountToDecimal(tokenAmount: BigInt, exchangeDecimals: BigI
 }
 
 @inline
+export function decimalToTokenAmount(decimal: BigDecimal, exchangeDecimals: BigInt): BigInt {
+  if (exchangeDecimals == ZERO_BI) {
+    return BigInt.fromString(decimal.toString())
+  }
+  return BigInt.fromString(decimal.times(exponentToBigDecimal(exchangeDecimals)).toString())
+}
+
+@inline
 export function weiToBigDecimal(wei: BigInt): BigDecimal {
   return tokenAmountToDecimal(wei, BigInt.fromI32(18))
 }

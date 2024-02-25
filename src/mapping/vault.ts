@@ -37,7 +37,6 @@ export function handleWithdraw(event: WithdrawEvent): void {
 // }
 
 function updateUserPosition(event: ethereum.Event, investorAddress: Address, isDeposit: boolean): void {
-  const periods = PERIODS
   let vault = getBeefyCLVault(event.address)
   if (!isVaultRunning(vault)) {
     log.error('updateUserPosition: vault {} not active at block {}: {}', [
@@ -48,6 +47,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     return
   }
 
+  const periods = PERIODS
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)

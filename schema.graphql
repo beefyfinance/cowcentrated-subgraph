@@ -88,6 +88,8 @@ type Protocol @entity {
   activeInvestorCount: Int!
   "The number of transactions that ever happened in the protocol"
   transactionCount: Int!
+  "The total number of harvests that ever happened in the protocol"
+  harvestCount: Int!
 
   "A timeseries of the protocol's stats"
   snapshots: [ProtocolSnapshot!]! @derivedFrom(field: "protocol")
@@ -263,6 +265,9 @@ type BeefyCLVault implements EvmAddress @entity {
   "The harvested amount of the second token in USD"
   totalHarvestedAmount1USD: BigDecimal!
 
+  "The harvested amount in USD"
+  totalHarvestValueUSD: BigDecimal!
+
   "Amount of native token charged as call fee incentive"
   totalHarvesterFeeAmountNative: BigDecimal!
   "Amount of native token charged as protocol fee"
@@ -279,6 +284,9 @@ type BeefyCLVault implements EvmAddress @entity {
 
   "All investors positions in the vault"
   positions: [InvestorPosition!]! @derivedFrom(field: "vault")
+
+  "All harvests of this vault"
+  harvests: [BeefyCLVaultHarvestEvent!]! @derivedFrom(field: "vault")
 
   "Snapshot of the vault's stats"
   snapshots: [BeefyCLVaultSnapshot!]! @derivedFrom(field: "vault")
@@ -351,6 +359,9 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   "The harvested amount of the second token in USD"
   harvestedAmount1USD: BigDecimal!
 
+  "The harvested amount in USD"
+  harvestValueUSD: BigDecimal!
+
   "Amount of native token charged as call fee incentive"
   harvesterFeeAmountNative: BigDecimal!
   "Amount of native token charged as protocol fee"
@@ -382,6 +393,38 @@ type BeefyCLStrategy implements EvmAddress @entity {
 
   "Technical field to remember if the strategy was already initialized"
   isInitialized: Boolean!
+
+  "All harvests of the strategy"
+  harvests: [BeefyCLVaultHarvestEvent!]! @derivedFrom(field: "strategy")
+}
+
+"""
+Vault are harvested by the strategy. This event is emitted when the strategy harvests the vault.
+"""
+type BeefyCLVaultHarvestEvent @entity(immutable: true) {
+  "transaction hash + log index"
+  id: Bytes!
+
+  "The vault the harvest event is for"
+  vault: BeefyCLVault!
+  "The strategy that harvested the vault"
+  strategy: BeefyCLStrategy!
+
+  "The transaction that created the vault harvest event"
+  createdWith: Transaction!
+
+  "The amount of first underlying tokens harvested"
+  harvestedAmount0: BigDecimal!
+  "The amount of second underlying tokens harvested"
+  harvestedAmount1: BigDecimal!
+
+  "The amount of first underlying tokens harvested in USD"
+  harvestedAmount0USD: BigDecimal!
+  "The amount of second underlying tokens harvested in USD"
+  harvestedAmount1USD: BigDecimal!
+
+  "Total usd value of the harvest"
+  harvestValueUSD: BigDecimal!
 }
 
 #######################
@@ -423,7 +466,7 @@ A vault incentive claim is a record of an investor claiming a vault incentive.
 As incentives are time-released, investors can claim their share of the incentive at any time.
 """
 type BeefyVaultIncentiveClaimEvent @entity(immutable: true) {
-  "The vault incentive claim id"
+  "transaction hash + log index"
   id: Bytes!
 
   "The vault incentive the claim is for"

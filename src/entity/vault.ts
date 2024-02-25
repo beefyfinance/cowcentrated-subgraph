@@ -44,6 +44,7 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
     vault.totalHarvestedAmount1 = ZERO_BD
     vault.totalHarvestedAmount0USD = ZERO_BD
     vault.totalHarvestedAmount1USD = ZERO_BD
+    vault.totalHarvestValueUSD = ZERO_BD
     vault.totalHarvesterFeeAmountNative = ZERO_BD
     vault.totalProtocolFeeAmountNative = ZERO_BD
     vault.totalStrategistFeeAmountNative = ZERO_BD
@@ -95,6 +96,7 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
     snapshot.harvestedAmount1 = ZERO_BD
     snapshot.harvestedAmount0USD = ZERO_BD
     snapshot.harvestedAmount1USD = ZERO_BD
+    snapshot.harvestValueUSD = ZERO_BD
     snapshot.harvesterFeeAmountNative = ZERO_BD
     snapshot.protocolFeeAmountNative = ZERO_BD
     snapshot.strategistFeeAmountNative = ZERO_BD
