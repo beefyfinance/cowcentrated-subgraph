@@ -71,10 +71,11 @@ url = "https://rpc.tornadoeth.cash/arbitrum"
 max_consecutive = 50
 max_per_second = 1
 
-[blockpi]
-url = "https://arbitrum.blockpi.network/v1/rpc/public"
-max_consecutive = 50
-max_per_second = 1
+# eth_getLogs is limited to 1024 block range.
+#[blockpi]
+#url = "https://arbitrum.blockpi.network/v1/rpc/public"
+#max_consecutive = 50
+#max_per_second = 1
 
 # 'eth_getLogs' is unavailable on our public API! Head over to https://bit.ly/gettinganodewithblast for more information.
 #[blastapi]

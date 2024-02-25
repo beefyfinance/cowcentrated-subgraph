@@ -24,7 +24,7 @@ type Token @entity(immutable: true) {
   "The token name"
   name: String
   "The number of decimals the token uses"
-  decimals: Int!
+  decimals: BigInt!
 }
 
 """
@@ -216,6 +216,12 @@ type BeefyCLVault implements EvmAddress @entity {
   "The underlying tokens contained in the vault. This is the second token."
   underlyingToken1: Token!
 
+  """
+  The current price of the token zero expressed as a token1 value.
+  For example, if the vault is a BTC/ETH vault, this is the price of 1 BTC in ETH
+  """
+  currentPriceOfToken0InToken1: BigDecimal!
+
   "Price range start this vault is currently configured to operate in"
   priceRangeMin1: BigDecimal!
   "Price range end this vault is currently configured to operate in"
@@ -297,6 +303,12 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   roundedTimestamp: BigInt!
   "Actual timestamp snapshot was initiated at"
   timestamp: BigInt!
+
+  """
+  The current price of the token zero expressed as a token1 value.
+  For example, if the vault is a BTC/ETH vault, this is the price of 1 BTC in ETH
+  """
+  currentPriceOfToken0InToken1: BigDecimal!
 
   "Price range start this vault is currently configured to operate in"
   priceRangeMin1: BigDecimal!
@@ -438,8 +450,8 @@ type Investor implements EvmAddress @entity {
   "The timestamp of the last transaction the investor was involved in"
   lastInteractionTimestamp: BigInt!
 
-  "Number of positions the investor has in the protocol"
-  positionCount: Int!
+  "Number of active positions the investor has in the protocol"
+  activePositionCount: Int!
 
   "Total amount of seconds the investor has been active in the protocol"
   investedDuration: BigInt!

@@ -1,4 +1,4 @@
-import { Bytes } from '@graphprotocol/graph-ts'
+import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { Token } from '../../generated/schema'
 
 export function getToken(tokenAddress: Bytes): Token {
@@ -7,7 +7,7 @@ export function getToken(tokenAddress: Bytes): Token {
     token = new Token(tokenAddress)
     token.symbol = ''
     token.name = ''
-    token.decimals = 18
+    token.decimals = BigInt.fromI32(18)
   }
   return token
 }

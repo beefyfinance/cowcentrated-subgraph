@@ -145,19 +145,19 @@ function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLV
   const sharesToken = getToken(vaultAddress)
   sharesToken.name = shareTokenName
   sharesToken.symbol = shareTokenSymbol
-  sharesToken.decimals = shareTokenDecimals
+  sharesToken.decimals = BigInt.fromI32(shareTokenDecimals)
   sharesToken.save()
 
   const underlyingToken0 = getToken(underlyingToken0Address)
   underlyingToken0.name = underlyingToken0Name
   underlyingToken0.symbol = underlyingToken0Symbol
-  underlyingToken0.decimals = underlyingToken0Decimals
+  underlyingToken0.decimals = BigInt.fromI32(underlyingToken0Decimals)
   underlyingToken0.save()
 
   const underlyingToken1 = getToken(underlyingToken1Address)
   underlyingToken1.name = underlyingToken1Name
   underlyingToken1.symbol = underlyingToken1Symbol
-  underlyingToken1.decimals = underlyingToken1Decimals
+  underlyingToken1.decimals = BigInt.fromI32(underlyingToken1Decimals)
   underlyingToken1.save()
 
   const protocol = getBeefyCLProtocol()

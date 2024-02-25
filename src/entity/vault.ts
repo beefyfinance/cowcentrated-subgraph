@@ -26,6 +26,7 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
     vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_INITIALIZING
     vault.underlyingToken0 = ADDRESS_ZERO
     vault.underlyingToken1 = ADDRESS_ZERO
+    vault.currentPriceOfToken0InToken1 = ZERO_BD
     vault.priceRangeMin1 = ZERO_BD
     vault.priceRangeMax1 = ZERO_BD
     vault.priceRangeMin1USD = ZERO_BD
@@ -76,6 +77,7 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
     snapshot.timestamp = timestamp
     snapshot.roundedTimestamp = interval
     snapshot.period = period
+    snapshot.currentPriceOfToken0InToken1 = ZERO_BD
     snapshot.priceRangeMin1 = ZERO_BD
     snapshot.priceRangeMax1 = ZERO_BD
     snapshot.priceRangeMin1USD = ZERO_BD

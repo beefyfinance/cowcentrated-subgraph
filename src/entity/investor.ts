@@ -7,7 +7,7 @@ export function getInvestor(accountAddress: Bytes): Investor {
   let investor = Investor.load(accountAddress)
   if (!investor) {
     investor = new Investor(accountAddress)
-    investor.positionCount = 0
+    investor.activePositionCount = 0
     investor.lastInteractionTimestamp = ZERO_BI
     investor.investedDuration = ZERO_BI
     investor.totalPositionValueUSD = ZERO_BD
