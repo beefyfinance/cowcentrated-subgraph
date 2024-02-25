@@ -3,7 +3,7 @@ import { Investor, InvestorSnapshot } from '../../generated/schema'
 import { ZERO_BD, ZERO_BI } from '../utils/decimal'
 import { getIntervalFromTimestamp } from '../utils/time'
 
-export function getInvestor(accountAddress: Bytes): Investor {
+export function getInvestor(accountAddress: string): Investor {
   let investor = Investor.load(accountAddress)
   if (!investor) {
     investor = new Investor(accountAddress)
@@ -20,9 +20,7 @@ export function getInvestor(accountAddress: Bytes): Investor {
 
 export function getInvestorSnapshot(investor: Investor, timestamp: BigInt, period: BigInt): InvestorSnapshot {
   const interval = getIntervalFromTimestamp(timestamp, period)
-  const snapshotId = investor.id
-    .concat(Bytes.fromByteArray(Bytes.fromBigInt(period)))
-    .concat(Bytes.fromByteArray(Bytes.fromBigInt(interval)))
+  const snapshotId = investor.id + '-' + period.toString() + '-' + interval.toString()
   let snapshot = InvestorSnapshot.load(snapshotId)
   if (!snapshot) {
     snapshot = new InvestorSnapshot(snapshotId)

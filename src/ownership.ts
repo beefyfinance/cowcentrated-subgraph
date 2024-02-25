@@ -3,13 +3,13 @@ import { OwnershipTransferred as VaultOwnershipTransferred } from '../generated/
 import { getBeefyCLStrategy, getBeefyCLVault } from './entity/vault'
 
 export function handleStrategyOwnershipTransferred(event: StrategyOwnershipTransferred): void {
-  const strategy = getBeefyCLStrategy(event.address)
+  const strategy = getBeefyCLStrategy(event.address.toHexString())
   strategy.owner = event.params.newOwner
   strategy.save()
 }
 
 export function handleVaultOwnershipTransferred(event: VaultOwnershipTransferred): void {
-  const vault = getBeefyCLVault(event.address)
+  const vault = getBeefyCLVault(event.address.toHexString())
   vault.owner = event.params.newOwner
   vault.save()
 }

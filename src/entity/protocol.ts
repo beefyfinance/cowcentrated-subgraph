@@ -24,9 +24,7 @@ export function getBeefyCLProtocol(): Protocol {
 export function getBeefyCLProtocolSnapshot(timestamp: BigInt, period: BigInt): ProtocolSnapshot {
   const protocol = PROTOCOL_BEEFY_CL.toString()
   const interval = getIntervalFromTimestamp(timestamp, period)
-  const snapshotId = Bytes.fromUTF8(protocol)
-    .concat(Bytes.fromByteArray(Bytes.fromBigInt(period)))
-    .concat(Bytes.fromByteArray(Bytes.fromBigInt(interval)))
+  const snapshotId = protocol + '-' + period.toString() + '-' + interval.toString()
   let snapshot = ProtocolSnapshot.load(snapshotId)
   if (!snapshot) {
     snapshot = new ProtocolSnapshot(snapshotId)

@@ -26,14 +26,14 @@ export function handleVaultCreated(event: VaultCreatedEvent): void {
   tx.save()
 
   const vaultAddress = event.params.proxy
-  const vault = getBeefyCLVault(vaultAddress)
+  const vault = getBeefyCLVault(vaultAddress.toHexString())
   vault.createdWith = tx.id
   vault.save()
 
   // start indexing the new vault
   BeefyCLVaultTemplate.create(vaultAddress)
 
-  log.info('handleVaultCreated: Vault {} created on block {}', [vault.id.toHexString(), event.block.number.toString()])
+  log.info('handleVaultCreated: Vault {} created on block {}', [vault.id, event.block.number.toString()])
 }
 
 export function handleVaultInitialized(event: VaultInitialized): void {
@@ -50,21 +50,21 @@ export function handleVaultInitialized(event: VaultInitialized): void {
   }
   const strategyAddress = strategyAddressRes.value
 
-  let vault = getBeefyCLVault(vaultAddress)
+  let vault = getBeefyCLVault(vaultAddress.toHexString())
   vault.isInitialized = true
-  vault.strategy = strategyAddress
+  vault.strategy = strategyAddress.toHexString()
   vault.save() // needs to be saved before we can use it in the strategy events
 
   // we start watching strategy events
   BeefyCLStrategyTemplate.create(strategyAddress)
 
   log.info('handleVaultInitialized: Vault {} initialized with strategy {} on block {}', [
-    vault.id.toHexString(),
-    vault.strategy.toHexString(),
+    vault.id,
+    vault.strategy,
     event.block.number.toString(),
   ])
 
-  const strategy = getBeefyCLStrategy(strategyAddress)
+  const strategy = getBeefyCLStrategy(strategyAddress.toHexString())
   // the strategy may or may not be initialized
   // this is a test to know if that is the case
   const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
@@ -98,18 +98,18 @@ export function handleStrategyInitialized(event: StrategyInitializedEvent): void
   }
   const vaultAddress = vaultAddressRes.value
 
-  const strategy = getBeefyCLStrategy(strategyAddress)
+  const strategy = getBeefyCLStrategy(strategyAddress.toHexString())
   strategy.isInitialized = true
-  strategy.vault = vaultAddress
+  strategy.vault = vaultAddress.toHexString()
   strategy.save()
 
   log.info('handleStrategyInitialized: Strategy {} initialized for vault {} on block {}', [
-    strategy.id.toHexString(),
-    strategy.vault.toHexString(),
+    strategy.id,
+    strategy.vault,
     event.block.number.toString(),
   ])
 
-  let vault = getBeefyCLVault(vaultAddress)
+  let vault = getBeefyCLVault(vaultAddress.toHexString())
   if (vault.isInitialized) {
     vault = fetchInitialVaultData(event.block.timestamp, vault)
     vault.save()
@@ -121,7 +121,7 @@ export function handleStrategyInitialized(event: StrategyInitializedEvent): void
  * Call this when both the vault and the strategy are initialized.
  */
 function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLVault {
-  const vaultAddress = Address.fromBytes(vault.id)
+  const vaultAddress = Address.fromBytes(Address.fromHexString(vault.id))
   const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
   const wants = vaultContract.wants()
   const underlyingToken0Address = wants.value0
@@ -142,19 +142,19 @@ function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLV
   const underlyingToken1Name = underlyingToken1Contract.name()
   const underlyingToken1Symbol = underlyingToken1Contract.symbol()
 
-  const sharesToken = getToken(vaultAddress)
+  const sharesToken = getToken(vaultAddress.toHexString())
   sharesToken.name = shareTokenName
   sharesToken.symbol = shareTokenSymbol
   sharesToken.decimals = BigInt.fromI32(shareTokenDecimals)
   sharesToken.save()
 
-  const underlyingToken0 = getToken(underlyingToken0Address)
+  const underlyingToken0 = getToken(underlyingToken0Address.toHexString())
   underlyingToken0.name = underlyingToken0Name
   underlyingToken0.symbol = underlyingToken0Symbol
   underlyingToken0.decimals = BigInt.fromI32(underlyingToken0Decimals)
   underlyingToken0.save()
 
-  const underlyingToken1 = getToken(underlyingToken1Address)
+  const underlyingToken1 = getToken(underlyingToken1Address.toHexString())
   underlyingToken1.name = underlyingToken1Name
   underlyingToken1.symbol = underlyingToken1Symbol
   underlyingToken1.decimals = BigInt.fromI32(underlyingToken1Decimals)
@@ -176,34 +176,25 @@ function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLV
   vault.underlyingToken1 = underlyingToken1.id
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_RUNNING
 
-  log.info('fetchInitialVaultData: Vault {} now running with strategy {}.', [
-    vault.id.toHexString(),
-    vault.strategy.toHexString(),
-  ])
+  log.info('fetchInitialVaultData: Vault {} now running with strategy {}.', [vault.id, vault.strategy])
 
   return vault
 }
 
 export function handleStrategyPaused(event: PausedEvent): void {
-  const strategy = getBeefyCLStrategy(event.address)
+  const strategy = getBeefyCLStrategy(event.address.toHexString())
   const vault = getBeefyCLVault(strategy.vault)
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_PAUSED
   vault.save()
 
-  log.info('handleStrategyPaused: Strategy {} paused for vault {}.', [
-    strategy.id.toHexString(),
-    vault.id.toHexString(),
-  ])
+  log.info('handleStrategyPaused: Strategy {} paused for vault {}.', [strategy.id, vault.id])
 }
 
 export function handleStrategyUnpaused(event: UnpausedEvent): void {
-  const strategy = getBeefyCLStrategy(event.address)
+  const strategy = getBeefyCLStrategy(event.address.toHexString())
   const vault = getBeefyCLVault(strategy.vault)
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_RUNNING
   vault.save()
 
-  log.info('handleStrategyUnpaused: Strategy {} unpaused for vault {}.', [
-    strategy.id.toHexString(),
-    vault.id.toHexString(),
-  ])
+  log.info('handleStrategyUnpaused: Strategy {} unpaused for vault {}.', [strategy.id, vault.id])
 }

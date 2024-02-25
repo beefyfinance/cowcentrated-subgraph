@@ -4,7 +4,7 @@ import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from '../../
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from '../entity/vault'
 import { getTransaction } from '../entity/transaction'
-import { BeefyCLVaultHarvestEvent, InvestorPosition, InvestorPositionLoader } from '../../generated/schema'
+import { BeefyCLVaultHarvestEvent } from '../../generated/schema'
 import { getEventIdentifier } from '../utils/event'
 import { getToken } from '../entity/token'
 import { ONE_BD, ZERO_BD, tokenAmountToDecimal, decimalToTokenAmount } from '../utils/decimal'
@@ -21,18 +21,18 @@ export {
 export { handleStrategyOwnershipTransferred as handleOwnershipTransferred } from '../ownership'
 
 export function handleHarvest(event: HarvestEvent): void {
-  let strategy = getBeefyCLStrategy(event.address)
+  let strategy = getBeefyCLStrategy(event.address.toHexString())
   let vault = getBeefyCLVault(strategy.vault)
   if (!isVaultRunning(vault)) {
     log.error('handleHarvest: vault {} not active at block {}: {}', [
-      vault.id.toHexString(),
+      vault.id,
       event.block.number.toString(),
       vault.lifecycle,
     ])
     return
   }
 
-  log.debug('handleHarvest: processing harvest for vault {}', [vault.id.toHexString()])
+  log.debug('handleHarvest: processing harvest for vault {}', [vault.id])
 
   const periods = PERIODS
   const sharesToken = getToken(vault.sharesToken)
@@ -45,14 +45,14 @@ export function handleHarvest(event: HarvestEvent): void {
   ///////
   // fetch data on chain
   // TODO: use multicall3 to fetch all data in one call
-  log.debug('updateUserPosition: fetching data for vault {}', [vault.id.toHexString()])
-  const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
-  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(vault.strategy))
+  log.debug('updateUserPosition: fetching data for vault {}', [vault.id])
+  const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(Address.fromHexString(vault.id)))
+  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(Address.fromHexString(vault.strategy)))
 
   // current price
   const sqrtPriceRes = strategyContract.try_price() // TODO: replace with "try_sqrtPrice()" when new strats are deployed
   if (sqrtPriceRes.reverted) {
-    log.error('updateUserPosition: price() reverted for strategy {}', [vault.strategy.toHexString()])
+    log.error('updateUserPosition: price() reverted for strategy {}', [vault.strategy])
     throw Error('updateUserPosition: price() reverted')
   }
   const currentPriceInToken1 = sqrtPriceX96ToPriceInToken1(sqrtPriceRes.value, token0, token1)
@@ -60,7 +60,7 @@ export function handleHarvest(event: HarvestEvent): void {
   // range the strategy is covering
   const rangeRes = strategyContract.try_positionMain() // TODO: use "try_range()" when new strats are deployed
   if (rangeRes.reverted) {
-    log.error('updateUserPosition: range() reverted for strategy {}', [vault.strategy.toHexString()])
+    log.error('updateUserPosition: range() reverted for strategy {}', [vault.strategy])
     throw Error('updateUserPosition: range() reverted')
   }
   const rangeMinToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value0), token0, token1)
@@ -69,7 +69,7 @@ export function handleHarvest(event: HarvestEvent): void {
   // balances of the vault
   const vaultBalancesRes = vaultContract.try_balances()
   if (vaultBalancesRes.reverted) {
-    log.error('updateUserPosition: balances() reverted for strategy {}', [vault.strategy.toHexString()])
+    log.error('updateUserPosition: balances() reverted for strategy {}', [vault.strategy])
     throw Error('updateUserPosition: balances() reverted')
   }
   const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
@@ -81,7 +81,7 @@ export function handleHarvest(event: HarvestEvent): void {
   if (vaultBalanceUnderlying0.gt(ZERO_BD) || vaultBalanceUnderlying1.gt(ZERO_BD)) {
     const previewWithdrawRes = vaultContract.try_previewWithdraw(decimalToTokenAmount(ONE_BD, sharesToken.decimals))
     if (previewWithdrawRes.reverted) {
-      log.error('updateUserPosition: previewWithdraw() reverted for vault {}', [vault.id.toHexString()])
+      log.error('updateUserPosition: previewWithdraw() reverted for vault {}', [vault.id])
       throw Error('updateUserPosition: previewWithdraw() reverted')
     }
     previewWithdraw0Raw = previewWithdrawRes.value.value0
@@ -92,7 +92,7 @@ export function handleHarvest(event: HarvestEvent): void {
 
   ///////
   // compute derived values
-  log.debug('updateUserPosition: computing derived values for vault {}', [vault.id.toHexString()])
+  log.debug('updateUserPosition: computing derived values for vault {}', [vault.id])
   const token0PriceInNative = ZERO_BD // TODO
   const token1PriceInNative = ZERO_BD // TODO
   const nativePriceUSD = ZERO_BD // TODO
@@ -102,7 +102,7 @@ export function handleHarvest(event: HarvestEvent): void {
 
   ///////
   // update vault entities
-  log.debug('updateUserPosition: updating vault entities for vault {}', [vault.id.toHexString()])
+  log.debug('updateUserPosition: updating vault entities for vault {}', [vault.id])
   let harvest = new BeefyCLVaultHarvestEvent(getEventIdentifier(event))
   harvest.vault = vault.id
   harvest.strategy = strategy.id
@@ -133,7 +133,7 @@ export function handleHarvest(event: HarvestEvent): void {
   vault.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug('updateUserPosition: updating vault snapshot for vault {} and period {}', [
-      vault.id.toHexString(),
+      vault.id,
       periods[i].toString(),
     ])
     const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
@@ -158,7 +158,7 @@ export function handleHarvest(event: HarvestEvent): void {
 
   ///////
   // update protocol entities
-  log.debug('updateUserPosition: updating protocol entities for vault {}', [vault.id.toHexString()])
+  log.debug('updateUserPosition: updating protocol entities for vault {}', [vault.id])
   const protocol = getBeefyCLProtocol()
   protocol.transactionCount += 1
   protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(harvest.harvestValueUSD)
@@ -180,7 +180,7 @@ export function handleHarvest(event: HarvestEvent): void {
 
   ///////
   // update investor positions
-  log.debug('updateUserPosition: updating investor positions for vault {}', [vault.id.toHexString()])
+  log.debug('updateUserPosition: updating investor positions for vault {}', [vault.id])
   // TODO: 0xgraph doesn't support Bytes id entity loading yet, remove this when it does
   // Subgraph failed with non-deterministic error: failed to process trigger: block #183002377 (0x116c…3387), transaction 719378e6102da7970aa2af7f405f3c29dac47d431fd3bfdc89cba8a5e1312f05:
   // store error: operator does not exist: bytea = text wasm backtrace: 0: 0x8bf8
@@ -188,7 +188,7 @@ export function handleHarvest(event: HarvestEvent): void {
   //let positions = new InvestorPositionLoader('BeefyCLVault', changetype<string>(vault.id), 'positions').load()
   for (let i = 0; i < positions.length; i++) {
     let position = positions[i]
-    log.debug('updateUserPosition: updating investor position for investor {}', [position.investor.toHexString()])
+    log.debug('updateUserPosition: updating investor position for investor {}', [position.investor])
     let investor = getInvestor(position.investor)
     position.underlyingBalance0 = position.sharesBalance.times(shareTokenToUnderlying0Rate)
     position.underlyingBalance1 = position.sharesBalance.times(shareTokenToUnderlying1Rate)
@@ -200,7 +200,7 @@ export function handleHarvest(event: HarvestEvent): void {
     position.save()
     for (let i = 0; i < periods.length; i++) {
       log.debug('updateUserPosition: updating investor position snapshot for investor {} and period {}', [
-        position.investor.toHexString(),
+        position.investor,
         periods[i].toString(),
       ])
       const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, periods[i])
@@ -213,7 +213,7 @@ export function handleHarvest(event: HarvestEvent): void {
       positionSnapshot.save()
     }
 
-    log.debug('updateUserPosition: updating investor for investor {}', [position.investor.toHexString()])
+    log.debug('updateUserPosition: updating investor for investor {}', [position.investor])
     investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
     investor.save()
   }
