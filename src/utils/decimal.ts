@@ -1,43 +1,72 @@
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
-import { Token } from '../../generated/schema'
-import { BigNumber } from 'as-bignumber'
 
 export let ZERO_BI = BigInt.fromI32(0)
 export let ONE_BI = BigInt.fromI32(1)
+export let TEN_BI = BigInt.fromI32(10)
 export let ZERO_BD = BigDecimal.fromString('0')
 export let ONE_BD = BigDecimal.fromString('1')
-export let ZERO_BN = BigNumber.fromString('0')
-export let ONE_BN = BigNumber.fromString('1')
+export let TEN_BD = BigDecimal.fromString('10')
 export let ONE_ETH_BD = BigDecimal.fromString('1000000000000000000')
-export let ONE_ETH_BN = BigNumber.fromString('1000000000000000000')
 export let ONE_GWEI_BI = BigInt.fromI32(1000000000)
 export let ONE_GWEI_BD = BigDecimal.fromString('1000000000')
-export let ONE_GWEI_BN = BigNumber.fromString('1000000000')
 
-export function tokenAmountToBigNumber(tokenAmount: BigInt, token: Token): BigNumber {
-  let amount = biToBn(tokenAmount)
-  if (token.decimals.equals(ZERO_BI)) {
-    return amount
+/**
+ * Adapted from uniswap subgraph
+ * @see https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/utils/index.ts#L41-L46
+ */
+export function tokenAmountToDecimal(tokenAmount: BigInt, exchangeDecimals: BigInt): BigDecimal {
+  if (exchangeDecimals == ZERO_BI) {
+    return tokenAmount.toBigDecimal()
   }
-  let div = decimalsToDivisor(token.decimals)
-  return amount.div(div)
+  return tokenAmount.toBigDecimal().div(exponentToBigDecimal(exchangeDecimals))
 }
 
-export function decimalsToDivisor(decimals: BigInt): BigNumber {
-  let ten = BigNumber.from(10)
-  return ten.pow(decimals.toI32())
+export function weiToBigDecimal(wei: BigInt): BigDecimal {
+  return tokenAmountToDecimal(wei, BigInt.fromI32(18))
 }
 
-export function weiToBigNumber(wei: BigInt): BigNumber {
-  return biToBn(wei).div(ONE_ETH_BN)
+/**
+ * Adapted from uniswap subgraph
+ * @see https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/utils/index.ts#L23-L39
+ */
+export function bigDecimalExponated(value: BigDecimal, power: BigInt): BigDecimal {
+  if (power.equals(ZERO_BI)) {
+    return ONE_BD
+  }
+  let negativePower = power.lt(ZERO_BI)
+  let result = ZERO_BD.plus(value)
+  let powerAbs = power.abs()
+  for (let i = ONE_BI; i.lt(powerAbs); i = i.plus(ONE_BI)) {
+    result = result.times(value)
+  }
+
+  if (negativePower) {
+    result = safeDiv(ONE_BD, result)
+  }
+
+  return result
 }
 
-export function bnToBd(bn: BigNumber): BigDecimal {
-  return BigDecimal.fromString(bn.toString())
+/**
+ * Adapted from uniswap subgraph
+ * @see https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/utils/index.ts#L15-L21
+ */
+export function safeDiv(amount0: BigDecimal, amount1: BigDecimal): BigDecimal {
+  if (amount1.equals(ZERO_BD)) {
+    return ZERO_BD
+  } else {
+    return amount0.div(amount1)
+  }
 }
-export function bdToBn(bd: BigDecimal): BigNumber {
-  return BigNumber.fromString(bd.toString())
-}
-export function biToBn(bi: BigInt): BigNumber {
-  return BigNumber.fromString(bi.toString())
+
+/**
+ * Adapted from uniswap subgraph
+ * @see https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/utils/index.ts#L6-L12
+ */
+export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
+  let bd = ONE_BD
+  for (let i = ZERO_BI; i.lt(decimals as BigInt); i = i.plus(ONE_BI)) {
+    bd = bd.times(TEN_BD)
+  }
+  return bd
 }

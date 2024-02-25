@@ -7,14 +7,14 @@ import { getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from '../ent
 import { getTransaction } from '../entity/transaction'
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from '../entity/protocol'
 import { getInvestor, getInvestorSnapshot } from '../entity/investor'
-import { ZERO_BD, ZERO_BI, tokenAmountToBigNumber, bnToBd, ZERO_BN, bdToBn } from '../utils/decimal'
+import { ZERO_BD, ZERO_BI, tokenAmountToDecimal } from '../utils/decimal'
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from '../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { PERIODS } from '../utils/time'
 import { getToken } from '../entity/token'
 import { getInvestorPosition, getInvestorPositionSnapshot } from '../entity/position'
 import { ADDRESS_ZERO } from '../utils/address'
-import { sqrtPriceX96ToPriceInToken1 } from '../utils/uniswap'
+import { sqrtPriceX96ToPriceInToken1, tickToPrice } from '../utils/uniswap'
 
 export { handleVaultInitialized as handleInitialized } from '../vault-lifecycle'
 export { handleVaultOwnershipTransferred as handleOwnershipTransferred } from '../ownership'
@@ -69,7 +69,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     log.error('updateUserPosition: price() reverted for strategy {}', [vault.strategy.toHexString()])
     throw Error('updateUserPosition: price() reverted')
   }
-  const sqrtPriceRaw = sqrtPriceRes.value
+  const currentPriceInToken1 = sqrtPriceX96ToPriceInToken1(sqrtPriceRes.value, token0, token1)
 
   // range the strategy is covering
   const rangeRes = strategyContract.try_positionMain() // TODO: use "try_range()" when new strats are deployed
@@ -77,18 +77,17 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     log.error('updateUserPosition: range() reverted for strategy {}', [vault.strategy.toHexString()])
     throw Error('updateUserPosition: range() reverted')
   }
-  const rangeRaw = rangeRes.value
-  // TODO: this is just wrong
-  const rangeMinTokenPrice = sqrtPriceX96ToPriceInToken1(BigInt.fromI32(rangeRaw.value0), token0, token1)
-  const rangeMaxTokenPrice = sqrtPriceX96ToPriceInToken1(BigInt.fromI32(rangeRaw.value1), token0, token1)
+  const rangeMinToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value0), token0, token1)
+  const rangeMaxToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value1), token0, token1)
 
   // balances of the vault
-  const balancesRes = strategyContract.try_balances()
-  if (balancesRes.reverted) {
+  const vaultBalancesRes = vaultContract.try_balances()
+  if (vaultBalancesRes.reverted) {
     log.error('updateUserPosition: balances() reverted for strategy {}', [vault.strategy.toHexString()])
     throw Error('updateUserPosition: balances() reverted')
   }
-  const balancesRaw = balancesRes.value
+  const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
+  const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
 
   // get the new investor deposit value
   const investorBalanceRes = vaultContract.try_balanceOf(investorAddress)
@@ -96,12 +95,13 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     log.error('updateUserPosition: balanceOf() reverted for vault {}', [vault.id.toHexString()])
     throw Error('updateUserPosition: balanceOf() reverted')
   }
-  const investorBalanceRaw = investorBalanceRes.value
+  const investorShareTokenBalanceRaw = investorBalanceRes.value
+  const investorShareTokenBalance = tokenAmountToDecimal(investorShareTokenBalanceRaw, sharesToken.decimals)
 
   let previewWithdraw0Raw = BigInt.fromI32(0)
   let previewWithdraw1Raw = BigInt.fromI32(0)
-  if (investorBalanceRaw.gt(ZERO_BI)) {
-    const previewWithdrawRes = vaultContract.try_previewWithdraw(investorBalanceRaw)
+  if (investorShareTokenBalanceRaw.gt(ZERO_BI)) {
+    const previewWithdrawRes = vaultContract.try_previewWithdraw(investorShareTokenBalanceRaw)
     if (previewWithdrawRes.reverted) {
       log.error('updateUserPosition: previewWithdraw() reverted for vault {}', [vault.id.toHexString()])
       throw Error('updateUserPosition: previewWithdraw() reverted')
@@ -109,30 +109,29 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     previewWithdraw0Raw = previewWithdrawRes.value.value0
     previewWithdraw1Raw = previewWithdrawRes.value.value1
   }
+  let investorBalanceUnderlying0 = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
+  let investorBalanceUnderlying1 = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
 
   ///////
   // compute derived values
-  const currentTokenPrices = sqrtPriceX96ToPriceInToken1(sqrtPriceRaw, token0, token1)
   const isNewInvestor = investor.lastInteractionTimestamp.equals(ZERO_BI)
-  const token0PriceInNative = ZERO_BN // TODO
-  const token1PriceInNative = ZERO_BN // TODO
-  const nativePriceUSD = ZERO_BN // TODO
-  const investmentValueUSD = ZERO_BN // TODO
-  const txGasFeeUSD = bdToBn(tx.gasFee).mul(nativePriceUSD)
-  const token0PriceInUSD = token0PriceInNative.mul(nativePriceUSD)
-  const token1PriceInUSD = token1PriceInNative.mul(nativePriceUSD)
+  const token0PriceInNative = ZERO_BD // TODO
+  const token1PriceInNative = ZERO_BD // TODO
+  const nativePriceUSD = ZERO_BD // TODO
+  const investmentValueUSD = ZERO_BD // TODO
+  const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
+  const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
+  const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
 
   ///////
   // update vault entities
-  const balance0Dec = tokenAmountToBigNumber(balancesRaw.value0, token0)
-  const balance1Dec = tokenAmountToBigNumber(balancesRaw.value1, token1)
-  vault.currentPriceOfToken0InToken1 = bnToBd(currentTokenPrices[1])
-  vault.priceRangeMin1 = bnToBd(rangeMinTokenPrice[1])
-  vault.priceRangeMax1 = bnToBd(rangeMaxTokenPrice[1])
+  vault.currentPriceOfToken0InToken1 = currentPriceInToken1
+  vault.priceRangeMin1 = rangeMinToken1Price
+  vault.priceRangeMax1 = rangeMaxToken1Price
   vault.priceRangeMin1USD = vault.priceRangeMin1.times(token1PriceInUSD)
   vault.priceRangeMax1USD = vault.priceRangeMax1.times(token1PriceInUSD)
-  vault.underlyingAmount0 = balance0Dec
-  vault.underlyingAmount1 = balance1Dec
+  vault.underlyingAmount0 = vaultBalanceUnderlying0
+  vault.underlyingAmount1 = vaultBalanceUnderlying1
   vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
   vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
   vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(investmentValueUSD)
@@ -206,10 +205,10 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     )
     position.totalActiveTime = position.totalActiveTime.plus(timeSinceLastPositionUpdate)
   }
-  position.sharesBalance = tokenAmountToBigNumber(investorBalanceRaw, sharesToken)
+  position.sharesBalance = investorShareTokenBalance
   const previousPositionValueUSD = position.positionValueUSD
-  position.underlyingBalance0 = tokenAmountToBigNumber(previewWithdraw0Raw, token0)
-  position.underlyingBalance1 = tokenAmountToBigNumber(previewWithdraw1Raw, token1)
+  position.underlyingBalance0 = investorBalanceUnderlying0
+  position.underlyingBalance1 = investorBalanceUnderlying1
   position.underlyingBalance0USD = position.underlyingBalance0.times(token0PriceInUSD)
   position.underlyingBalance1USD = position.underlyingBalance1.times(token1PriceInUSD)
   position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)

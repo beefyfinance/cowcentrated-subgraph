@@ -1,6 +1,6 @@
 import { ethereum, log } from '@graphprotocol/graph-ts'
 import { Transaction } from '../../generated/schema'
-import { weiToBigNumber, bnToBd } from '../utils/decimal'
+import { weiToBigDecimal } from '../utils/decimal'
 
 export function getTransaction(
   block: ethereum.Block,
@@ -21,7 +21,7 @@ export function getTransaction(
       )
       throw Error('No receipt. Set "receipt: true" on the event handler configuration in subgraph.yaml')
     }
-    tx.gasFee = bnToBd(weiToBigNumber(transaction.gasPrice.times(receipt.gasUsed)))
+    tx.gasFee = weiToBigDecimal(transaction.gasPrice.times(receipt.gasUsed))
   }
   return tx
 }
