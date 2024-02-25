@@ -41,22 +41,14 @@ export function bigDecimalExponated(value: BigDecimal, power: BigInt): BigDecima
   }
 
   if (negativePower) {
-    result = safeDiv(ONE_BD, result)
+    if (result.equals(ZERO_BD)) {
+      result = ZERO_BD
+    } else {
+      result = ONE_BD.div(result)
+    }
   }
 
   return result
-}
-
-/**
- * Adapted from uniswap subgraph
- * @see https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/utils/index.ts#L15-L21
- */
-export function safeDiv(amount0: BigDecimal, amount1: BigDecimal): BigDecimal {
-  if (amount1.equals(ZERO_BD)) {
-    return ZERO_BD
-  } else {
-    return amount0.div(amount1)
-  }
 }
 
 /**
