@@ -40,42 +40,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # slower startup but faster re-indexing on graph updates.
-  # finer control over the cache and retry logic.
-  # auto-switches endpoints on 429 or failed requests.
-  rpc-proxy-cache-arbitrum:
-    image: makemake1337/blutgang:0.3.0
-    ports:
-      - 3000:3000
-    volumes:
-      - ./docker/data/rpc-proxy-cache/arbitrum:/db
-      - ./docker/rpc-proxy/config-arbitrum.toml:/app/config.toml
-    logging:
-      driver: 'local'
-      options:
-        max-size: '50M'
-        max-file: '3'
-
-  rpc-healthcheck:
-    image: alpine/curl:8.5.0
-    depends_on:
-      rpc-proxy-cache-arbitrum:
-        condition: service_started
-    command: ['sh', '/app/healthcheck-cmd.sh']
-    volumes:
-      - ./docker/rpc-proxy/healthcheck-cmd.sh:/app/healthcheck-cmd.sh
-      - ./docker/rpc-proxy/healthcheck-test.sh:/app/healthcheck-test.sh
-    logging:
-      driver: 'local'
-      options:
-        max-size: '5M'
-        max-file: '3'
-    healthcheck:
-      test: ['CMD', 'sh', '/app/healthcheck-test.sh']
-      interval: 1s
-      timeout: 5m
-      retries: 5000
-
   graph-node:
     image: graphprotocol/graph-node
     ports:
@@ -88,10 +52,6 @@ services:
       postgres:
         condition: service_healthy
       ipfs:
-        condition: service_healthy
-      rpc-proxy-cache-arbitrum:
-        condition: service_started
-      rpc-healthcheck:
         condition: service_healthy
     extra_hosts:
       - host.docker.internal:host-gateway

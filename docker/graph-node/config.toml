@@ -17,8 +17,19 @@ ingestor = "default"
 
 [chains.arbitrum]
 shard = "primary"
+
+# archive node test: 
+#   curl https://arbitrum.llamarpc.com -X POST -H "Content-Type: application/json" --data '{"method":"eth_getBalance","params":["0x82af49447d8a07e3bd95bd0d56f35241523fbab1", "0x55"],"id":1,"jsonrpc":"2.0"}'
 provider = [
-  { label = "blutgang-http", url = "http://rpc-proxy-cache-arbitrum:3000", features = [
-    "archive",
-  ] },
+  # { label = "blutgang-http", url = "http://rpc-proxy-cache-arbitrum:3000", features = [ "archive" ] },
+  { label = "ankr", url = "https://rpc.ankr.com/arbitrum", features = ["archive"] },
+  { label = "gatewayfm", url = "https://rpc.arb1.arbitrum.gateway.fm", features = ["archive"] },
+  { label = "tornadoeth", url = "https://rpc.tornadoeth.cash/arbitrum", features = ["archive"] },
+  { label = "nodies", url = "https://arb-pokt.nodies.app", features = [] },
+  { label = "arbitrumio", url = "https://arb1.arbitrum.io/rpc", features = [] },
+  { label = "meowrpc", url = "https://arbitrum.meowrpc.com", features = [] },
+  { label = "1rpc", url = "https://1rpc.io/arb", features = [] },
+  { label = "publicnode", url = "https://arbitrum-one.publicnode.com", features = [] }
+  # value: conflicting network identifiers for chain arbitrum: `net_version: 42161, genesis_block_hash: ...` != `net_version: 0xa4b1, genesis_block_hash: ...`
+  #{ label = "llamarpc", url = "https://arbitrum.llamarpc.com", features = [] },
 ]
