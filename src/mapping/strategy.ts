@@ -1,10 +1,10 @@
-import { Address, BigInt, log } from '@graphprotocol/graph-ts'
+import { Address, BigInt, log, store } from '@graphprotocol/graph-ts'
 import { Harvest as HarvestEvent } from '../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from '../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from '../entity/vault'
 import { getTransaction } from '../entity/transaction'
-import { BeefyCLVaultHarvestEvent } from '../../generated/schema'
+import { BeefyCLVaultHarvestEvent, InvestorPosition, InvestorPositionLoader } from '../../generated/schema'
 import { getEventIdentifier } from '../utils/event'
 import { getToken } from '../entity/token'
 import { ONE_BD, ZERO_BD, tokenAmountToDecimal, decimalToTokenAmount } from '../utils/decimal'
@@ -32,6 +32,8 @@ export function handleHarvest(event: HarvestEvent): void {
     return
   }
 
+  log.debug('handleHarvest: processing harvest for vault {}', [vault.id.toHexString()])
+
   const periods = PERIODS
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
@@ -43,6 +45,7 @@ export function handleHarvest(event: HarvestEvent): void {
   ///////
   // fetch data on chain
   // TODO: use multicall3 to fetch all data in one call
+  log.debug('updateUserPosition: fetching data for vault {}', [vault.id.toHexString()])
   const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(vault.strategy))
 
@@ -89,6 +92,7 @@ export function handleHarvest(event: HarvestEvent): void {
 
   ///////
   // compute derived values
+  log.debug('updateUserPosition: computing derived values for vault {}', [vault.id.toHexString()])
   const token0PriceInNative = ZERO_BD // TODO
   const token1PriceInNative = ZERO_BD // TODO
   const nativePriceUSD = ZERO_BD // TODO
@@ -98,6 +102,7 @@ export function handleHarvest(event: HarvestEvent): void {
 
   ///////
   // update vault entities
+  log.debug('updateUserPosition: updating vault entities for vault {}', [vault.id.toHexString()])
   let harvest = new BeefyCLVaultHarvestEvent(getEventIdentifier(event))
   harvest.vault = vault.id
   harvest.strategy = strategy.id
@@ -127,6 +132,10 @@ export function handleHarvest(event: HarvestEvent): void {
   vault.totalHarvestValueUSD = vault.totalHarvestedAmount0USD.plus(vault.totalHarvestedAmount1USD)
   vault.save()
   for (let i = 0; i < periods.length; i++) {
+    log.debug('updateUserPosition: updating vault snapshot for vault {} and period {}', [
+      vault.id.toHexString(),
+      periods[i].toString(),
+    ])
     const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
     vaultSnapshot.priceRangeMin1 = vault.priceRangeMax1
@@ -149,6 +158,7 @@ export function handleHarvest(event: HarvestEvent): void {
 
   ///////
   // update protocol entities
+  log.debug('updateUserPosition: updating protocol entities for vault {}', [vault.id.toHexString()])
   const protocol = getBeefyCLProtocol()
   protocol.transactionCount += 1
   protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(harvest.harvestValueUSD)
@@ -156,6 +166,7 @@ export function handleHarvest(event: HarvestEvent): void {
   protocol.transactionCount += 1
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
+    log.debug('updateUserPosition: updating protocol snapshot for period {}', [periods[i].toString()])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
     protocolSnapshot.totalValueLockedUSD = protocolSnapshot.totalValueLockedUSD.plus(harvest.harvestValueUSD)
     protocolSnapshot.totalTransactionCount += 1
@@ -169,9 +180,15 @@ export function handleHarvest(event: HarvestEvent): void {
 
   ///////
   // update investor positions
+  log.debug('updateUserPosition: updating investor positions for vault {}', [vault.id.toHexString()])
+  // TODO: 0xgraph doesn't support Bytes id entity loading yet, remove this when it does
+  // Subgraph failed with non-deterministic error: failed to process trigger: block #183002377 (0x116c…3387), transaction 719378e6102da7970aa2af7f405f3c29dac47d431fd3bfdc89cba8a5e1312f05:
+  // store error: operator does not exist: bytea = text wasm backtrace: 0: 0x8bf8
   let positions = vault.positions.load()
+  //let positions = new InvestorPositionLoader('BeefyCLVault', changetype<string>(vault.id), 'positions').load()
   for (let i = 0; i < positions.length; i++) {
     let position = positions[i]
+    log.debug('updateUserPosition: updating investor position for investor {}', [position.investor.toHexString()])
     let investor = getInvestor(position.investor)
     position.underlyingBalance0 = position.sharesBalance.times(shareTokenToUnderlying0Rate)
     position.underlyingBalance1 = position.sharesBalance.times(shareTokenToUnderlying1Rate)
@@ -182,6 +199,10 @@ export function handleHarvest(event: HarvestEvent): void {
     const positionChangeUSD = position.positionValueUSD.minus(previousPositionValueUSD)
     position.save()
     for (let i = 0; i < periods.length; i++) {
+      log.debug('updateUserPosition: updating investor position snapshot for investor {} and period {}', [
+        position.investor.toHexString(),
+        periods[i].toString(),
+      ])
       const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, periods[i])
       positionSnapshot.sharesBalance = position.sharesBalance
       positionSnapshot.underlyingBalance0 = position.underlyingBalance0
@@ -192,6 +213,7 @@ export function handleHarvest(event: HarvestEvent): void {
       positionSnapshot.save()
     }
 
+    log.debug('updateUserPosition: updating investor for investor {}', [position.investor.toHexString()])
     investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
     investor.save()
   }

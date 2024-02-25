@@ -8,7 +8,8 @@
     "test": "graph test",
     "create-local": "graph create beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "deploy-local": "graph deploy beefyfinance/beefy-cl --node http://127.0.0.1:8020 --ipfs http://localhost:5001",
-    "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020"
+    "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
+    "deploy": "yarn --silent codegen && 0xgraph build && 0xgraph deploy beefyfinance/beefy-cl"
   },
   "main": "./bin/index.js",
   "bin": {

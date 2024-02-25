@@ -47,6 +47,11 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     return
   }
 
+  log.debug('updateUserPosition: processing {} for vault {}', [
+    isDeposit ? 'deposit' : 'withdraw',
+    vault.id.toHexString(),
+  ])
+
   const periods = PERIODS
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
@@ -60,6 +65,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   ///////
   // fetch data on chain
   // TODO: use multicall3 to fetch all data in one call
+  log.debug('updateUserPosition: fetching data for vault {}', [vault.id.toHexString()])
   const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(vault.strategy))
 
@@ -114,6 +120,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
 
   ///////
   // compute derived values
+  log.debug('updateUserPosition: computing derived values for vault {}', [vault.id.toHexString()])
   const isNewInvestor = investor.lastInteractionTimestamp.equals(ZERO_BI)
   const token0PriceInNative = ZERO_BD // TODO
   const token1PriceInNative = ZERO_BD // TODO
@@ -125,6 +132,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
 
   ///////
   // update vault entities
+  log.debug('updateUserPosition: updating vault entities for vault {}', [vault.id.toHexString()])
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
   vault.priceRangeMin1 = rangeMinToken1Price
   vault.priceRangeMax1 = rangeMaxToken1Price
@@ -142,6 +150,10 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   }
   vault.save()
   for (let i = 0; i < periods.length; i++) {
+    log.debug('updateUserPosition: updating vault snapshot for vault {} and period {}', [
+      vault.id.toHexString(),
+      periods[i].toString(),
+    ])
     const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
     vaultSnapshot.priceRangeMin1 = vault.priceRangeMax1
@@ -163,6 +175,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
 
   ///////
   // update protocol entities
+  log.debug('updateUserPosition: updating protocol entities for vault {}', [vault.id.toHexString()])
   const protocol = getBeefyCLProtocol()
   protocol.transactionCount += 1
   protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(investmentValueUSD)
@@ -171,6 +184,10 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   }
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
+    log.debug('updateUserPosition: updating protocol snapshot for vault {} and period {}', [
+      vault.id.toHexString(),
+      periods[i].toString(),
+    ])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
     protocolSnapshot.totalValueLockedUSD = protocolSnapshot.totalValueLockedUSD.plus(investmentValueUSD)
     if (isNewInvestor) {
@@ -190,6 +207,10 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
 
   ///////
   // update investor positions
+  log.debug('updateUserPosition: updating investor position of investor {} for vault {}', [
+    investor.id.toHexString(),
+    vault.id.toHexString(),
+  ])
   const position = getInvestorPosition(vault, investor)
   const isNewPosition = position.sharesBalance.equals(ZERO_BD)
   let timeSinceLastPositionUpdate = ZERO_BI
@@ -216,6 +237,11 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   position.lastUpdated = event.block.timestamp
   position.save()
   for (let i = 0; i < periods.length; i++) {
+    log.debug('updateUserPosition: updating investor position snapshot of investor {} for vault {} and period {}', [
+      investor.id.toHexString(),
+      vault.id.toHexString(),
+      periods[i].toString(),
+    ])
     const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, periods[i])
     positionSnapshot.sharesBalance = position.sharesBalance
     positionSnapshot.underlyingBalance0 = position.underlyingBalance0
@@ -228,6 +254,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
 
   ///////
   // update investor entities
+  log.debug('updateUserPosition: updating investor entities for investor {}', [investor.id.toHexString()])
   investor.lastInteractionTimestamp = event.block.timestamp
   if (isNewPosition) {
     investor.activePositionCount += 1
@@ -242,6 +269,10 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   investor.totalInteractionsCount += 1
   investor.save()
   for (let i = 0; i < periods.length; i++) {
+    log.debug('updateUserPosition: updating investor snapshot for investor {} and period {}', [
+      investor.id.toHexString(),
+      periods[i].toString(),
+    ])
     const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, periods[i])
     investorSnapshot.totalPositionValueUSD = investor.totalPositionValueUSD
     investorSnapshot.timeWeightedPositionValueUSD = investor.timeWeightedPositionValueUSD
