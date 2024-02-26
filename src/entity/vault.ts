@@ -45,12 +45,12 @@ export function getBeefyCLVault(vaultAddress: string): BeefyCLVault {
     vault.totalHarvestedAmount0USD = ZERO_BD
     vault.totalHarvestedAmount1USD = ZERO_BD
     vault.totalHarvestValueUSD = ZERO_BD
-    vault.totalHarvesterFeeAmountNative = ZERO_BD
-    vault.totalProtocolFeeAmountNative = ZERO_BD
-    vault.totalStrategistFeeAmountNative = ZERO_BD
-    vault.totalHarvesterFeeAmountUSD = ZERO_BD
-    vault.totalProtocolFeeAmountUSD = ZERO_BD
-    vault.totalStrategistFeeAmountUSD = ZERO_BD
+    vault.totalHarvesterFeeCollectedNative = ZERO_BD
+    vault.totalProtocolFeeCollectedNative = ZERO_BD
+    vault.totalStrategistFeeCollectedNative = ZERO_BD
+    vault.totalHarvesterFeeCollectedUSD = ZERO_BD
+    vault.totalProtocolFeeCollectedUSD = ZERO_BD
+    vault.totalStrategistFeeCollectedUSD = ZERO_BD
   }
   return vault
 }
@@ -95,12 +95,12 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
     snapshot.harvestedAmount0USD = ZERO_BD
     snapshot.harvestedAmount1USD = ZERO_BD
     snapshot.harvestValueUSD = ZERO_BD
-    snapshot.harvesterFeeAmountNative = ZERO_BD
-    snapshot.protocolFeeAmountNative = ZERO_BD
-    snapshot.strategistFeeAmountNative = ZERO_BD
-    snapshot.harvesterFeeAmountUSD = ZERO_BD
-    snapshot.protocolFeeAmountUSD = ZERO_BD
-    snapshot.strategistFeeAmountUSD = ZERO_BD
+    snapshot.harvesterFeeCollectedNative = ZERO_BD
+    snapshot.protocolFeeCollectedNative = ZERO_BD
+    snapshot.strategistFeeCollectedNative = ZERO_BD
+    snapshot.harvesterFeeCollectedUSD = ZERO_BD
+    snapshot.protocolFeeCollectedUSD = ZERO_BD
+    snapshot.strategistFeeCollectedUSD = ZERO_BD
   }
   return snapshot
 }

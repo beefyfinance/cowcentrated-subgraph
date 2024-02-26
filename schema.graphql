@@ -152,7 +152,7 @@ type ProtocolSnapshot implements Snapshot @entity {
   by each investor instead of using the Beefy Finance protocol.
   It is expressed in native token.
   """
-  protocolGasSavedNative: BigDecimal!
+  protocolGasSaved: BigDecimal!
   "Total amount of gas saved by the protocol in USD at the time of the snapshot"
   protocolGasSavedUSD: BigDecimal!
 
@@ -273,18 +273,18 @@ type BeefyCLVault implements EvmAddress @entity {
   totalHarvestValueUSD: BigDecimal!
 
   "Amount of native token charged as call fee incentive"
-  totalHarvesterFeeAmountNative: BigDecimal!
+  totalHarvesterFeeCollectedNative: BigDecimal!
   "Amount of native token charged as protocol fee"
-  totalProtocolFeeAmountNative: BigDecimal!
+  totalProtocolFeeCollectedNative: BigDecimal!
   "Amount of native token charged as strategist fee incentive"
-  totalStrategistFeeAmountNative: BigDecimal!
+  totalStrategistFeeCollectedNative: BigDecimal!
 
   "Amount of native token charged as call fee incentive in USD"
-  totalHarvesterFeeAmountUSD: BigDecimal!
+  totalHarvesterFeeCollectedUSD: BigDecimal!
   "Amount of native token charged as protocol fee in USD"
-  totalProtocolFeeAmountUSD: BigDecimal!
+  totalProtocolFeeCollectedUSD: BigDecimal!
   "Amount of native token charged as strategist fee incentive in USD"
-  totalStrategistFeeAmountUSD: BigDecimal!
+  totalStrategistFeeCollectedUSD: BigDecimal!
 
   "All investors positions in the vault"
   positions: [InvestorPosition!]! @derivedFrom(field: "vault")
@@ -367,18 +367,18 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   harvestValueUSD: BigDecimal!
 
   "Amount of native token charged as call fee incentive"
-  harvesterFeeAmountNative: BigDecimal!
+  harvesterFeeCollectedNative: BigDecimal!
   "Amount of native token charged as protocol fee"
-  protocolFeeAmountNative: BigDecimal!
+  protocolFeeCollectedNative: BigDecimal!
   "Amount of native token charged as strategist fee incentive"
-  strategistFeeAmountNative: BigDecimal!
+  strategistFeeCollectedNative: BigDecimal!
 
   "Amount of native token charged as call fee incentive in USD"
-  harvesterFeeAmountUSD: BigDecimal!
+  harvesterFeeCollectedUSD: BigDecimal!
   "Amount of native token charged as protocol fee in USD"
-  protocolFeeAmountUSD: BigDecimal!
+  protocolFeeCollectedUSD: BigDecimal!
   "Amount of native token charged as strategist fee incentive in USD"
-  strategistFeeAmountUSD: BigDecimal!
+  strategistFeeCollectedUSD: BigDecimal!
 }
 
 """

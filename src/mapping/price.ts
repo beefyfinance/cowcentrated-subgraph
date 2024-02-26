@@ -10,7 +10,7 @@ const WNATIVE_DECIMALS = BigInt.fromI32(18)
 const nativePriceFeed = ChainLinkPriceFeed.bind(Address.fromString('0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612'))
 const PRICE_FEED_DECIMALS = BigInt.fromI32(8)
 
-export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token): Prices {
+export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token): VaultPrices {
   log.debug('updateUserPosition: fetching data for vault {}', [vault.id])
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(Address.fromHexString(vault.strategy)))
 
@@ -60,10 +60,19 @@ export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token
   const nativePriceUSD = tokenAmountToDecimal(nativePriceUSDRes.value.getAnswer(), PRICE_FEED_DECIMALS)
   log.info('updateUserPosition: nativePriceUSD: {}', [nativePriceUSD.toString()])
 
-  return new Prices(token0PriceInNative, token1PriceInNative, nativePriceUSD)
+  return new VaultPrices(token0PriceInNative, token1PriceInNative, nativePriceUSD)
 }
 
-class Prices {
+export function getNativePriceUSD(): BigDecimal {
+  const nativePriceUSDRes = nativePriceFeed.try_latestRoundData()
+  if (nativePriceUSDRes.reverted) {
+    log.error('updateUserPosition: latestRoundData() reverted for native token', [])
+    throw Error('updateUserPosition: latestRoundData() reverted')
+  }
+  return tokenAmountToDecimal(nativePriceUSDRes.value.getAnswer(), PRICE_FEED_DECIMALS)
+}
+
+class VaultPrices {
   _token0ToNative: BigDecimal
   _token1ToNative: BigDecimal
   _nativeToUsd: BigDecimal

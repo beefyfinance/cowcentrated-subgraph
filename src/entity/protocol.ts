@@ -45,7 +45,7 @@ export function getBeefyCLProtocolSnapshot(timestamp: BigInt, period: BigInt): P
     snapshot.investorGasSpentUSD = ZERO_BD
     snapshot.harvesterGasSpent = ZERO_BD
     snapshot.harvesterGasSpentUSD = ZERO_BD
-    snapshot.protocolGasSavedNative = ZERO_BD
+    snapshot.protocolGasSaved = ZERO_BD
     snapshot.protocolGasSavedUSD = ZERO_BD
     snapshot.protocolFeesCollectedNative = ZERO_BD
     snapshot.protocolFeesCollectedUSD = ZERO_BD

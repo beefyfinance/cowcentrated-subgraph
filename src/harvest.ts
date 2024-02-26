@@ -1,4 +1,4 @@
-import { Address, BigInt, log } from '@graphprotocol/graph-ts'
+import { Address, BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 import { Harvest as HarvestEvent } from './../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from './../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from './../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
@@ -154,28 +154,6 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   }
 
   ///////
-  // update protocol entities
-  log.debug('updateUserPosition: updating protocol entities for vault {}', [vault.id])
-  const protocol = getBeefyCLProtocol()
-  protocol.transactionCount += 1
-  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(harvest.harvestValueUSD)
-  protocol.harvestCount += 1
-  protocol.transactionCount += 1
-  protocol.save()
-  for (let i = 0; i < periods.length; i++) {
-    log.debug('updateUserPosition: updating protocol snapshot for period {}', [periods[i].toString()])
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
-    protocolSnapshot.totalValueLockedUSD = protocolSnapshot.totalValueLockedUSD.plus(harvest.harvestValueUSD)
-    protocolSnapshot.totalTransactionCount += 1
-    protocolSnapshot.harvesterTransactionsCount += 1
-    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
-    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
-    protocolSnapshot.harvesterGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
-    protocolSnapshot.harvesterGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
-    protocolSnapshot.save()
-  }
-
-  ///////
   // update investor positions
   log.debug('updateUserPosition: updating investor positions for vault {}', [vault.id])
   // TODO: 0xgraph doesn't support Bytes id entity loading yet, remove this when it does
@@ -183,8 +161,14 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   // store error: operator does not exist: bytea = text wasm backtrace: 0: 0x8bf8
   let positions = vault.positions.load()
   //let positions = new InvestorPositionLoader('BeefyCLVault', changetype<string>(vault.id), 'positions').load()
+  let positivePositionCount = 0
   for (let i = 0; i < positions.length; i++) {
     let position = positions[i]
+    if (!position.sharesBalance.gt(ZERO_BD)) {
+      continue
+    }
+    positivePositionCount += 1
+
     log.debug('updateUserPosition: updating investor position for investor {}', [position.investor])
     let investor = getInvestor(position.investor)
     position.underlyingBalance0 = position.sharesBalance.times(shareTokenToUnderlying0Rate)
@@ -213,5 +197,33 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
     log.debug('updateUserPosition: updating investor for investor {}', [position.investor])
     investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
     investor.save()
+  }
+
+  ///////
+  // update protocol entities
+  log.debug('updateUserPosition: updating protocol entities for vault {}', [vault.id])
+  const protocol = getBeefyCLProtocol()
+  protocol.transactionCount += 1
+  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(harvest.harvestValueUSD)
+  protocol.harvestCount += 1
+  protocol.transactionCount += 1
+  protocol.save()
+  for (let i = 0; i < periods.length; i++) {
+    log.debug('updateUserPosition: updating protocol snapshot for period {}', [periods[i].toString()])
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
+    protocolSnapshot.totalValueLockedUSD = protocolSnapshot.totalValueLockedUSD.plus(harvest.harvestValueUSD)
+    protocolSnapshot.totalTransactionCount += 1
+    protocolSnapshot.harvesterTransactionsCount += 1
+    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
+    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
+    protocolSnapshot.harvesterGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
+    protocolSnapshot.harvesterGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
+    const harvestGasSaved = tx.gasFee.times(BigDecimal.fromString(positivePositionCount.toString()))
+    protocolSnapshot.protocolGasSaved = protocolSnapshot.protocolGasSaved.plus(harvestGasSaved)
+    protocolSnapshot.protocolGasSavedUSD = protocolSnapshot.protocolGasSavedUSD.plus(
+      harvestGasSaved.times(nativePriceUSD),
+    )
+
+    protocolSnapshot.save()
   }
 }
