@@ -117,3 +117,8 @@ templates:
         - event: Harvest(uint256,uint256)
           handler: handleHarvest
           receipt: true
+        #- event: ChargedFees(uint256,uint256,uint256)
+        #  handler: handleChargedFees
+        #  receipt: true
+
+          
