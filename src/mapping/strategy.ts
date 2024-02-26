@@ -1,4 +1,4 @@
-import { Address, BigInt, log, store } from '@graphprotocol/graph-ts'
+import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 import { Harvest as HarvestEvent } from '../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from '../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
@@ -13,6 +13,7 @@ import { PERIODS } from '../utils/time'
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from '../entity/protocol'
 import { getInvestorPositionSnapshot } from '../entity/position'
 import { getInvestor } from '../entity/investor'
+import { getVaultPrices } from './price'
 export {
   handleStrategyInitialized as handleInitialized,
   handleStrategyPaused as handlePaused,
@@ -90,12 +91,14 @@ export function handleHarvest(event: HarvestEvent): void {
   let shareTokenToUnderlying0Rate = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   let shareTokenToUnderlying1Rate = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
 
+  const prices = getVaultPrices(vault, token0, token1)
+  const token0PriceInNative = prices.token0ToNative
+  const token1PriceInNative = prices.token1ToNative
+  const nativePriceUSD = prices.nativeToUsd
+
   ///////
   // compute derived values
   log.debug('updateUserPosition: computing derived values for vault {}', [vault.id])
-  const token0PriceInNative = ZERO_BD // TODO
-  const token1PriceInNative = ZERO_BD // TODO
-  const nativePriceUSD = ZERO_BD // TODO
   const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
   const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
   const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)

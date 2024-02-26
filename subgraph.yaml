@@ -53,6 +53,10 @@ templates:
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
         - name: StrategyPassiveManagerUniswap
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+        - name: UniswapQuoterV2
+          file: ./abis/uniswap/QuoterV2.json
+        - name: ChainLinkPriceFeed
+          file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
         - name: Multicall3
@@ -93,6 +97,10 @@ templates:
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
         - name: StrategyPassiveManagerUniswap
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+        - name: UniswapQuoterV2
+          file: ./abis/uniswap/QuoterV2.json
+        - name: ChainLinkPriceFeed
+          file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
         - name: Multicall3

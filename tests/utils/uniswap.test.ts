@@ -2,7 +2,7 @@ import { assert, clearStore, test, describe, afterAll } from 'matchstick-as/asse
 import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 import { sqrtPriceX96ToPriceInToken1, tickToPrice } from '../../src/utils/uniswap'
 import { Token } from '../../generated/schema'
-import { ADDRESS_ZERO } from '../../src/utils/address'
+import { ADDRESS_ZERO, ADDRESS_ZERO_STRING } from '../../src/utils/address'
 
 describe('uniswap.sqrtPriceX96ToPriceInToken1', () => {
   afterAll(() => {
@@ -12,8 +12,8 @@ describe('uniswap.sqrtPriceX96ToPriceInToken1', () => {
   test('Can transform an sqrt price x96 into a true price', () => {
     // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const value = BigInt.fromString('2018382873588440326581633304624437')
-    let usdc = new Token(ADDRESS_ZERO)
-    let weth = new Token(ADDRESS_ZERO)
+    let usdc = new Token(ADDRESS_ZERO_STRING)
+    let weth = new Token(ADDRESS_ZERO_STRING)
     usdc.decimals = BigInt.fromI32(6)
     weth.decimals = BigInt.fromI32(18)
 
@@ -35,8 +35,8 @@ describe('uniswap.sqrtPriceX96ToPriceInToken1', () => {
     //   sqrtPriceX96 = (reserve1/reserve0).sqrt() * (2**96)
     //   print(f'{sqrtPriceX96:.0f}')
     const value = BigInt.fromString('3108427325256432995123990')
-    let usdc = new Token(ADDRESS_ZERO)
-    let weth = new Token(ADDRESS_ZERO)
+    let usdc = new Token(ADDRESS_ZERO_STRING)
+    let weth = new Token(ADDRESS_ZERO_STRING)
     usdc.decimals = BigInt.fromI32(6)
     weth.decimals = BigInt.fromI32(18)
 
@@ -58,8 +58,8 @@ describe('uniswap.tickToPrice', () => {
     // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const minTick = BigInt.fromString('202910')
     const maxTick = BigInt.fromString('202920')
-    let usdc = new Token(ADDRESS_ZERO)
-    let weth = new Token(ADDRESS_ZERO)
+    let usdc = new Token(ADDRESS_ZERO_STRING)
+    let weth = new Token(ADDRESS_ZERO_STRING)
     usdc.decimals = BigInt.fromI32(6)
     weth.decimals = BigInt.fromI32(18)
 
@@ -79,8 +79,8 @@ describe('uniswap.tickToPrice', () => {
   test('Can transform a tick into a price when ticks are negative', () => {
     // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const tick = BigInt.fromString('-31001')
-    let usdc = new Token(ADDRESS_ZERO)
-    let weth = new Token(ADDRESS_ZERO)
+    let usdc = new Token(ADDRESS_ZERO_STRING)
+    let weth = new Token(ADDRESS_ZERO_STRING)
     usdc.decimals = BigInt.fromI32(6)
     weth.decimals = BigInt.fromI32(18)
 
@@ -95,8 +95,8 @@ describe('uniswap.tickToPrice', () => {
   test('Can transform the maxTick in price', () => {
     // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const tick = BigInt.fromString('887272')
-    let usdc = new Token(ADDRESS_ZERO)
-    let weth = new Token(ADDRESS_ZERO)
+    let usdc = new Token(ADDRESS_ZERO_STRING)
+    let weth = new Token(ADDRESS_ZERO_STRING)
     usdc.decimals = BigInt.fromI32(6)
     weth.decimals = BigInt.fromI32(18)
 
@@ -111,8 +111,8 @@ describe('uniswap.tickToPrice', () => {
   test('Can transform a very negative tick into a price', () => {
     // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const tick = BigInt.fromString('-100000')
-    let usdc = new Token(ADDRESS_ZERO)
-    let weth = new Token(ADDRESS_ZERO)
+    let usdc = new Token(ADDRESS_ZERO_STRING)
+    let weth = new Token(ADDRESS_ZERO_STRING)
     usdc.decimals = BigInt.fromI32(6)
     weth.decimals = BigInt.fromI32(18)
 
@@ -127,8 +127,8 @@ describe('uniswap.tickToPrice', () => {
   test('Can transform the min tick into a price', () => {
     // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const tick = BigInt.fromString('-887272')
-    let usdc = new Token(ADDRESS_ZERO)
-    let weth = new Token(ADDRESS_ZERO)
+    let usdc = new Token(ADDRESS_ZERO_STRING)
+    let weth = new Token(ADDRESS_ZERO_STRING)
     usdc.decimals = BigInt.fromI32(6)
     weth.decimals = BigInt.fromI32(18)
 

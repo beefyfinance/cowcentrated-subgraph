@@ -85,3 +85,27 @@ describe('decimals.exponentToBigDecimal', () => {
     assert.stringEquals(res.toString(), '1', 'Decimal value should match')
   })
 })
+
+describe('decimals.exponentToBigInt', () => {
+  afterAll(() => {
+    clearStore()
+  })
+
+  test('Can transform a simple value into a big int value', () => {
+    const value = BigInt.fromI32(18)
+    const res = exponentToBigDecimal(value)
+    assert.stringEquals(res.toString(), '1000000000000000000', 'Decimal value should match')
+  })
+
+  test('Can transform a simple value into a big int value with 6 decimals', () => {
+    const value = BigInt.fromI32(6)
+    const res = exponentToBigDecimal(value)
+    assert.stringEquals(res.toString(), '1000000', 'Decimal value should match')
+  })
+
+  test('Can transform a simple value into a big int value with 0 decimals', () => {
+    const value = BigInt.fromI32(0)
+    const res = exponentToBigDecimal(value)
+    assert.stringEquals(res.toString(), '1', 'Decimal value should match')
+  })
+})

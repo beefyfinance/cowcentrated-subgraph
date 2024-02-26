@@ -42,8 +42,19 @@ export function weiToBigDecimal(wei: BigInt): BigDecimal {
 @inline
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
   let bd = ONE_BD
-  for (let i = ZERO_BI; i.lt(decimals as BigInt); i = i.plus(ONE_BI)) {
+  let n = decimals.toI32()
+  for (let i = 0; i < n; i++) {
     bd = bd.times(TEN_BD)
+  }
+  return bd
+}
+
+@inline
+export function exponentToBigInt(decimals: BigInt): BigInt {
+  let bd = ONE_BI
+  let n = decimals.toI32()
+  for (let i = 0; i < n; i++) {
+    bd = bd.times(TEN_BI)
   }
   return bd
 }
