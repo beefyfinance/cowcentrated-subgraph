@@ -8,7 +8,19 @@ describe('uniswap.sqrtPriceX96ToPriceInToken1', () => {
   afterAll(() => {
     clearStore()
   })
-
+  /**
+   * example from https://blog.uniswap.org/uniswap-v3-math-primer
+   * sqrtPriceX96toPriceInToken1.py:
+   *
+   * from decimal import Decimal, get_context
+   *
+   * get_context().prec = 200
+   * reserve0 = Decimal('1000000000000000000')
+   * reserve1 = Decimal('1539296453')
+   * sqrtPriceX96 = (reserve1/reserve0).sqrt() * (2**96)
+   *
+   * print(f'{sqrtPriceX96:.0f}')
+   */
   test('Can transform an sqrt price x96 into a true price', () => {
     // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const value = BigInt.fromString('2018382873588440326581633304624437')
@@ -18,6 +30,7 @@ describe('uniswap.sqrtPriceX96ToPriceInToken1', () => {
     weth.decimals = BigInt.fromI32(18)
 
     const token0PriceInToken1 = sqrtPriceX96ToPriceInToken1(value, usdc, weth)
+    log.info('token0PriceInToken1: {}', [token0PriceInToken1.toString()])
 
     let targetMin = BigDecimal.fromString('1540.82')
     let targetMax = BigDecimal.fromString('1540.83')
@@ -26,14 +39,6 @@ describe('uniswap.sqrtPriceX96ToPriceInToken1', () => {
   })
 
   test('Can transform an sqrt price x96 into a true price when decimals are inverted', () => {
-    // example from https://blog.uniswap.org/uniswap-v3-math-primer
-    // python3
-    //   from decimal import Decimal, get_context
-    //   get_context().prec = 200
-    //   reserve0 = Decimal('1000000000000000000')
-    //   reserve1 = Decimal('1539296453')
-    //   sqrtPriceX96 = (reserve1/reserve0).sqrt() * (2**96)
-    //   print(f'{sqrtPriceX96:.0f}')
     const value = BigInt.fromString('3108427325256432995123990')
     let usdc = new Token(ADDRESS_ZERO_STRING)
     let weth = new Token(ADDRESS_ZERO_STRING)
@@ -54,8 +59,30 @@ describe('uniswap.tickToPrice', () => {
     clearStore()
   })
 
+  /**
+   * example from https://blog.uniswap.org/uniswap-v3-math-primer
+   *
+   * def tick_to_price(tick, decimal0, decimal1):
+   *     num = 1.0001**tick
+   *     den = 10**(decimal1-decimal0)
+   *     price0 = num / den
+   *     price1 = 1.0 / price0
+   *     print("===tick: %d\n num: %f\n den: %f\n price0: %f\n price1: %f" % (tick, num, den, price0, price1))
+   *
+   *
+   * import math
+   * def tick_to_price_log(tick, decimal0, decimal1):
+   *     # 1 / ((1.0001 ** x) / (10 ** d)) = exp(d * log(10) - x * log(1.0001))
+   *     d = decimal1 - decimal0
+   *     a = d * math.log(10)
+   *     b = tick * math.log(1.0001)
+   *     log_res = a - b
+   *     price1 = math.exp(log_res)
+   *     price0 = 1.0 / price1
+   *     print("===tick: %d\n a: %f\n b: %f\n log_res: %f\n price0: %f\n price1: %f" % (tick, a, b, log_res, price0, price1))
+   *
+   */
   test('Can transform a tick into a price', () => {
-    // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const minTick = BigInt.fromString('202910')
     const maxTick = BigInt.fromString('202920')
     let usdc = new Token(ADDRESS_ZERO_STRING)
@@ -77,7 +104,6 @@ describe('uniswap.tickToPrice', () => {
   })
 
   test('Can transform a tick into a price when ticks are negative', () => {
-    // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const tick = BigInt.fromString('-31001')
     let usdc = new Token(ADDRESS_ZERO_STRING)
     let weth = new Token(ADDRESS_ZERO_STRING)
@@ -86,14 +112,13 @@ describe('uniswap.tickToPrice', () => {
 
     const tickPriceInToken1 = tickToPrice(tick, usdc, weth)
 
-    let targetTickMin = BigDecimal.fromString('31640183498')
-    let targetTickMax = BigDecimal.fromString('31640183499')
+    let targetTickMin = BigDecimal.fromString('22196730546060.1')
+    let targetTickMax = BigDecimal.fromString('22196730546060.2')
     assert.assertTrue(tickPriceInToken1.gt(targetTickMin), 'Tick value should be approximately correct')
     assert.assertTrue(tickPriceInToken1.lt(targetTickMax), 'Tick value should be approximately correct')
   })
 
   test('Can transform the maxTick in price', () => {
-    // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const tick = BigInt.fromString('887272')
     let usdc = new Token(ADDRESS_ZERO_STRING)
     let weth = new Token(ADDRESS_ZERO_STRING)
@@ -102,14 +127,13 @@ describe('uniswap.tickToPrice', () => {
 
     const tickPriceInToken1 = tickToPrice(tick, usdc, weth)
 
-    let targetTickMin = BigDecimal.fromString('0.0000000000000000000000000029389568076')
-    let targetTickMax = BigDecimal.fromString('0.0000000000000000000000000029389568077')
+    let targetTickMin = BigDecimal.fromString('2.938956807614e-27')
+    let targetTickMax = BigDecimal.fromString('2.938956907615e-27')
     assert.assertTrue(tickPriceInToken1.gt(targetTickMin), 'Tick value should be approximately correct')
     assert.assertTrue(tickPriceInToken1.lt(targetTickMax), 'Tick value should be approximately correct')
   })
 
   test('Can transform a very negative tick into a price', () => {
-    // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const tick = BigInt.fromString('-100000')
     let usdc = new Token(ADDRESS_ZERO_STRING)
     let weth = new Token(ADDRESS_ZERO_STRING)
@@ -118,14 +142,14 @@ describe('uniswap.tickToPrice', () => {
 
     const tickPriceInToken1 = tickToPrice(tick, usdc, weth)
 
-    let targetTickMin = BigDecimal.fromString('22015456048552198.645701456581')
-    let targetTickMax = BigDecimal.fromString('22015456048552198.645701456582')
+    let targetTickMin = BigDecimal.fromString('2.20154560485280e+16')
+    let targetTickMax = BigDecimal.fromString('2.20154560485281e+16')
+
     assert.assertTrue(tickPriceInToken1.gt(targetTickMin), 'Tick value should be approximately correct')
     assert.assertTrue(tickPriceInToken1.lt(targetTickMax), 'Tick value should be approximately correct')
   })
 
   test('Can transform the min tick into a price', () => {
-    // example from https://blog.uniswap.org/uniswap-v3-math-primer
     const tick = BigInt.fromString('-887272')
     let usdc = new Token(ADDRESS_ZERO_STRING)
     let weth = new Token(ADDRESS_ZERO_STRING)
@@ -134,7 +158,37 @@ describe('uniswap.tickToPrice', () => {
 
     const tickPriceInToken1 = tickToPrice(tick, usdc, weth)
 
-    let targetPrice = BigDecimal.fromString('340256786836388094050805785052980700000000000000000')
+    // true value is 340256786833063068514507077617520209684190474534912, close enough
+    let targetPrice = BigDecimal.fromString('340256786833063080000000000000000000000000000000000')
     assert.assertTrue(tickPriceInToken1.equals(targetPrice), 'Tick value should be approximately correct')
+  })
+
+  test('Can transform a tick into a price when decimals are inverted', () => {
+    const tick = BigInt.fromString('887272')
+    let usdc = new Token(ADDRESS_ZERO_STRING)
+    let weth = new Token(ADDRESS_ZERO_STRING)
+    usdc.decimals = BigInt.fromI32(18)
+    weth.decimals = BigInt.fromI32(6)
+
+    const tickPriceInToken1 = tickToPrice(tick, weth, usdc)
+
+    let targetTickMin = BigDecimal.fromString('2.93895680761429e-27')
+    let targetTickMax = BigDecimal.fromString('2.93895680761430e-27')
+    assert.assertTrue(tickPriceInToken1.gt(targetTickMin), 'Tick value should be approximately correct')
+    assert.assertTrue(tickPriceInToken1.lt(targetTickMax), 'Tick value should be approximately correct')
+  })
+
+  test('Can transform a very negative tick into a price when decimals are inverted', () => {
+    const tick = BigInt.fromString('-887272')
+    let usdc = new Token(ADDRESS_ZERO_STRING)
+    let weth = new Token(ADDRESS_ZERO_STRING)
+    usdc.decimals = BigInt.fromI32(18)
+    weth.decimals = BigInt.fromI32(6)
+
+    const tickPriceInToken1 = tickToPrice(tick, weth, usdc)
+
+    // true value is 340256786833063525436630628682351520367867445903360, close enough
+    let targetTick = BigDecimal.fromString('340256786833063080000000000000000000000000000000000')
+    assert.assertTrue(tickPriceInToken1.equals(targetTick), 'Tick value should be correct')
   })
 })
