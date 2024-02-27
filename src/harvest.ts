@@ -104,6 +104,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   harvest.vault = vault.id
   harvest.strategy = strategy.id
   harvest.createdWith = tx.id
+  harvest.timestamp = event.block.timestamp
   harvest.harvestedAmount0 = tokenAmountToDecimal(event.params.fee0, token0.decimals)
   harvest.harvestedAmount1 = tokenAmountToDecimal(event.params.fee1, token1.decimals)
   harvest.harvestedAmount0USD = harvest.harvestedAmount0.times(token0PriceInUSD)
