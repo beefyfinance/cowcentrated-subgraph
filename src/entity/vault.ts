@@ -1,9 +1,10 @@
 import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { BeefyCLStrategy, BeefyCLVault, BeefyCLVaultSnapshot } from '../../generated/schema'
-import { ADDRESS_ZERO, ADDRESS_ZERO_STRING } from '../utils/address'
+import { ADDRESS_ZERO } from '../utils/address'
 import { ZERO_BD } from '../utils/decimal'
-import { PROTOCOL_BEEFY_CL } from './protocol'
+import { PROTOCOL_BEEFY_CL_ID } from './protocol'
 import { getIntervalFromTimestamp } from '../utils/time'
+import { getSnapshotIdSuffix } from '../utils/snapshot'
 
 export const BEEFY_CL_VAULT_LIFECYCLE_INITIALIZING = 'INITIALIZING'
 export const BEEFY_CL_VAULT_LIFECYCLE_RUNNING = 'RUNNING'
@@ -13,19 +14,19 @@ export function isVaultRunning(vault: BeefyCLVault): boolean {
   return vault.lifecycle == BEEFY_CL_VAULT_LIFECYCLE_RUNNING
 }
 
-export function getBeefyCLVault(vaultAddress: string): BeefyCLVault {
+export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
   let vault = BeefyCLVault.load(vaultAddress)
   if (!vault) {
     vault = new BeefyCLVault(vaultAddress)
-    vault.protocol = PROTOCOL_BEEFY_CL.toString()
-    vault.createdWith = ADDRESS_ZERO_STRING
+    vault.protocol = PROTOCOL_BEEFY_CL_ID
+    vault.createdWith = ADDRESS_ZERO
     vault.owner = ADDRESS_ZERO
-    vault.sharesToken = ADDRESS_ZERO_STRING
-    vault.strategy = ADDRESS_ZERO_STRING
+    vault.sharesToken = ADDRESS_ZERO
+    vault.strategy = ADDRESS_ZERO
     vault.isInitialized = false
     vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_INITIALIZING
-    vault.underlyingToken0 = ADDRESS_ZERO_STRING
-    vault.underlyingToken1 = ADDRESS_ZERO_STRING
+    vault.underlyingToken0 = ADDRESS_ZERO
+    vault.underlyingToken1 = ADDRESS_ZERO
     vault.currentPriceOfToken0InToken1 = ZERO_BD
     vault.priceRangeMin1 = ZERO_BD
     vault.priceRangeMax1 = ZERO_BD
@@ -55,11 +56,11 @@ export function getBeefyCLVault(vaultAddress: string): BeefyCLVault {
   return vault
 }
 
-export function getBeefyCLStrategy(strategyAddress: string): BeefyCLStrategy {
+export function getBeefyCLStrategy(strategyAddress: Bytes): BeefyCLStrategy {
   let strategy = BeefyCLStrategy.load(strategyAddress)
   if (!strategy) {
     strategy = new BeefyCLStrategy(strategyAddress)
-    strategy.vault = ADDRESS_ZERO_STRING
+    strategy.vault = ADDRESS_ZERO
     strategy.owner = ADDRESS_ZERO
     strategy.isInitialized = false
   }
@@ -68,7 +69,7 @@ export function getBeefyCLStrategy(strategyAddress: string): BeefyCLStrategy {
 
 export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, period: BigInt): BeefyCLVaultSnapshot {
   const interval = getIntervalFromTimestamp(timestamp, period)
-  const snapshotId = vault.id + '-' + period.toString() + '-' + interval.toString()
+  const snapshotId = vault.id.concat(getSnapshotIdSuffix(period, interval))
   let snapshot = BeefyCLVaultSnapshot.load(snapshotId)
   if (!snapshot) {
     snapshot = new BeefyCLVaultSnapshot(snapshotId)

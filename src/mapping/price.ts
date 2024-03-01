@@ -11,19 +11,19 @@ const nativePriceFeed = ChainLinkPriceFeed.bind(Address.fromString('0x639Fe6ab55
 const PRICE_FEED_DECIMALS = BigInt.fromI32(8)
 
 export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token): VaultPrices {
-  log.debug('updateUserPosition: fetching data for vault {}', [vault.id])
-  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(Address.fromHexString(vault.strategy)))
+  log.debug('updateUserPosition: fetching data for vault {}', [vault.id.toHexString()])
+  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(vault.strategy))
 
   // get the quoter paths for the vault
   // TODO: store these and handle the path updates
   const token0PathRes = strategyContract.try_lpToken0ToNativePath()
   if (token0PathRes.reverted) {
-    log.error('updateUserPosition: lpToken0ToNativePath() reverted for strategy {}', [vault.strategy])
+    log.error('updateUserPosition: lpToken0ToNativePath() reverted for strategy {}', [vault.strategy.toHexString()])
     throw Error('updateUserPosition: lpToken0ToNativePath() reverted')
   }
   const token1PathRes = strategyContract.try_lpToken1ToNativePath()
   if (token1PathRes.reverted) {
-    log.error('updateUserPosition: lpToken1ToNativePath() reverted for strategy {}', [vault.strategy])
+    log.error('updateUserPosition: lpToken1ToNativePath() reverted for strategy {}', [vault.strategy.toHexString()])
     throw Error('updateUserPosition: lpToken1ToNativePath() reverted')
   }
   const token0Path = token0PathRes.value
@@ -34,7 +34,7 @@ export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token
   if (token0Path.length > 0) {
     const token0PriceInNativeRes = quoter.try_quoteExactInput(token0Path, exponentToBigInt(token0.decimals))
     if (token0PriceInNativeRes.reverted) {
-      log.error('updateUserPosition: quoteExactInput() reverted for token {}', [token0.id])
+      log.error('updateUserPosition: quoteExactInput() reverted for token {}', [token0.id.toHexString()])
       throw Error('updateUserPosition: quoteExactInput() reverted')
     }
     token0PriceInNative = tokenAmountToDecimal(token0PriceInNativeRes.value.getAmountOut(), WNATIVE_DECIMALS)
@@ -44,7 +44,7 @@ export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token
   if (token1Path.length > 0) {
     const token1PriceInNativeRes = quoter.try_quoteExactInput(token1Path, exponentToBigInt(token1.decimals))
     if (token1PriceInNativeRes.reverted) {
-      log.error('updateUserPosition: quoteExactInput() reverted for token {}', [token1.id])
+      log.error('updateUserPosition: quoteExactInput() reverted for token {}', [token1.id.toHexString()])
       throw Error('updateUserPosition: quoteExactInput() reverted')
     }
     token1PriceInNative = tokenAmountToDecimal(token1PriceInNativeRes.value.getAmountOut(), WNATIVE_DECIMALS)

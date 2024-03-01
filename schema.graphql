@@ -8,7 +8,7 @@ It allows to make queries that are not specific to a particular type of address.
 """
 interface EvmAddress {
   "The account or contract address"
-  id: String!
+  id: Bytes!
 }
 
 """
@@ -17,7 +17,7 @@ as specified by the ERC20 standard.
 """
 type Token @entity(immutable: true) {
   # token address
-  id: String!
+  id: Bytes!
 
   "The token symbol"
   symbol: String
@@ -33,7 +33,7 @@ Transactions are identified by their hash.
 """
 type Transaction @entity(immutable: true) {
   "The transaction hash"
-  id: String!
+  id: Bytes!
 
   "The block number the transaction was included in"
   blockNumber: BigInt!
@@ -74,7 +74,7 @@ type Protocol @entity {
   The protocol identifier:
   - 1: BeefyCL
   """
-  id: String!
+  id: Bytes!
 
   "Protocol name"
   name: String!
@@ -103,7 +103,7 @@ Snapshots include: daily, weekly, yearly.
 """
 type ProtocolSnapshot implements Snapshot @entity {
   "protocol.id + period + timestamp"
-  id: String!
+  id: Bytes!
 
   "The protocol the snapshot is for"
   protocol: Protocol!
@@ -196,7 +196,7 @@ type BeefyCLVault implements EvmAddress @entity {
   # store error: operator does not exist: bytea = text wasm backtrace: 0: 0x8bf8
 
   "The vault address"
-  id: String!
+  id: Bytes!
 
   "Protocol the vault belongs to"
   protocol: Protocol!
@@ -304,7 +304,7 @@ Snapshots include: daily, weekly, yearly.
 """
 type BeefyCLVaultSnapshot implements Snapshot @entity {
   "vault.id + period + timestamp"
-  id: String!
+  id: Bytes!
 
   "The vault the snapshot is for"
   vault: BeefyCLVault!
@@ -387,7 +387,7 @@ This is mostly used to start tracking the events and link them to the vault on n
 """
 type BeefyCLStrategy implements EvmAddress @entity {
   "The strategy address"
-  id: String!
+  id: Bytes!
 
   "The vault the strategy is managing"
   vault: BeefyCLVault!
@@ -407,7 +407,7 @@ Vault are harvested by the strategy. This event is emitted when the strategy har
 """
 type BeefyCLVaultHarvestEvent @entity(immutable: true) {
   "transaction hash + log index"
-  id: String!
+  id: Bytes!
 
   "The vault the harvest event is for"
   vault: BeefyCLVault!
@@ -445,7 +445,7 @@ This is most commonly referred to as a "boost".
 """
 type BeefyVaultIncentive implements EvmAddress @entity {
   "The inventive contract address"
-  id: String!
+  id: Bytes!
 
   "The vault the incentive is for"
   vault: BeefyCLVault!
@@ -474,7 +474,7 @@ As incentives are time-released, investors can claim their share of the incentiv
 """
 type BeefyVaultIncentiveClaimEvent @entity(immutable: true) {
   "transaction hash + log index"
-  id: String!
+  id: Bytes!
 
   "The vault incentive the claim is for"
   vaultIncentive: BeefyVaultIncentive!
@@ -495,7 +495,7 @@ type BeefyVaultIncentiveClaimEvent @entity(immutable: true) {
 
 type Investor implements EvmAddress @entity {
   "The investor address"
-  id: String!
+  id: Bytes!
 
   "The timestamp of the last transaction the investor was involved in"
   lastInteractionTimestamp: BigInt!
@@ -530,7 +530,7 @@ Snapshots include: daily, weekly, yearly.
 """
 type InvestorSnapshot implements Snapshot @entity {
   "investor.id + period + timestamp"
-  id: String!
+  id: Bytes!
 
   "The investor the snapshot is for"
   investor: Investor!
@@ -560,7 +560,7 @@ An investor position is a record of an investor's position in a vault.
 """
 type InvestorPosition @entity {
   "Vault address + investor address"
-  id: String!
+  id: Bytes!
 
   "The vault the investor has a position in"
   vault: BeefyCLVault!
@@ -608,7 +608,7 @@ Snapshots include: daily, weekly, yearly.
 """
 type InvestorPositionSnapshot implements Snapshot @entity {
   "investorPosition.id + period + timestamp"
-  id: String!
+  id: Bytes!
 
   "The investor position the snapshot is for"
   investorPosition: InvestorPosition!

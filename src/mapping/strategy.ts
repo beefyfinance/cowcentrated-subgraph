@@ -6,9 +6,9 @@ import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../../generated/templ
 import { PERIODS } from '../utils/time'
 import { getToken } from '../entity/token'
 import { getTransaction } from '../entity/transaction'
-import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from '../entity/protocol'
+import { getBeefyCLProtocolSnapshot } from '../entity/protocol'
 import { weiToBigDecimal } from '../utils/decimal'
-import { getNativePriceUSD, getVaultPrices } from './price'
+import { getNativePriceUSD } from './price'
 
 export {
   handleStrategyInitialized as handleInitialized,
@@ -19,18 +19,18 @@ export { handleStrategyOwnershipTransferred as handleOwnershipTransferred } from
 export { handleStrategyHarvest as handleHarvest } from '../harvest'
 
 export function handleChargedFees(event: ChargedFees): void {
-  let strategy = getBeefyCLStrategy(event.address.toHexString())
+  let strategy = getBeefyCLStrategy(event.address)
   let vault = getBeefyCLVault(strategy.vault)
   if (!isVaultRunning(vault)) {
     log.error('updateUserPosition: vault {} not active at block {}: {}', [
-      vault.id,
+      vault.id.toHexString(),
       event.block.number.toString(),
       vault.lifecycle,
     ])
     return
   }
 
-  log.info('handleChargedFees: vault {}', [vault.id])
+  log.info('handleChargedFees: vault {}', [vault.id.toHexString()])
 
   const periods = PERIODS
   const sharesToken = getToken(vault.sharesToken)
@@ -43,8 +43,10 @@ export function handleChargedFees(event: ChargedFees): void {
   ///////
   // fetch data on chain
   // TODO: use multicall3 to fetch all data in one call
-  const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(Address.fromHexString(vault.id)))
-  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(Address.fromHexString(vault.strategy)))
+  const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(Address.fromHexString(vault.id.toHexString())))
+  const strategyContract = BeefyCLStrategyContract.bind(
+    Address.fromBytes(Address.fromHexString(vault.strategy.toHexString())),
+  )
 
   const nativePriceUSD = getNativePriceUSD()
 

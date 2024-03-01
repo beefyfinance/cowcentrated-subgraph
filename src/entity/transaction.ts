@@ -7,17 +7,17 @@ export function getTransaction(
   transaction: ethereum.Transaction,
   receipt: ethereum.TransactionReceipt | null,
 ): Transaction {
-  let transactionId = transaction.hash.toHexString()
+  let transactionId = transaction.hash
   let tx = Transaction.load(transactionId)
   if (!tx) {
     tx = new Transaction(transactionId)
     tx.blockNumber = block.number
     tx.blockTimestamp = block.timestamp
-    tx.sender = transaction.from.toHexString()
+    tx.sender = transaction.from
     if (!receipt) {
       log.warning(
         'No receipt for transaction {}. Set "receipt: true" on the event handler configuration in subgraph.yaml',
-        [transactionId],
+        [transactionId.toHexString()],
       )
       throw Error('No receipt. Set "receipt: true" on the event handler configuration in subgraph.yaml')
     }

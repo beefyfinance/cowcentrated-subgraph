@@ -1,12 +1,13 @@
 import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { BeefyCLVault, Investor, InvestorPosition, InvestorPositionSnapshot } from '../../generated/schema'
-import { ADDRESS_ZERO_STRING } from '../utils/address'
+import { ADDRESS_ZERO } from '../utils/address'
 import { ZERO_BD, ZERO_BI } from '../utils/decimal'
 import { getIntervalFromTimestamp } from '../utils/time'
+import { getSnapshotIdSuffix } from '../utils/snapshot'
 
 @inline
-function getPositionId(vault: BeefyCLVault, investor: Investor): string {
-  return vault.id + '-' + investor.id
+function getPositionId(vault: BeefyCLVault, investor: Investor): Bytes {
+  return vault.id.concat(investor.id)
 }
 
 export function getInvestorPosition(vault: BeefyCLVault, investor: Investor): InvestorPosition {
@@ -16,7 +17,7 @@ export function getInvestorPosition(vault: BeefyCLVault, investor: Investor): In
     position = new InvestorPosition(id)
     position.vault = vault.id
     position.investor = investor.id
-    position.createdWith = ADDRESS_ZERO_STRING
+    position.createdWith = ADDRESS_ZERO
     position.sharesBalance = ZERO_BD
     position.underlyingBalance0 = ZERO_BD
     position.underlyingBalance1 = ZERO_BD
@@ -38,7 +39,7 @@ export function getInvestorPositionSnapshot(
 ): InvestorPositionSnapshot {
   const interval = getIntervalFromTimestamp(timestamp, period)
   const positionId = getPositionId(vault, investor)
-  const snapshotId = positionId + '-' + period.toString() + '-' + interval.toString()
+  const snapshotId = positionId.concat(getSnapshotIdSuffix(period, interval))
   let snapshot = InvestorPositionSnapshot.load(snapshotId)
   if (!snapshot) {
     snapshot = new InvestorPositionSnapshot(snapshotId)

@@ -1,5 +1,5 @@
-import { ethereum } from '@graphprotocol/graph-ts'
+import { Bytes, ethereum } from '@graphprotocol/graph-ts'
 
-export function getEventIdentifier(event: ethereum.Event): string {
-  return event.transaction.hash.toHexString() + '-' + event.logIndex.toString()
+export function getEventIdentifier(event: ethereum.Event): Bytes {
+  return event.transaction.hash.concat(Bytes.fromByteArray(Bytes.fromBigInt(event.logIndex)))
 }

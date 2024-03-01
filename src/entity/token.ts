@@ -1,7 +1,7 @@
 import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { Token } from '../../generated/schema'
 
-export function getToken(tokenAddress: string): Token {
+export function getToken(tokenAddress: Bytes): Token {
   let token = Token.load(tokenAddress)
   if (!token) {
     token = new Token(tokenAddress)

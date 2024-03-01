@@ -59,8 +59,6 @@ templates:
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
-        - name: Multicall3
-          file: ./abis/Multicall3.json
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
@@ -103,8 +101,6 @@ templates:
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
-        - name: Multicall3
-          file: ./abis/Multicall3.json
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized

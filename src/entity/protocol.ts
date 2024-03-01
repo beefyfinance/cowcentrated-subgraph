@@ -1,13 +1,15 @@
 import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { Protocol, ProtocolSnapshot } from '../../generated/schema'
-import { ZERO_BD } from '../utils/decimal'
+import { ONE_BI, ZERO_BD } from '../utils/decimal'
 import { getIntervalFromTimestamp } from '../utils/time'
+import { getSnapshotIdSuffix } from '../utils/snapshot'
 
 export type ProtocolId = String
 export const PROTOCOL_BEEFY_CL: ProtocolId = 'BeefyCL'
+export const PROTOCOL_BEEFY_CL_ID: Bytes = Bytes.fromByteArray(Bytes.fromBigInt(ONE_BI))
 
 export function getBeefyCLProtocol(): Protocol {
-  const protocolId = PROTOCOL_BEEFY_CL.toString()
+  const protocolId = PROTOCOL_BEEFY_CL_ID
   let protocol = Protocol.load(protocolId)
   if (!protocol) {
     protocol = new Protocol(protocolId)
@@ -22,13 +24,13 @@ export function getBeefyCLProtocol(): Protocol {
 }
 
 export function getBeefyCLProtocolSnapshot(timestamp: BigInt, period: BigInt): ProtocolSnapshot {
-  const protocol = PROTOCOL_BEEFY_CL.toString()
+  const protocolId = PROTOCOL_BEEFY_CL_ID
   const interval = getIntervalFromTimestamp(timestamp, period)
-  const snapshotId = protocol + '-' + period.toString() + '-' + interval.toString()
+  const snapshotId = protocolId.concat(getSnapshotIdSuffix(period, interval))
   let snapshot = ProtocolSnapshot.load(snapshotId)
   if (!snapshot) {
     snapshot = new ProtocolSnapshot(snapshotId)
-    snapshot.protocol = protocol
+    snapshot.protocol = protocolId
     snapshot.timestamp = timestamp
     snapshot.roundedTimestamp = interval
     snapshot.period = period

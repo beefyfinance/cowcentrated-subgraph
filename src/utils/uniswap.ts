@@ -1,5 +1,5 @@
-import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
-import { ONE_BD, ZERO_BD, ZERO_BI, bigDecimalExponated } from './decimal'
+import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
+import { ONE_BD, ZERO_BD } from './decimal'
 import { Token } from '../../generated/schema'
 
 const Q96_BD = new BigDecimal(BigInt.fromI32(2).pow(96))
