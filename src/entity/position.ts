@@ -1,10 +1,11 @@
-import { BigInt, Bytes } from '@graphprotocol/graph-ts'
+import { BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { BeefyCLVault, Investor, InvestorPosition, InvestorPositionSnapshot } from '../../generated/schema'
 import { ADDRESS_ZERO } from '../utils/address'
 import { ZERO_BD, ZERO_BI } from '../utils/decimal'
 import { getIntervalFromTimestamp } from '../utils/time'
 import { getSnapshotIdSuffix } from '../utils/snapshot'
 
+// @ts-ignore
 @inline
 function getPositionId(vault: BeefyCLVault, investor: Investor): Bytes {
   return vault.id.concat(investor.id)
@@ -25,7 +26,7 @@ export function getInvestorPosition(vault: BeefyCLVault, investor: Investor): In
     position.underlyingBalance1USD = ZERO_BD
     position.positionValueUSD = ZERO_BD
     position.averageDailyPositionValueUSD30D = ZERO_BD
-    position.last30DailyPositionValuesUSD = []
+    position.last30DailyPositionValuesUSD = new Array<BigDecimal>()
     position.lastUpdated = ZERO_BI
     position.totalActiveTime = ZERO_BI
   }

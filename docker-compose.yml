@@ -64,5 +64,5 @@ services:
         max-file: '3'
     environment:
       ipfs: 'ipfs:5001'
-      GRAPH_LOG: info
+      GRAPH_LOG: debug
       GRAPH_NODE_CONFIG: /etc/graph-node/config.toml

@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from '@graphprotocol/graph-ts'
+import { BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { Investor, InvestorSnapshot } from '../../generated/schema'
 import { ZERO_BD, ZERO_BI } from '../utils/decimal'
 import { getIntervalFromTimestamp } from '../utils/time'
@@ -13,7 +13,7 @@ export function getInvestor(accountAddress: Bytes): Investor {
     investor.investedDuration = ZERO_BI
     investor.totalPositionValueUSD = ZERO_BD
     investor.averageDailyTotalPositionValueUSD30D = ZERO_BD
-    investor.last30DailyTotalPositionValuesUSD = []
+    investor.last30DailyTotalPositionValuesUSD = new Array<BigDecimal>()
     investor.totalInteractionsCount = 0
   }
 

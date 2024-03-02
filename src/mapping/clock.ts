@@ -9,7 +9,7 @@ import { getToken } from '../entity/token'
 import { sqrtPriceX96ToPriceInToken1 } from '../utils/uniswap'
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from '../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { getVaultPrices } from './price'
-import { getBeefyCLVaultSnapshot } from '../entity/vault'
+import { getBeefyCLVaultSnapshot, isVaultRunning } from '../entity/vault'
 import { getInvestorPositionSnapshot } from '../entity/position'
 
 export function handleClockTick(event: ClockTickEvent): void {
@@ -43,15 +43,23 @@ export function handleClockTick(event: ClockTickEvent): void {
     handleNewDay(tick)
   }
 }
+
 export function handleNew15Minutes(tick: ClockTick): void {
-  log.debug('Clock tick detected: MINUTES_15: {}', [tick.roundedTimestamp.toString()])
+  log.debug('handleNew15Minutes: new 15min range detected: {}', [tick.roundedTimestamp.toString()])
 
   const protocol = getBeefyCLProtocol()
   const vaults = protocol.vaults.load()
   const investorTVL = new Map<string, BigDecimal>()
 
+  log.debug('handleNew15Minutes: fetching data for {} vaults', [vaults.length.toString()])
+
   for (let i = 0; i < vaults.length; i++) {
     const vault = vaults[i]
+    if (!isVaultRunning(vault)) {
+      log.debug('handleNew15Minutes: vault {} is not running', [vault.id.toHexString()])
+      continue
+    }
+
     const positions = vault.positions.load()
 
     const token0 = getToken(vault.underlyingToken0)
@@ -59,6 +67,7 @@ export function handleNew15Minutes(tick: ClockTick): void {
 
     ///////
     // fetch data on chain
+    log.debug('handleNew15Minutes: fetching on chain data for vault {}', [vault.id.toHexString()])
     const currentPriceInToken1 = getCurrentPriceInToken1(vault.strategy, token0, token1)
     const prices = getVaultPrices(vault, token0, token1)
     const token0PriceInNative = prices.token0ToNative
@@ -67,12 +76,13 @@ export function handleNew15Minutes(tick: ClockTick): void {
 
     ///////
     // compute derived values
-    log.debug('handleNewDay: computing derived values for vault {}', [vault.id.toHexString()])
+    log.debug('handleNew15Minutes: computing derived values for vault {}', [vault.id.toHexString()])
     const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
     const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
 
     //////
     // update latest vault usd values
+    log.debug('handleNew15Minutes: updating vault usd values for vault {}', [vault.id.toHexString()])
     vault.currentPriceOfToken0InToken1 = currentPriceInToken1
     vault.priceRangeMin1USD = vault.priceRangeMin1.times(token1PriceInUSD)
     vault.priceRangeMax1USD = vault.priceRangeMax1.times(token1PriceInUSD)
@@ -81,20 +91,27 @@ export function handleNew15Minutes(tick: ClockTick): void {
     vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(vault.underlyingAmount1USD)
     vault.save()
 
+    log.debug('handleNew15Minutes: updating {} positions for vault {}', [
+      positions.length.toString(),
+      vault.id.toHexString(),
+    ])
+
     for (let j = 0; j < positions.length; j++) {
       const position = positions[j]
       if (position.sharesBalance.equals(ZERO_BD)) {
+        log.debug('handleNew15Minutes: position {} has zero shares', [position.id.toHexString()])
         continue
       }
 
       const investor = Investor.load(position.investor)
       if (!investor) {
-        log.error('handleNewDay: investor {} not found', [position.investor.toHexString()])
+        log.error('handleNew15Minutes: investor {} not found', [position.investor.toHexString()])
         continue
       }
 
       //////
       // update position usd values
+      log.debug('handleNew15Minutes: updating position usd values for position {}', [position.id.toHexString()])
       position.underlyingBalance0USD = position.underlyingBalance0.times(token0PriceInUSD)
       position.underlyingBalance1USD = position.underlyingBalance1.times(token1PriceInUSD)
       position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)
@@ -114,40 +131,49 @@ export function handleNew15Minutes(tick: ClockTick): void {
   // update investor moving averages
   // @ts-ignore
   let investorIdStrings: Array<string> = investorTVL.keys()
+  log.debug('handleNew15Minutes: updating investor moving averages for {} investors', [
+    investorIdStrings.length.toString(),
+  ])
   for (let i = 0; i < investorIdStrings.length; i++) {
     const investorIdStr = investorIdStrings[i]
     const id = Bytes.fromHexString(investorIdStr)
     const investor = Investor.load(id)
     if (!investor) {
-      log.error('handleNewDay: investor {} not found', [investorIdStr])
+      log.error('handleNew15Minutes: investor {} not found', [investorIdStr])
       continue
     }
-    const tvl = investorTVL.get(investorIdStr)
-    if (!tvl) {
-      log.error('handleNewDay: tvl not found for investor {}', [investorIdStr])
-      continue
-    }
+    // @ts-ignore
+    const tvl: BigDecimal = investorTVL.get(investorIdStr)
     investor.totalPositionValueUSD = tvl
     investor.save()
   }
+
+  log.debug('handleNew15Minutes: done for {} vaults', [vaults.length.toString()])
 }
 
 export function handleNewDay(tick: ClockTick): void {
-  log.debug('Clock tick detected: DAY: {}', [tick.roundedTimestamp.toString()])
+  log.debug('handleNewDay: new day detected: {}', [tick.roundedTimestamp.toString()])
 
   const protocol = getBeefyCLProtocol()
   const vaults = protocol.vaults.load()
   const investorTVL = new Map<string, BigDecimal>()
 
+  log.debug('handleNewDay: fetching data for {} vaults', [vaults.length.toString()])
+
   for (let i = 0; i < vaults.length; i++) {
     const vault = vaults[i]
-    const positions = vault.positions.load()
+    if (!isVaultRunning(vault)) {
+      log.debug('handleNewDay: vault {} is not running', [vault.id.toHexString()])
+      continue
+    }
 
+    const positions = vault.positions.load()
     const token0 = getToken(vault.underlyingToken0)
     const token1 = getToken(vault.underlyingToken1)
 
     ///////
     // fetch data on chain
+    log.debug('handleNewDay: fetching on chain data for vault {}', [vault.id.toHexString()])
     const currentPriceInToken1 = getCurrentPriceInToken1(vault.strategy, token0, token1)
     const prices = getVaultPrices(vault, token0, token1)
     const token0PriceInNative = prices.token0ToNative
@@ -162,6 +188,7 @@ export function handleNewDay(tick: ClockTick): void {
 
     //////
     // update vault usd values
+    log.debug('handleNewDay: updating vault usd values for vault {}', [vault.id.toHexString()])
     vault.currentPriceOfToken0InToken1 = currentPriceInToken1
     vault.priceRangeMin1USD = vault.priceRangeMin1.times(token1PriceInUSD)
     vault.priceRangeMax1USD = vault.priceRangeMax1.times(token1PriceInUSD)
@@ -184,9 +211,12 @@ export function handleNewDay(tick: ClockTick): void {
     vaultSnapshot.totalValueLockedUSD = vault.totalValueLockedUSD
     vaultSnapshot.save()
 
+    log.debug('handleNewDay: updating {} positions for vault {}', [positions.length.toString(), vault.id.toHexString()])
+
     for (let j = 0; j < positions.length; j++) {
       const position = positions[j]
       if (position.sharesBalance.equals(ZERO_BD)) {
+        log.debug('handleNewDay: position {} has zero shares', [position.id.toHexString()])
         continue
       }
 
@@ -198,6 +228,7 @@ export function handleNewDay(tick: ClockTick): void {
 
       //////
       // update position usd values
+      log.debug('handleNewDay: updating position usd values for position {}', [position.id.toHexString()])
       position.underlyingBalance0USD = position.underlyingBalance0.times(token0PriceInUSD)
       position.underlyingBalance1USD = position.underlyingBalance1.times(token1PriceInUSD)
       position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)
@@ -233,9 +264,11 @@ export function handleNewDay(tick: ClockTick): void {
     }
   }
 
-  // update investor moving averages
   // @ts-ignore
   let investorIdStrings: Array<string> = investorTVL.keys()
+
+  // update investor moving averages
+  log.debug('handleNewDay: updating investor moving averages for {} investors', [investorIdStrings.length.toString()])
   for (let i = 0; i < investorIdStrings.length; i++) {
     const investorIdStr = investorIdStrings[i]
     const id = Bytes.fromHexString(investorIdStr)
@@ -244,11 +277,8 @@ export function handleNewDay(tick: ClockTick): void {
       log.error('handleNewDay: investor {} not found', [investorIdStr])
       continue
     }
-    const tvl = investorTVL.get(investorIdStr)
-    if (!tvl) {
-      log.error('handleNewDay: tvl not found for investor {}', [investorIdStr])
-      continue
-    }
+    // @ts-ignore
+    const tvl: BigDecimal = investorTVL.get(investorIdStr)
     investor.totalPositionValueUSD = tvl
     let last30DailyTotalPositionValuesUSD = investor.last30DailyTotalPositionValuesUSD
     last30DailyTotalPositionValuesUSD.push(tvl) // most recent value last
@@ -261,15 +291,16 @@ export function handleNewDay(tick: ClockTick): void {
       .div(BigDecimal.fromString(last30DailyTotalPositionValuesUSD.length.toString()))
     investor.save()
   }
+
+  log.debug('handleNewDay: done for {} vaults', [vaults.length.toString()])
 }
 
 function getCurrentPriceInToken1(strategyAddress: Bytes, token0: Token, token1: Token): BigDecimal {
-  log.debug('handleNewDay: fetching data for strategy {}', [strategyAddress.toHexString()])
+  log.debug('fetching data for strategy {}', [strategyAddress.toHexString()])
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(strategyAddress))
   const sqrtPriceRes = strategyContract.try_price() // TODO: replace with "try_sqrtPrice()" when new strats are deployed
   if (sqrtPriceRes.reverted) {
-    log.error('handleNewDay: price() reverted for strategy {}', [strategyAddress.toHexString()])
-    throw Error('handleNewDay: price() reverted')
+    return ZERO_BD
   }
   return sqrtPriceX96ToPriceInToken1(sqrtPriceRes.value, token0, token1)
 }
