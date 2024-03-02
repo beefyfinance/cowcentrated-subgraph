@@ -24,7 +24,8 @@ export function getInvestorPosition(vault: BeefyCLVault, investor: Investor): In
     position.underlyingBalance0USD = ZERO_BD
     position.underlyingBalance1USD = ZERO_BD
     position.positionValueUSD = ZERO_BD
-    position.timeWeightedPositionValueUSD = ZERO_BD
+    position.averageDailyPositionValueUSD30D = ZERO_BD
+    position.last30DailyPositionValuesUSD = []
     position.lastUpdated = ZERO_BI
     position.totalActiveTime = ZERO_BI
   }

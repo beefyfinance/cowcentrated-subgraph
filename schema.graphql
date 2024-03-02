@@ -60,6 +60,22 @@ interface Snapshot {
   timestamp: BigInt!
 }
 
+"""
+A clock tick is a record of time passing.
+This is used to update the protocol's stats at regular intervals.
+"""
+type ClockTick @entity(immutable: true) {
+  "truncated timestamp + tick period"
+  id: Bytes!
+
+  "Duration of the tick period in seconds"
+  period: BigInt!
+  "Timestamp the tick was initiated at, rounded to period"
+  roundedTimestamp: BigInt!
+  "Actual timestamp tick was initiated at"
+  timestamp: BigInt!
+}
+
 #########################
 ##### Protocol Data #####
 #########################
@@ -509,11 +525,11 @@ type Investor implements EvmAddress @entity {
   "Current position value in USD as the sum of all the investor ongoing positions"
   totalPositionValueUSD: BigDecimal!
 
-  """
-  Time-weighted position value in USD for the period.
-  This is the amount of seconds times the position value has been active.
-  """
-  timeWeightedPositionValueUSD: BigDecimal!
+  "Sum of the investor total positions value at the end of the day for the last 30 days in USD divided by the number of active days"
+  averageDailyTotalPositionValueUSD30D: BigDecimal!
+
+  "The last daily total position values in USD for the last 30 days"
+  last30DailyTotalPositionValuesUSD: [BigDecimal!]!
 
   "The transactions count that the investor was the sender of"
   totalInteractionsCount: Int!
@@ -544,12 +560,6 @@ type InvestorSnapshot implements Snapshot @entity {
 
   "Position value in USD as the sum of all the investor ongoing positions at the time of the snapshot"
   totalPositionValueUSD: BigDecimal!
-
-  """
-  Time-weighted position value in USD for the period.
-  This is the amount of seconds times the position value has been active.
-  """
-  timeWeightedPositionValueUSD: BigDecimal!
 
   "The transactions count that the investor was the sender of"
   interactionsCount: Int!
@@ -585,11 +595,11 @@ type InvestorPosition @entity {
   "Current position value in USD"
   positionValueUSD: BigDecimal!
 
-  """
-  Current time-weighted position value in USD.
-  This is the amount of seconds times the position value has been active.
-  """
-  timeWeightedPositionValueUSD: BigDecimal!
+  "Sum of the daily position value for the last 30 days in USD divided by the number of active days"
+  averageDailyPositionValueUSD30D: BigDecimal!
+
+  "The last daily position values in USD for the last 30 days"
+  last30DailyPositionValuesUSD: [BigDecimal!]!
 
   "Time that the position was last updated. Used to calculate the position's time-weighted size."
   lastUpdated: BigInt!

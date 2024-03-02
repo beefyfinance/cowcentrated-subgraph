@@ -12,7 +12,8 @@ export function getInvestor(accountAddress: Bytes): Investor {
     investor.lastInteractionTimestamp = ZERO_BI
     investor.investedDuration = ZERO_BI
     investor.totalPositionValueUSD = ZERO_BD
-    investor.timeWeightedPositionValueUSD = ZERO_BD
+    investor.averageDailyTotalPositionValueUSD30D = ZERO_BD
+    investor.last30DailyTotalPositionValuesUSD = []
     investor.totalInteractionsCount = 0
   }
 
@@ -30,7 +31,6 @@ export function getInvestorSnapshot(investor: Investor, timestamp: BigInt, perio
     snapshot.roundedTimestamp = interval
     snapshot.period = period
     snapshot.totalPositionValueUSD = ZERO_BD
-    snapshot.timeWeightedPositionValueUSD = ZERO_BD
     snapshot.interactionsCount = 0
   }
   return snapshot

@@ -9,7 +9,7 @@ import { getEventIdentifier } from './utils/event'
 import { getToken } from './entity/token'
 import { ONE_BD, ZERO_BD, tokenAmountToDecimal, decimalToTokenAmount } from './utils/decimal'
 import { sqrtPriceX96ToPriceInToken1, tickToPrice } from './utils/uniswap'
-import { PERIODS } from './utils/time'
+import { SNAPSHOT_PERIODS } from './utils/time'
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from './entity/protocol'
 import { getInvestorPositionSnapshot } from './entity/position'
 import { getInvestor } from './entity/investor'
@@ -29,7 +29,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
 
   log.debug('handleHarvest: processing harvest for vault {}', [vault.id.toHexString()])
 
-  const periods = PERIODS
+  const periods = SNAPSHOT_PERIODS
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)

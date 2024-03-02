@@ -4,7 +4,7 @@ import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../generated/template
 import { IERC20 as IERC20Contract } from '../generated/templates/BeefyCLVault/IERC20'
 import { getToken } from './entity/token'
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from './entity/protocol'
-import { PERIODS } from './utils/time'
+import { SNAPSHOT_PERIODS } from './utils/time'
 import { BEEFY_CL_VAULT_LIFECYCLE_PAUSED, BEEFY_CL_VAULT_LIFECYCLE_RUNNING } from './entity/vault'
 import { Initialized as VaultInitialized } from '../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
 import { getBeefyCLStrategy, getBeefyCLVault } from './entity/vault'
@@ -164,7 +164,7 @@ function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLV
   protocol.activeVaultCount += 1
   protocol.save()
 
-  const periods = PERIODS
+  const periods = SNAPSHOT_PERIODS
   for (let i = 0; i < periods.length; i++) {
     const protocolSnapshot = getBeefyCLProtocolSnapshot(timestamp, periods[i])
     protocolSnapshot.activeVaultCount += 1

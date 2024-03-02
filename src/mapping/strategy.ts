@@ -3,7 +3,7 @@ import { ChargedFees } from '../../generated/templates/BeefyCLStrategy/StrategyP
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from '../entity/vault'
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from '../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
-import { PERIODS } from '../utils/time'
+import { SNAPSHOT_PERIODS } from '../utils/time'
 import { getToken } from '../entity/token'
 import { getTransaction } from '../entity/transaction'
 import { getBeefyCLProtocolSnapshot } from '../entity/protocol'
@@ -32,7 +32,7 @@ export function handleChargedFees(event: ChargedFees): void {
 
   log.info('handleChargedFees: vault {}', [vault.id.toHexString()])
 
-  const periods = PERIODS
+  const periods = SNAPSHOT_PERIODS
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)

@@ -10,7 +10,7 @@ import { getInvestor, getInvestorSnapshot } from './entity/investor'
 import { ZERO_BD, ZERO_BI, tokenAmountToDecimal } from './utils/decimal'
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from './../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from './../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
-import { PERIODS } from './utils/time'
+import { SNAPSHOT_PERIODS } from './utils/time'
 import { getToken } from './entity/token'
 import { getInvestorPosition, getInvestorPositionSnapshot } from './entity/position'
 import { ADDRESS_ZERO } from './utils/address'
@@ -50,7 +50,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     vault.id.toHexString(),
   ])
 
-  const periods = PERIODS
+  const periods = SNAPSHOT_PERIODS
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
@@ -146,9 +146,6 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     position.createdWith = tx.id
   }
   if (!position.sharesBalance.equals(ZERO_BD)) {
-    position.timeWeightedPositionValueUSD = position.timeWeightedPositionValueUSD.plus(
-      position.positionValueUSD.times(BigDecimal.fromString(timeSinceLastPositionUpdate.toString())),
-    )
     position.totalActiveTime = position.totalActiveTime.plus(timeSinceLastPositionUpdate)
   }
   position.sharesBalance = investorShareTokenBalance
@@ -263,9 +260,6 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   }
   investor.investedDuration = investor.investedDuration.plus(timeSinceLastPositionUpdate)
   investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
-  investor.timeWeightedPositionValueUSD = investor.timeWeightedPositionValueUSD.plus(
-    investor.totalPositionValueUSD.times(BigDecimal.fromString(timeSinceLastPositionUpdate.toString())),
-  )
   investor.totalInteractionsCount += 1
   investor.save()
   for (let i = 0; i < periods.length; i++) {
@@ -275,7 +269,6 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     ])
     const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, periods[i])
     investorSnapshot.totalPositionValueUSD = investor.totalPositionValueUSD
-    investorSnapshot.timeWeightedPositionValueUSD = investor.timeWeightedPositionValueUSD
     investorSnapshot.interactionsCount += 1
     investorSnapshot.save()
   }
