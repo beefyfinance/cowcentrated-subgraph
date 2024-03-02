@@ -52,10 +52,19 @@ dataSources:
       abis:
         - name: ChainlinkClock
           file: ./abis/chainlink/AggregatorV3Interface.json
+        - name: BeefyVaultConcLiq
+          file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
+        - name: StrategyPassiveManagerUniswap
+          file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+        - name: UniswapQuoterV2
+          file: ./abis/uniswap/QuoterV2.json
+        - name: ChainLinkPriceFeed
+          file: ./abis/chainlink/AggregatorV3Interface.json
+        - name: IERC20
+          file: ./abis/IERC20/IERC20.json
       eventHandlers:
         - event: NewRound(indexed uint256,indexed address,uint256)
           handler: handleClockTick
-          receipt: true
 templates:
   - name: BeefyCLVault
     kind: ethereum/contract
