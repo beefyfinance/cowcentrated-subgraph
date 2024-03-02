@@ -1,4 +1,4 @@
-specVersion: 0.0.4
+specVersion: 0.1.0
 description: Beefy Finance Concentrated Liquidity Subgraphs
 repository: https://github.com/beefyfinance/beefy-subgraphs
 schema:
@@ -62,9 +62,14 @@ dataSources:
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
-      eventHandlers:
-        - event: NewRound(indexed uint256,indexed address,uint256)
-          handler: handleClockTick
+      #eventHandlers:
+      #  - event: NewRound(indexed uint256,indexed address,uint256)
+      #    handler: handleClockTick
+      blockHandlers:
+        - handler: handleClockTick
+          filter:
+            kind: polling
+            every: 3600 # trigger every ~15min with 1 block every 250ms
 templates:
   - name: BeefyCLVault
     kind: ethereum/contract

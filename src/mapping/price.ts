@@ -38,7 +38,7 @@ export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token
       throw Error('updateUserPosition: quoteExactInput() reverted')
     }
     token0PriceInNative = tokenAmountToDecimal(token0PriceInNativeRes.value.getAmountOut(), WNATIVE_DECIMALS)
-    log.info('updateUserPosition: token0PriceInNativeRes: {}', [token0PriceInNative.toString()])
+    log.debug('updateUserPosition: token0PriceInNativeRes: {}', [token0PriceInNative.toString()])
   }
   let token1PriceInNative = ONE_BD
   if (token1Path.length > 0) {
@@ -48,7 +48,7 @@ export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token
       throw Error('updateUserPosition: quoteExactInput() reverted')
     }
     token1PriceInNative = tokenAmountToDecimal(token1PriceInNativeRes.value.getAmountOut(), WNATIVE_DECIMALS)
-    log.info('updateUserPosition: token1PriceInNativeRes: {}', [token1PriceInNative.toString()])
+    log.debug('updateUserPosition: token1PriceInNativeRes: {}', [token1PriceInNative.toString()])
   }
 
   // fetch the native price in USD
@@ -58,7 +58,7 @@ export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token
     throw Error('updateUserPosition: latestRoundData() reverted')
   }
   const nativePriceUSD = tokenAmountToDecimal(nativePriceUSDRes.value.getAnswer(), PRICE_FEED_DECIMALS)
-  log.info('updateUserPosition: nativePriceUSD: {}', [nativePriceUSD.toString()])
+  log.debug('updateUserPosition: nativePriceUSD: {}', [nativePriceUSD.toString()])
 
   return new VaultPrices(token0PriceInNative, token1PriceInNative, nativePriceUSD)
 }

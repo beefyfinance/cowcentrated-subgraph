@@ -1,4 +1,4 @@
-import { Address, BigDecimal, Bytes, log } from '@graphprotocol/graph-ts'
+import { Address, BigDecimal, Bytes, ethereum, log } from '@graphprotocol/graph-ts'
 import { ClockTick, Investor, Token } from '../../generated/schema'
 import { NewRound as ClockTickEvent } from '../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed'
 import { DAY, MINUTES_15, getIntervalFromTimestamp } from '../utils/time'
@@ -12,13 +12,22 @@ import { getVaultPrices } from './price'
 import { getBeefyCLVaultSnapshot, isVaultRunning } from '../entity/vault'
 import { getInvestorPositionSnapshot } from '../entity/position'
 
-export function handleClockTick(event: ClockTickEvent): void {
-  const timestamp = event.block.timestamp
+export function handleClockTick(block: ethereum.Block): void {
+  const timestamp = block.timestamp
+
+  log.debug('handleClockTick: new tick detected: {}', [timestamp.toString()])
 
   let period = MINUTES_15
   let interval = getIntervalFromTimestamp(timestamp, period)
   let id = getClockTickId(timestamp, period)
   let tick = ClockTick.load(id)
+  log.debug('handleClockTick: MINUTES_15 range {} (timestamp: {}, interval: {}, period: {}, id: {})', [
+    tick ? 'exists' : 'new',
+    timestamp.toString(),
+    interval.toString(),
+    period.toString(),
+    id.toHexString(),
+  ])
   if (!tick) {
     tick = new ClockTick(id)
     tick.timestamp = timestamp
@@ -33,6 +42,13 @@ export function handleClockTick(event: ClockTickEvent): void {
   interval = getIntervalFromTimestamp(timestamp, period)
   id = getClockTickId(timestamp, period)
   tick = ClockTick.load(id)
+  log.debug('handleClockTick: DAY range {} (timestamp: {}, interval: {}, period: {}, id: {})', [
+    tick ? 'exists' : 'new',
+    timestamp.toString(),
+    interval.toString(),
+    period.toString(),
+    id.toHexString(),
+  ])
   if (!tick) {
     tick = new ClockTick(id)
     tick.timestamp = timestamp

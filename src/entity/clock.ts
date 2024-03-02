@@ -1,10 +1,11 @@
 import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { getIntervalFromTimestamp } from '../utils/time'
+import { getSnapshotIdSuffix } from '../utils/snapshot'
 
 @inline
 export function getClockTickId(timestamp: BigInt, period: BigInt): Bytes {
   const interval = getIntervalFromTimestamp(timestamp, period)
-  return Bytes.fromByteArray(Bytes.fromBigInt(interval).concat(Bytes.fromBigInt(interval)))
+  return getSnapshotIdSuffix(period, interval)
 }
 
 @inline
