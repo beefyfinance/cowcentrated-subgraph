@@ -56,5 +56,18 @@ export function getInvestorPositionSnapshot(
     snapshot.underlyingBalance1USD = ZERO_BD
     snapshot.positionValueUSD = ZERO_BD
   }
+
+  // copy non-reseting values from the previous snapshot to the new snapshot
+  const previousSnapshotId = positionId.concat(getSnapshotIdSuffix(period, interval))
+  const previousSnapshot = InvestorPositionSnapshot.load(previousSnapshotId)
+  if (previousSnapshot) {
+    snapshot.sharesBalance = previousSnapshot.sharesBalance
+    snapshot.underlyingBalance0 = previousSnapshot.underlyingBalance0
+    snapshot.underlyingBalance1 = previousSnapshot.underlyingBalance1
+    snapshot.underlyingBalance0USD = previousSnapshot.underlyingBalance0USD
+    snapshot.underlyingBalance1USD = previousSnapshot.underlyingBalance1USD
+    snapshot.positionValueUSD = previousSnapshot.positionValueUSD
+  }
+  
   return snapshot
 }

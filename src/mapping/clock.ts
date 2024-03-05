@@ -1,6 +1,5 @@
 import { Address, BigDecimal, Bytes, ethereum, log } from '@graphprotocol/graph-ts'
 import { ClockTick, Investor, Token } from '../../generated/schema'
-import { NewRound as ClockTickEvent } from '../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed'
 import { DAY, MINUTES_15, getIntervalFromTimestamp } from '../utils/time'
 import { getClockTickId } from '../entity/clock'
 import { getBeefyCLProtocol } from '../entity/protocol'

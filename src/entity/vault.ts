@@ -4,7 +4,7 @@ import { ADDRESS_ZERO } from '../utils/address'
 import { ZERO_BD } from '../utils/decimal'
 import { PROTOCOL_BEEFY_CL_ID } from './protocol'
 import { getIntervalFromTimestamp } from '../utils/time'
-import { getSnapshotIdSuffix } from '../utils/snapshot'
+import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from '../utils/snapshot'
 
 export const BEEFY_CL_VAULT_LIFECYCLE_INITIALIZING = 'INITIALIZING'
 export const BEEFY_CL_VAULT_LIFECYCLE_RUNNING = 'RUNNING'
@@ -102,6 +102,22 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
     snapshot.harvesterFeeCollectedUSD = ZERO_BD
     snapshot.protocolFeeCollectedUSD = ZERO_BD
     snapshot.strategistFeeCollectedUSD = ZERO_BD
+  }
+
+  // copy non-reseting values from the previous snapshot to the new snapshot
+  const previousSnapshotId = vault.id.concat(getPreviousSnapshotIdSuffix(period, interval))
+  const previousSnapshot = BeefyCLVaultSnapshot.load(previousSnapshotId)
+  if (previousSnapshot) {
+    snapshot.currentPriceOfToken0InToken1 = previousSnapshot.currentPriceOfToken0InToken1
+    snapshot.priceRangeMin1 = previousSnapshot.priceRangeMin1
+    snapshot.priceRangeMax1 = previousSnapshot.priceRangeMax1
+    snapshot.priceRangeMin1USD = previousSnapshot.priceRangeMin1USD
+    snapshot.priceRangeMax1USD = previousSnapshot.priceRangeMax1USD
+    snapshot.underlyingAmount0 = previousSnapshot.underlyingAmount0
+    snapshot.underlyingAmount1 = previousSnapshot.underlyingAmount1
+    snapshot.underlyingAmount0USD = previousSnapshot.underlyingAmount0USD
+    snapshot.underlyingAmount1USD = previousSnapshot.underlyingAmount1USD
+    snapshot.totalValueLockedUSD = previousSnapshot.totalValueLockedUSD
   }
   return snapshot
 }

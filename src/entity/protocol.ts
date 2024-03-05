@@ -2,7 +2,7 @@ import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { Protocol, ProtocolSnapshot } from '../../generated/schema'
 import { ONE_BI, ZERO_BD } from '../utils/decimal'
 import { getIntervalFromTimestamp } from '../utils/time'
-import { getSnapshotIdSuffix } from '../utils/snapshot'
+import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from '../utils/snapshot'
 
 export type ProtocolId = String
 export const PROTOCOL_BEEFY_CL: ProtocolId = 'BeefyCL'
@@ -58,5 +58,16 @@ export function getBeefyCLProtocolSnapshot(timestamp: BigInt, period: BigInt): P
     snapshot.zapFeesCollectedNative = ZERO_BD
     snapshot.zapFeesCollectedUSD = ZERO_BD
   }
+
+  // copy non-reseting values from the previous snapshot to the new snapshot
+  const previousInterval = getPreviousSnapshotIdSuffix(period, interval)
+  const previousSnapshotId = protocolId.concat(previousInterval)
+  const previousSnapshot = ProtocolSnapshot.load(previousSnapshotId)
+  if (previousSnapshot) {
+    snapshot.totalValueLockedUSD = previousSnapshot.totalValueLockedUSD
+    snapshot.activeVaultCount = previousSnapshot.activeVaultCount
+    snapshot.activeInvestorCount = previousSnapshot.activeInvestorCount
+  }
+
   return snapshot
 }

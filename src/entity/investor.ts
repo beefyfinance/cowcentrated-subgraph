@@ -2,7 +2,7 @@ import { BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { Investor, InvestorSnapshot } from '../../generated/schema'
 import { ZERO_BD, ZERO_BI } from '../utils/decimal'
 import { getIntervalFromTimestamp } from '../utils/time'
-import { getSnapshotIdSuffix } from '../utils/snapshot'
+import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from '../utils/snapshot'
 
 export function getInvestor(accountAddress: Bytes): Investor {
   let investor = Investor.load(accountAddress)
@@ -33,5 +33,13 @@ export function getInvestorSnapshot(investor: Investor, timestamp: BigInt, perio
     snapshot.totalPositionValueUSD = ZERO_BD
     snapshot.interactionsCount = 0
   }
+
+  // copy non-reseting values from the previous snapshot to the new snapshot
+  const previousSnapshotId = investor.id.concat(getPreviousSnapshotIdSuffix(period, interval))
+  const previousSnapshot = InvestorSnapshot.load(previousSnapshotId)
+  if (previousSnapshot) {
+    snapshot.totalPositionValueUSD = previousSnapshot.totalPositionValueUSD
+  }
+
   return snapshot
 }
