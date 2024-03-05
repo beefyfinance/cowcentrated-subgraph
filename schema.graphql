@@ -554,7 +554,13 @@ type Investor implements EvmAddress @entity {
   last30DailyTotalPositionValuesUSD: [BigDecimal!]!
 
   "The transactions count that the investor was the sender of"
-  totalInteractionsCount: Int!
+  cumulativeInteractionsCount: Int!
+
+  "All deposits of the investor"
+  cumulativeDepositCount: Int!
+
+  "All withdraws of the investor"
+  cumulativeWithdrawCount: Int!
 
   "All investor beefy positions"
   positions: [InvestorPosition!]! @derivedFrom(field: "investor")
@@ -592,8 +598,14 @@ type InvestorSnapshot implements Snapshot @entity {
   "Position value in USD as the sum of all the investor ongoing positions at the time of the snapshot"
   totalPositionValueUSD: BigDecimal!
 
-  "The transactions count that the investor was the sender of"
+  "Interactions count for the investor at the time of the snapshot"
   interactionsCount: Int!
+
+  "Deposits count for the investor at the time of the snapshot"
+  depositCount: Int!
+
+  "Withdraws count for the investor at the time of the snapshot"
+  withdrawCount: Int!
 }
 
 """

@@ -6,7 +6,7 @@ import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from '../utils/snaps
 
 export function isNewInvestor(investor: Investor): boolean {
   // safe to assume as we only create investors when they interact with the protocol
-  return investor.totalInteractionsCount === 0
+  return investor.cumulativeInteractionsCount === 0
 }
 
 export function getInvestor(accountAddress: Bytes): Investor {
@@ -19,7 +19,9 @@ export function getInvestor(accountAddress: Bytes): Investor {
     investor.totalPositionValueUSD = ZERO_BD
     investor.averageDailyTotalPositionValueUSD30D = ZERO_BD
     investor.last30DailyTotalPositionValuesUSD = new Array<BigDecimal>()
-    investor.totalInteractionsCount = 0
+    investor.cumulativeInteractionsCount = 0
+    investor.cumulativeDepositCount = 0
+    investor.cumulativeWithdrawCount = 0
   }
 
   return investor
@@ -37,6 +39,8 @@ export function getInvestorSnapshot(investor: Investor, timestamp: BigInt, perio
     snapshot.period = period
     snapshot.totalPositionValueUSD = ZERO_BD
     snapshot.interactionsCount = 0
+    snapshot.depositCount = 0
+    snapshot.withdrawCount = 0
   }
 
   // copy non-reseting values from the previous snapshot to the new snapshot

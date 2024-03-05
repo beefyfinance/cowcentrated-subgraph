@@ -273,7 +273,12 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     investor.currentInvestmentOpenAtTimestamp = ZERO_BI
   }
   investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
-  investor.totalInteractionsCount += 1
+  investor.cumulativeInteractionsCount += 1
+  if (isDeposit) {
+    investor.cumulativeDepositCount += 1
+  } else {
+    investor.cumulativeWithdrawCount += 1
+  }
   investor.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug('updateUserPosition: updating investor snapshot for investor {} and period {}', [
@@ -283,6 +288,11 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, periods[i])
     investorSnapshot.totalPositionValueUSD = investor.totalPositionValueUSD
     investorSnapshot.interactionsCount += 1
+    if (isDeposit) {
+      investorSnapshot.depositCount += 1
+    } else {
+      investorSnapshot.withdrawCount += 1
+    }
     investorSnapshot.save()
   }
 }
