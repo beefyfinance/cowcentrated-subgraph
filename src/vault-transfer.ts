@@ -257,14 +257,16 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   log.debug('updateUserPosition: updating investor entities for investor {}', [investor.id.toHexString()])
   if (isNewPosition) {
     investor.activePositionCount += 1
-  } else if (position.sharesBalance.equals(ZERO_BD)) {
+  }
+  if (isClosingPosition) {
     investor.activePositionCount -= 1
   }
-  if (newInvestor) {
+  const isEnteringTheProtocol = newInvestor || (isNewPosition && investor.activePositionCount === 1)
+  if (isEnteringTheProtocol) {
     investor.currentInvestmentOpenAtTimestamp = event.block.timestamp
   }
-  const isInvestorStillActive = investor.activePositionCount > 0
-  if (!isInvestorStillActive) {
+  const isExitingTheProtocol = investor.activePositionCount > 0
+  if (!isExitingTheProtocol) {
     investor.closedInvestmentDuration = investor.closedInvestmentDuration.plus(
       event.block.timestamp.minus(investor.currentInvestmentOpenAtTimestamp),
     )
