@@ -71,9 +71,8 @@ export function handleChargedFees(event: ChargedFees): void {
     protocolSnapshot.strategistFeesCollectedUSD = protocolSnapshot.strategistFeesCollectedUSD.plus(
       strategistFeeNative.times(nativePriceUSD),
     )
-    protocolSnapshot.strategistFeesCollectedNative =
-      protocolSnapshot.strategistFeesCollectedNative.plus(callerFeeNative)
-    protocolSnapshot.strategistFeesCollectedUSD = protocolSnapshot.strategistFeesCollectedUSD.plus(
+    protocolSnapshot.harvesterFeesCollectedNative = protocolSnapshot.harvesterFeesCollectedNative.plus(callerFeeNative)
+    protocolSnapshot.harvesterFeesCollectedUSD = protocolSnapshot.harvesterFeesCollectedUSD.plus(
       callerFeeNative.times(nativePriceUSD),
     )
 
