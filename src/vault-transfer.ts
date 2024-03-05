@@ -260,11 +260,15 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   } else if (position.sharesBalance.equals(ZERO_BD)) {
     investor.activePositionCount -= 1
   }
+  if (newInvestor) {
+    investor.currentInvestmentOpenAtTimestamp = event.block.timestamp
+  }
   const isInvestorStillActive = investor.activePositionCount > 0
   if (!isInvestorStillActive) {
     investor.closedInvestmentDuration = investor.closedInvestmentDuration.plus(
       event.block.timestamp.minus(investor.currentInvestmentOpenAtTimestamp),
     )
+    investor.currentInvestmentOpenAtTimestamp = ZERO_BI
   }
   investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
   investor.totalInteractionsCount += 1
