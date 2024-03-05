@@ -2,7 +2,7 @@ import { Address, BigDecimal, Bytes, ethereum, log } from '@graphprotocol/graph-
 import { ClockTick, Investor, Token } from '../../generated/schema'
 import { DAY, MINUTES_15, getIntervalFromTimestamp } from '../utils/time'
 import { getClockTickId } from '../entity/clock'
-import { getBeefyCLProtocol } from '../entity/protocol'
+import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from '../entity/protocol'
 import { ZERO_BD } from '../utils/decimal'
 import { getToken } from '../entity/token'
 import { sqrtPriceX96ToPriceInToken1 } from '../utils/uniswap'
@@ -170,6 +170,10 @@ export function handleNewDay(tick: ClockTick): void {
   log.debug('handleNewDay: new day detected: {}', [tick.roundedTimestamp.toString()])
 
   const protocol = getBeefyCLProtocol()
+  let protocolTotalValueLockedUSD = ZERO_BD
+  let protocolActiveVaultCount = 0
+  let protocolActiveInvestorCount = 0
+
   const vaults = protocol.vaults.load()
   const investorTVL = new Map<string, BigDecimal>()
 
@@ -225,6 +229,11 @@ export function handleNewDay(tick: ClockTick): void {
     vaultSnapshot.underlyingAmount1USD = vault.underlyingAmount1USD
     vaultSnapshot.totalValueLockedUSD = vault.totalValueLockedUSD
     vaultSnapshot.save()
+
+    //////
+    // keep track of protocol values
+    protocolTotalValueLockedUSD = protocolTotalValueLockedUSD.plus(vault.totalValueLockedUSD)
+    protocolActiveVaultCount = protocolActiveVaultCount + 1
 
     log.debug('handleNewDay: updating {} positions for vault {}', [positions.length.toString(), vault.id.toHexString()])
 
@@ -292,6 +301,10 @@ export function handleNewDay(tick: ClockTick): void {
       log.error('handleNewDay: investor {} not found', [investorIdStr])
       continue
     }
+    //////
+    // keep track of protocol values
+    protocolActiveInvestorCount = protocolActiveInvestorCount + 1
+
     // @ts-ignore
     const tvl: BigDecimal = investorTVL.get(investorIdStr)
     investor.totalPositionValueUSD = tvl
@@ -306,6 +319,20 @@ export function handleNewDay(tick: ClockTick): void {
       .div(BigDecimal.fromString(last30DailyTotalPositionValuesUSD.length.toString()))
     investor.save()
   }
+
+  ///////
+  // update protocol values
+  log.debug('handleNewDay: updating protocol values', [])
+  protocol.totalValueLockedUSD = protocolTotalValueLockedUSD
+  protocol.activeVaultCount = protocolActiveVaultCount
+  protocol.activeInvestorCount = protocolActiveInvestorCount
+  protocol.save()
+  const period = DAY
+  log.debug('handleNewDay: updating protocol snapshot for period {}', [period.toString()])
+  const protocolSnapshot = getBeefyCLProtocolSnapshot(tick.timestamp, period)
+  protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
+  protocolSnapshot.activeVaultCount = protocol.activeVaultCount
+  protocolSnapshot.activeInvestorCount = protocol.activeInvestorCount
 
   log.debug('handleNewDay: done for {} vaults', [vaults.length.toString()])
 }
