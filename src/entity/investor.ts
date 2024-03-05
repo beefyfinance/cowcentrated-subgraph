@@ -4,13 +4,18 @@ import { ZERO_BD, ZERO_BI } from '../utils/decimal'
 import { getIntervalFromTimestamp } from '../utils/time'
 import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from '../utils/snapshot'
 
+export function isNewInvestor(investor: Investor): boolean {
+  // safe to assume as we only create investors when they interact with the protocol
+  return investor.totalInteractionsCount === 0
+}
+
 export function getInvestor(accountAddress: Bytes): Investor {
   let investor = Investor.load(accountAddress)
   if (!investor) {
     investor = new Investor(accountAddress)
     investor.activePositionCount = 0
-    investor.lastInteractionTimestamp = ZERO_BI
-    investor.investedDuration = ZERO_BI
+    investor.closedInvestmentDuration = ZERO_BI
+    investor.currentInvestmentOpenAtTimestamp = ZERO_BI
     investor.totalPositionValueUSD = ZERO_BD
     investor.averageDailyTotalPositionValueUSD30D = ZERO_BD
     investor.last30DailyTotalPositionValuesUSD = new Array<BigDecimal>()

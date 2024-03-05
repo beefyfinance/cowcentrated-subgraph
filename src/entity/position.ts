@@ -11,6 +11,10 @@ function getPositionId(vault: BeefyCLVault, investor: Investor): Bytes {
   return vault.id.concat(investor.id)
 }
 
+export function isNewInvestorPosition(position: InvestorPosition): boolean {
+  return position.sharesBalance.equals(ZERO_BD)
+}
+
 export function getInvestorPosition(vault: BeefyCLVault, investor: Investor): InvestorPosition {
   let id = getPositionId(vault, investor)
   let position = InvestorPosition.load(id)
@@ -19,6 +23,8 @@ export function getInvestorPosition(vault: BeefyCLVault, investor: Investor): In
     position.vault = vault.id
     position.investor = investor.id
     position.createdWith = ADDRESS_ZERO
+    position.closedPositionDuration = ZERO_BI
+    position.positionOpenAtTimestamp = ZERO_BI
     position.sharesBalance = ZERO_BD
     position.underlyingBalance0 = ZERO_BD
     position.underlyingBalance1 = ZERO_BD
@@ -27,8 +33,6 @@ export function getInvestorPosition(vault: BeefyCLVault, investor: Investor): In
     position.positionValueUSD = ZERO_BD
     position.averageDailyPositionValueUSD30D = ZERO_BD
     position.last30DailyPositionValuesUSD = new Array<BigDecimal>()
-    position.lastUpdated = ZERO_BI
-    position.totalActiveTime = ZERO_BI
   }
   return position
 }

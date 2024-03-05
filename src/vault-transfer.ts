@@ -6,13 +6,13 @@ import {
 import { getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from './entity/vault'
 import { getTransaction } from './entity/transaction'
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from './entity/protocol'
-import { getInvestor, getInvestorSnapshot } from './entity/investor'
+import { getInvestor, getInvestorSnapshot, isNewInvestor } from './entity/investor'
 import { ZERO_BD, ZERO_BI, tokenAmountToDecimal } from './utils/decimal'
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from './../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from './../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
 import { SNAPSHOT_PERIODS } from './utils/time'
 import { getToken } from './entity/token'
-import { getInvestorPosition, getInvestorPositionSnapshot } from './entity/position'
+import { getInvestorPosition, getInvestorPositionSnapshot, isNewInvestorPosition } from './entity/position'
 import { ADDRESS_ZERO } from './utils/address'
 import { sqrtPriceX96ToPriceInToken1, tickToPrice } from './utils/uniswap'
 import { getVaultPrices } from './mapping/price'
@@ -59,6 +59,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   tx.save()
 
   let investor = getInvestor(investorAddress)
+  const newInvestor = isNewInvestor(investor)
 
   ///////
   // fetch data on chain
@@ -125,7 +126,6 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   ///////
   // compute derived values
   log.debug('updateUserPosition: computing derived values for vault {}', [vault.id.toHexString()])
-  const isNewInvestor = investor.lastInteractionTimestamp.equals(ZERO_BI)
   const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
   const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
   const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
@@ -137,17 +137,21 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     vault.id.toHexString(),
   ])
   const position = getInvestorPosition(vault, investor)
-  const isNewPosition = position.sharesBalance.equals(ZERO_BD)
-  let timeSinceLastPositionUpdate = ZERO_BI
-  if (!isNewPosition) {
-    timeSinceLastPositionUpdate = event.block.timestamp.minus(position.lastUpdated)
-  }
+  const isNewPosition = isNewInvestorPosition(position)
+  const isClosingPosition = isDeposit ? false : investorShareTokenBalance.equals(ZERO_BD)
   if (ADDRESS_ZERO.equals(position.createdWith)) {
     position.createdWith = tx.id
   }
-  if (!position.sharesBalance.equals(ZERO_BD)) {
-    position.totalActiveTime = position.totalActiveTime.plus(timeSinceLastPositionUpdate)
+  if (isNewPosition) {
+    position.positionOpenAtTimestamp = event.block.timestamp
   }
+  if (isClosingPosition) {
+    position.closedPositionDuration = position.closedPositionDuration.plus(
+      event.block.timestamp.minus(position.positionOpenAtTimestamp),
+    )
+    position.positionOpenAtTimestamp = ZERO_BI
+  }
+
   position.sharesBalance = investorShareTokenBalance
   const previousPositionValueUSD = position.positionValueUSD
   position.underlyingBalance0 = investorBalanceUnderlying0
@@ -156,7 +160,6 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   position.underlyingBalance1USD = position.underlyingBalance1.times(token1PriceInUSD)
   position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)
   const positionChangeUSD = position.positionValueUSD.minus(previousPositionValueUSD)
-  position.lastUpdated = event.block.timestamp
   position.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug('updateUserPosition: updating investor position snapshot of investor {} for vault {} and period {}', [
@@ -223,7 +226,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   const protocol = getBeefyCLProtocol()
   protocol.transactionCount += 1
   protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(positionChangeUSD)
-  if (isNewInvestor) {
+  if (isNewPosition) {
     protocol.activeInvestorCount += 1
   }
   protocol.save()
@@ -234,10 +237,10 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     ])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
     protocolSnapshot.totalValueLockedUSD = protocolSnapshot.totalValueLockedUSD.plus(positionChangeUSD)
-    if (isNewInvestor) {
+    if (newInvestor) {
       protocolSnapshot.newInvestorCount += 1
     }
-    if (investor.lastInteractionTimestamp.lt(protocolSnapshot.roundedTimestamp)) {
+    if (isNewPosition) {
       protocolSnapshot.activeInvestorCount += 1
     }
     protocolSnapshot.totalTransactionCount += 1
@@ -252,13 +255,17 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   ///////
   // update investor entities
   log.debug('updateUserPosition: updating investor entities for investor {}', [investor.id.toHexString()])
-  investor.lastInteractionTimestamp = event.block.timestamp
   if (isNewPosition) {
     investor.activePositionCount += 1
   } else if (position.sharesBalance.equals(ZERO_BD)) {
     investor.activePositionCount -= 1
   }
-  investor.investedDuration = investor.investedDuration.plus(timeSinceLastPositionUpdate)
+  const isInvestorStillActive = investor.activePositionCount > 0
+  if (!isInvestorStillActive) {
+    investor.closedInvestmentDuration = investor.closedInvestmentDuration.plus(
+      event.block.timestamp.minus(investor.currentInvestmentOpenAtTimestamp),
+    )
+  }
   investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
   investor.totalInteractionsCount += 1
   investor.save()

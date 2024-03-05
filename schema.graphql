@@ -535,14 +535,14 @@ type Investor implements EvmAddress @entity {
   "The investor address"
   id: Bytes!
 
-  "The timestamp of the last transaction the investor was involved in"
-  lastInteractionTimestamp: BigInt!
-
   "Number of active positions the investor has in the protocol"
   activePositionCount: Int!
 
-  "Total amount of seconds the investor has been active in the protocol"
-  investedDuration: BigInt!
+  "Total amount of seconds the investor has been invested in the protocol before fully exiting"
+  closedInvestmentDuration: BigInt!
+
+  "The timestamp the investor's current investment was opened or re-opened at. Zero if the position is closed."
+  currentInvestmentOpenAtTimestamp: BigInt!
 
   "Current position value in USD as the sum of all the investor ongoing positions"
   totalPositionValueUSD: BigDecimal!
@@ -610,6 +610,12 @@ type InvestorPosition @entity {
   "The transaction that created the investor position"
   createdWith: Transaction!
 
+  "Amount of seconds the investor has been invested in this position before fully exiting"
+  closedPositionDuration: BigInt!
+
+  "The timestamp the investor's current position was opened or re-opened at. Zero if the position is closed."
+  positionOpenAtTimestamp: BigInt!
+
   "The amount of shares the investor holds"
   sharesBalance: BigDecimal!
 
@@ -631,11 +637,6 @@ type InvestorPosition @entity {
 
   "The last daily position values in USD for the last 30 days. Most recent last."
   last30DailyPositionValuesUSD: [BigDecimal!]!
-
-  "Time that the position was last updated. Used to calculate the position's time-weighted size."
-  lastUpdated: BigInt!
-  "Total time the position has been active"
-  totalActiveTime: BigInt!
 
   "All investor position snapshots"
   snapshots: [InvestorPositionSnapshot!]! @derivedFrom(field: "investorPosition")
