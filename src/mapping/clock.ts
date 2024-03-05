@@ -3,7 +3,7 @@ import { ClockTick, Investor, Token } from '../../generated/schema'
 import { DAY, MINUTES_15, getIntervalFromTimestamp } from '../utils/time'
 import { getClockTickId } from '../entity/clock'
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from '../entity/protocol'
-import { ZERO_BD } from '../utils/decimal'
+import { ZERO_BD, tokenAmountToDecimal } from '../utils/decimal'
 import { getToken } from '../entity/token'
 import { sqrtPriceX96ToPriceInToken1 } from '../utils/uniswap'
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from '../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
@@ -11,6 +11,7 @@ import { getVaultPrices } from './price'
 import { getBeefyCLVaultSnapshot, isVaultRunning } from '../entity/vault'
 import { getInvestorPositionSnapshot } from '../entity/position'
 import { getInvestorSnapshot } from '../entity/investor'
+import { BeefyVaultConcLiq as BeefyCLVaultContract } from '../../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
 
 export function handleClockTick(block: ethereum.Block): void {
   const timestamp = block.timestamp
@@ -87,6 +88,14 @@ export function handleNew15Minutes(tick: ClockTick): void {
     ///////
     // fetch data on chain
     log.debug('handleNew15Minutes: fetching on chain data for vault {}', [vault.id.toHexString()])
+    const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
+    const vaultBalancesRes = vaultContract.try_balances()
+    if (vaultBalancesRes.reverted) {
+      log.error('updateUserPosition: balances() reverted for strategy {}', [vault.strategy.toHexString()])
+      throw Error('updateUserPosition: balances() reverted')
+    }
+    const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
+    const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
     const currentPriceInToken1 = getCurrentPriceInToken1(vault.strategy, token0, token1)
     const prices = getVaultPrices(vault, token0, token1)
     const token0PriceInNative = prices.token0ToNative
@@ -105,6 +114,8 @@ export function handleNew15Minutes(tick: ClockTick): void {
     vault.currentPriceOfToken0InToken1 = currentPriceInToken1
     vault.priceRangeMin1USD = vault.priceRangeMin1.times(token1PriceInUSD)
     vault.priceRangeMax1USD = vault.priceRangeMax1.times(token1PriceInUSD)
+    vault.underlyingAmount0 = vaultBalanceUnderlying0
+    vault.underlyingAmount1 = vaultBalanceUnderlying1
     vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
     vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
     vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(vault.underlyingAmount1USD)
@@ -212,6 +223,14 @@ export function handleNewDay(tick: ClockTick): void {
     ///////
     // fetch data on chain
     log.debug('handleNewDay: fetching on chain data for vault {}', [vault.id.toHexString()])
+    const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
+    const vaultBalancesRes = vaultContract.try_balances()
+    if (vaultBalancesRes.reverted) {
+      log.error('updateUserPosition: balances() reverted for strategy {}', [vault.strategy.toHexString()])
+      throw Error('updateUserPosition: balances() reverted')
+    }
+    const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
+    const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
     const currentPriceInToken1 = getCurrentPriceInToken1(vault.strategy, token0, token1)
     const prices = getVaultPrices(vault, token0, token1)
     const token0PriceInNative = prices.token0ToNative
@@ -230,6 +249,8 @@ export function handleNewDay(tick: ClockTick): void {
     vault.currentPriceOfToken0InToken1 = currentPriceInToken1
     vault.priceRangeMin1USD = vault.priceRangeMin1.times(token1PriceInUSD)
     vault.priceRangeMax1USD = vault.priceRangeMax1.times(token1PriceInUSD)
+    vault.underlyingAmount0 = vaultBalanceUnderlying0
+    vault.underlyingAmount1 = vaultBalanceUnderlying1
     vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
     vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
     vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(vault.underlyingAmount1USD)
@@ -244,6 +265,8 @@ export function handleNewDay(tick: ClockTick): void {
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
     vaultSnapshot.priceRangeMin1USD = vault.priceRangeMax1USD
     vaultSnapshot.priceRangeMax1USD = vault.priceRangeMax1USD
+    vaultSnapshot.underlyingAmount0 = vault.underlyingAmount0
+    vaultSnapshot.underlyingAmount1 = vault.underlyingAmount1
     vaultSnapshot.underlyingAmount0USD = vault.underlyingAmount0USD
     vaultSnapshot.underlyingAmount1USD = vault.underlyingAmount1USD
     vaultSnapshot.totalValueLockedUSD = vault.totalValueLockedUSD
