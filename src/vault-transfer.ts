@@ -237,7 +237,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
       periods[i].toString(),
     ])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
-    protocolSnapshot.totalValueLockedUSD = protocolSnapshot.totalValueLockedUSD.plus(positionChangeUSD)
+    protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     if (newInvestor) {
       protocolSnapshot.newInvestorCount += 1
     }
