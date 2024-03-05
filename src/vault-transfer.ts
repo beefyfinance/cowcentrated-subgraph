@@ -224,7 +224,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   // update protocol entities
   log.debug('updateUserPosition: updating protocol entities for vault {}', [vault.id.toHexString()])
   const protocol = getBeefyCLProtocol()
-  protocol.transactionCount += 1
+  protocol.cumulativeTransactionCount += 1
+  protocol.cumulativeInvestorInteractionsCount += 1
   protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(positionChangeUSD)
   if (isNewPosition) {
     protocol.activeInvestorCount += 1
@@ -243,8 +244,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     if (isNewPosition) {
       protocolSnapshot.activeInvestorCount += 1
     }
-    protocolSnapshot.totalTransactionCount += 1
-    protocolSnapshot.investorTransactionsCount += 1
+    protocolSnapshot.transactionCount += 1
+    protocolSnapshot.investorInteractionsCount += 1
     protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
     protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
     protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)

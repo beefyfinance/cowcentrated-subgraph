@@ -114,9 +114,11 @@ type Protocol @entity {
   "The current number of invested investors in the protocol"
   activeInvestorCount: Int!
   "The number of transactions that ever happened in the protocol"
-  transactionCount: Int!
+  cumulativeTransactionCount: Int!
+  "The number of transactions initiated by investors that ever happened in the protocol"
+  cumulativeInvestorInteractionsCount: Int!
   "The total number of harvests that ever happened in the protocol"
-  harvestCount: Int!
+  cumulativeHarvestCount: Int!
 
   "A timeseries of the protocol's stats"
   snapshots: [ProtocolSnapshot!]! @derivedFrom(field: "protocol")
@@ -162,9 +164,9 @@ type ProtocolSnapshot implements Snapshot @entity {
   newInvestorCount: Int!
 
   "Total number of transactions in the protocol at the time of the snapshot"
-  totalTransactionCount: Int!
+  transactionCount: Int!
   "Number of transactions initiated by investors at the time of the snapshot"
-  investorTransactionsCount: Int!
+  investorInteractionsCount: Int!
   "Number of transactions initiated by harvesters at the time of the snapshot"
   harvesterTransactionsCount: Int!
 

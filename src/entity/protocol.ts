@@ -17,8 +17,9 @@ export function getBeefyCLProtocol(): Protocol {
     protocol.totalValueLockedUSD = ZERO_BD
     protocol.activeVaultCount = 0
     protocol.activeInvestorCount = 0
-    protocol.transactionCount = 0
-    protocol.harvestCount = 0
+    protocol.cumulativeTransactionCount = 0
+    protocol.cumulativeInvestorInteractionsCount = 0
+    protocol.cumulativeHarvestCount = 0
   }
   return protocol
 }
@@ -38,8 +39,8 @@ export function getBeefyCLProtocolSnapshot(timestamp: BigInt, period: BigInt): P
     snapshot.activeVaultCount = 0
     snapshot.activeInvestorCount = 0
     snapshot.newInvestorCount = 0
-    snapshot.totalTransactionCount = 0
-    snapshot.investorTransactionsCount = 0
+    snapshot.transactionCount = 0
+    snapshot.investorInteractionsCount = 0
     snapshot.harvesterTransactionsCount = 0
     snapshot.totalGasSpent = ZERO_BD
     snapshot.totalGasSpentUSD = ZERO_BD
