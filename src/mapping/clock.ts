@@ -10,6 +10,7 @@ import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from '../../
 import { getVaultPrices } from './price'
 import { getBeefyCLVaultSnapshot, isVaultRunning } from '../entity/vault'
 import { getInvestorPositionSnapshot } from '../entity/position'
+import { getInvestorSnapshot } from '../entity/investor'
 
 export function handleClockTick(block: ethereum.Block): void {
   const timestamp = block.timestamp
@@ -63,6 +64,10 @@ export function handleNew15Minutes(tick: ClockTick): void {
   log.debug('handleNew15Minutes: new 15min range detected: {}', [tick.roundedTimestamp.toString()])
 
   const protocol = getBeefyCLProtocol()
+  let protocolTotalValueLockedUSD = ZERO_BD
+  let protocolActiveVaultCount = 0
+  let protocolActiveInvestorCount = 0
+
   const vaults = protocol.vaults.load()
   const investorTVL = new Map<string, BigDecimal>()
 
@@ -76,7 +81,6 @@ export function handleNew15Minutes(tick: ClockTick): void {
     }
 
     const positions = vault.positions.load()
-
     const token0 = getToken(vault.underlyingToken0)
     const token1 = getToken(vault.underlyingToken1)
 
@@ -105,6 +109,11 @@ export function handleNew15Minutes(tick: ClockTick): void {
     vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
     vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(vault.underlyingAmount1USD)
     vault.save()
+
+    //////
+    // keep track of protocol values
+    protocolTotalValueLockedUSD = protocolTotalValueLockedUSD.plus(vault.totalValueLockedUSD)
+    protocolActiveVaultCount = protocolActiveVaultCount + 1
 
     log.debug('handleNew15Minutes: updating {} positions for vault {}', [
       positions.length.toString(),
@@ -157,11 +166,21 @@ export function handleNew15Minutes(tick: ClockTick): void {
       log.error('handleNew15Minutes: investor {} not found', [investorIdStr])
       continue
     }
+    //////
+    // keep track of protocol values
+    protocolActiveInvestorCount = protocolActiveInvestorCount + 1
+
     // @ts-ignore
     const tvl: BigDecimal = investorTVL.get(investorIdStr)
     investor.totalPositionValueUSD = tvl
     investor.save()
   }
+
+  ///////
+  // update protocol values
+  log.debug('handleNewDay: updating protocol values', [])
+  protocol.totalValueLockedUSD = protocolTotalValueLockedUSD
+  protocol.save()
 
   log.debug('handleNew15Minutes: done for {} vaults', [vaults.length.toString()])
 }
@@ -318,6 +337,14 @@ export function handleNewDay(tick: ClockTick): void {
       .reduce<BigDecimal>((acc, val) => acc.plus(val), ZERO_BD)
       .div(BigDecimal.fromString(last30DailyTotalPositionValuesUSD.length.toString()))
     investor.save()
+    const period = DAY
+    log.debug('handleNewDay: updating investor snapshot for investor {} and period {}', [
+      investor.id.toHexString(),
+      period.toString(),
+    ])
+    const investorSnapshot = getInvestorSnapshot(investor, tick.timestamp, period)
+    investorSnapshot.totalPositionValueUSD = tvl
+    investorSnapshot.save()
   }
 
   ///////
