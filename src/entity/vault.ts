@@ -37,21 +37,21 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
     vault.underlyingAmount0USD = ZERO_BD
     vault.underlyingAmount1USD = ZERO_BD
     vault.totalValueLockedUSD = ZERO_BD
-    vault.totalHarvestCount = 0
-    vault.totalDepositCount = 0
-    vault.totalWithdrawCount = 0
-    vault.totalTransferCount = 0
-    vault.totalHarvestedAmount0 = ZERO_BD
-    vault.totalHarvestedAmount1 = ZERO_BD
-    vault.totalHarvestedAmount0USD = ZERO_BD
-    vault.totalHarvestedAmount1USD = ZERO_BD
-    vault.totalHarvestValueUSD = ZERO_BD
-    vault.totalHarvesterFeeCollectedNative = ZERO_BD
-    vault.totalProtocolFeeCollectedNative = ZERO_BD
-    vault.totalStrategistFeeCollectedNative = ZERO_BD
-    vault.totalHarvesterFeeCollectedUSD = ZERO_BD
-    vault.totalProtocolFeeCollectedUSD = ZERO_BD
-    vault.totalStrategistFeeCollectedUSD = ZERO_BD
+    vault.cumulativeHarvestCount = 0
+    vault.cumulativeDepositCount = 0
+    vault.cumulativeWithdrawCount = 0
+    vault.cumulativeTransferCount = 0
+    vault.cumulativeHarvestedAmount0 = ZERO_BD
+    vault.cumulativeHarvestedAmount1 = ZERO_BD
+    vault.cumulativeHarvestedAmount0USD = ZERO_BD
+    vault.cumulativeHarvestedAmount1USD = ZERO_BD
+    vault.cumulativeHarvestValueUSD = ZERO_BD
+    vault.cumulativeHarvesterFeeCollectedNative = ZERO_BD
+    vault.cumulativeProtocolFeeCollectedNative = ZERO_BD
+    vault.cumulativeStrategistFeeCollectedNative = ZERO_BD
+    vault.cumulativeHarvesterFeeCollectedUSD = ZERO_BD
+    vault.cumulativeProtocolFeeCollectedUSD = ZERO_BD
+    vault.cumulativeStrategistFeeCollectedUSD = ZERO_BD
   }
   return vault
 }

@@ -108,11 +108,11 @@ type Protocol @entity {
 
   "The current TVL in the protocol in USD"
   totalValueLockedUSD: BigDecimal!
-
   "The current number of active vaults in the protocol"
   activeVaultCount: Int!
   "The current number of invested investors in the protocol"
   activeInvestorCount: Int!
+
   "The number of transactions that ever happened in the protocol"
   cumulativeTransactionCount: Int!
   "The number of transactions initiated by investors that ever happened in the protocol"
@@ -158,8 +158,8 @@ type ProtocolSnapshot implements Snapshot @entity {
 
   "Number of vaults in the protocol at the time of the snapshot"
   activeVaultCount: Int!
-  "Number of investors in the protocol at the time of the snapshot"
-  activeInvestorCount: Int!
+  "Number of investors that interacted with the protocol at the time of the snapshot"
+  uniqueActiveInvestorCount: Int!
   "Number of investors interacting with the protocol for the first time at the time of the snapsho"
   newInvestorCount: Int!
 
@@ -275,50 +275,46 @@ type BeefyCLVault implements EvmAddress @entity {
   underlyingAmount0: BigDecimal!
   "Amount of underlying tokens in the vault. This is the second token."
   underlyingAmount1: BigDecimal!
-
   "Amount of underlying tokens in the vault in USD. This is the first token."
   underlyingAmount0USD: BigDecimal!
   "Amount of underlying tokens in the vault in USD. This is the second token."
   underlyingAmount1USD: BigDecimal!
-
   "The current TVL in the vault in USD"
   totalValueLockedUSD: BigDecimal!
 
   "Total count of harvests for that vault"
-  totalHarvestCount: Int!
+  cumulativeHarvestCount: Int!
   "Deposit count for that vault"
-  totalDepositCount: Int!
+  cumulativeDepositCount: Int!
   "Withdraw count for that vault"
-  totalWithdrawCount: Int!
+  cumulativeWithdrawCount: Int!
   "Transfer count for that vault"
-  totalTransferCount: Int!
+  cumulativeTransferCount: Int!
 
   "The harvested amount of the first token"
-  totalHarvestedAmount0: BigDecimal!
+  cumulativeHarvestedAmount0: BigDecimal!
   "The harvested amount of the second token"
-  totalHarvestedAmount1: BigDecimal!
-
+  cumulativeHarvestedAmount1: BigDecimal!
   "The harvested amount of the first token in USD"
-  totalHarvestedAmount0USD: BigDecimal!
+  cumulativeHarvestedAmount0USD: BigDecimal!
   "The harvested amount of the second token in USD"
-  totalHarvestedAmount1USD: BigDecimal!
-
+  cumulativeHarvestedAmount1USD: BigDecimal!
   "The harvested amount in USD"
-  totalHarvestValueUSD: BigDecimal!
+  cumulativeHarvestValueUSD: BigDecimal!
 
   "Amount of native token charged as call fee incentive"
-  totalHarvesterFeeCollectedNative: BigDecimal!
+  cumulativeHarvesterFeeCollectedNative: BigDecimal!
   "Amount of native token charged as protocol fee"
-  totalProtocolFeeCollectedNative: BigDecimal!
+  cumulativeProtocolFeeCollectedNative: BigDecimal!
   "Amount of native token charged as strategist fee incentive"
-  totalStrategistFeeCollectedNative: BigDecimal!
+  cumulativeStrategistFeeCollectedNative: BigDecimal!
 
   "Amount of native token charged as call fee incentive in USD"
-  totalHarvesterFeeCollectedUSD: BigDecimal!
+  cumulativeHarvesterFeeCollectedUSD: BigDecimal!
   "Amount of native token charged as protocol fee in USD"
-  totalProtocolFeeCollectedUSD: BigDecimal!
+  cumulativeProtocolFeeCollectedUSD: BigDecimal!
   "Amount of native token charged as strategist fee incentive in USD"
-  totalStrategistFeeCollectedUSD: BigDecimal!
+  cumulativeStrategistFeeCollectedUSD: BigDecimal!
 
   "All investors positions in the vault"
   positions: [InvestorPosition!]! @derivedFrom(field: "vault")
@@ -397,12 +393,10 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   harvestedAmount0: BigDecimal!
   "The harvested amount of the second token"
   harvestedAmount1: BigDecimal!
-
   "The harvested amount of the first token in USD"
   harvestedAmount0USD: BigDecimal!
   "The harvested amount of the second token in USD"
   harvestedAmount1USD: BigDecimal!
-
   "The harvested amount in USD"
   harvestValueUSD: BigDecimal!
 
@@ -545,6 +539,9 @@ type Investor implements EvmAddress @entity {
 
   "The timestamp the investor's current investment was opened or re-opened at. Zero if the position is closed."
   currentInvestmentOpenAtTimestamp: BigInt!
+
+  "The date of the last interaction with the protocol. Used to calculate daily active users."
+  lastInteractionAt: BigInt!
 
   "Current position value in USD as the sum of all the investor ongoing positions"
   totalPositionValueUSD: BigDecimal!

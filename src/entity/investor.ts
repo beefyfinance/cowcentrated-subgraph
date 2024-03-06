@@ -16,6 +16,7 @@ export function getInvestor(accountAddress: Bytes): Investor {
     investor.activePositionCount = 0
     investor.closedInvestmentDuration = ZERO_BI
     investor.currentInvestmentOpenAtTimestamp = ZERO_BI
+    investor.lastInteractionAt = ZERO_BI
     investor.totalPositionValueUSD = ZERO_BD
     investor.averageDailyTotalPositionValueUSD30D = ZERO_BD
     investor.last30DailyTotalPositionValuesUSD = new Array<BigDecimal>()

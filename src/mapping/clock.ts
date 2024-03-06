@@ -382,8 +382,6 @@ export function handleNewDay(tick: ClockTick): void {
   const protocolSnapshot = getBeefyCLProtocolSnapshot(tick.timestamp, period)
   protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
   protocolSnapshot.activeVaultCount = protocol.activeVaultCount
-  protocolSnapshot.activeInvestorCount = protocol.activeInvestorCount
-
   log.debug('handleNewDay: done for {} vaults', [vaults.length.toString()])
 }
 

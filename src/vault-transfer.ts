@@ -191,9 +191,9 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
   vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(positionChangeUSD)
   if (isDeposit) {
-    vault.totalDepositCount += 1
+    vault.cumulativeDepositCount += 1
   } else {
-    vault.totalWithdrawCount += 1
+    vault.cumulativeWithdrawCount += 1
   }
   vault.save()
   for (let i = 0; i < periods.length; i++) {
@@ -241,8 +241,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     if (newInvestor) {
       protocolSnapshot.newInvestorCount += 1
     }
-    if (isNewPosition) {
-      protocolSnapshot.activeInvestorCount += 1
+    if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp)) {
+      protocolSnapshot.uniqueActiveInvestorCount += 1
     }
     protocolSnapshot.transactionCount += 1
     protocolSnapshot.investorInteractionsCount += 1
@@ -273,6 +273,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     )
     investor.currentInvestmentOpenAtTimestamp = ZERO_BI
   }
+  investor.lastInteractionAt = event.block.timestamp
   investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
   investor.cumulativeInteractionsCount += 1
   if (isDeposit) {

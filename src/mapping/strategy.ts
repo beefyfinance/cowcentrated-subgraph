@@ -82,12 +82,16 @@ export function handleChargedFees(event: ChargedFees): void {
   ///////
   // update vault entities
   log.debug('handleChargedFees: update vault', [])
-  vault.totalProtocolFeeCollectedNative = vault.totalProtocolFeeCollectedNative.plus(beefyFeeNative)
-  vault.totalProtocolFeeCollectedUSD = vault.totalProtocolFeeCollectedUSD.plus(beefyFeeNative.times(nativePriceUSD))
-  vault.totalHarvesterFeeCollectedNative = vault.totalHarvesterFeeCollectedNative.plus(callerFeeNative)
-  vault.totalHarvesterFeeCollectedUSD = vault.totalHarvesterFeeCollectedUSD.plus(callerFeeNative.times(nativePriceUSD))
-  vault.totalStrategistFeeCollectedNative = vault.totalStrategistFeeCollectedNative.plus(strategistFeeNative)
-  vault.totalStrategistFeeCollectedUSD = vault.totalStrategistFeeCollectedUSD.plus(
+  vault.cumulativeProtocolFeeCollectedNative = vault.cumulativeProtocolFeeCollectedNative.plus(beefyFeeNative)
+  vault.cumulativeProtocolFeeCollectedUSD = vault.cumulativeProtocolFeeCollectedUSD.plus(
+    beefyFeeNative.times(nativePriceUSD),
+  )
+  vault.cumulativeHarvesterFeeCollectedNative = vault.cumulativeHarvesterFeeCollectedNative.plus(callerFeeNative)
+  vault.cumulativeHarvesterFeeCollectedUSD = vault.cumulativeHarvesterFeeCollectedUSD.plus(
+    callerFeeNative.times(nativePriceUSD),
+  )
+  vault.cumulativeStrategistFeeCollectedNative = vault.cumulativeStrategistFeeCollectedNative.plus(strategistFeeNative)
+  vault.cumulativeStrategistFeeCollectedUSD = vault.cumulativeStrategistFeeCollectedUSD.plus(
     strategistFeeNative.times(nativePriceUSD),
   )
   vault.save()

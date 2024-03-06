@@ -37,7 +37,7 @@ export function getBeefyCLProtocolSnapshot(timestamp: BigInt, period: BigInt): P
     snapshot.period = period
     snapshot.totalValueLockedUSD = ZERO_BD
     snapshot.activeVaultCount = 0
-    snapshot.activeInvestorCount = 0
+    snapshot.uniqueActiveInvestorCount = 0
     snapshot.newInvestorCount = 0
     snapshot.transactionCount = 0
     snapshot.investorInteractionsCount = 0
@@ -67,7 +67,6 @@ export function getBeefyCLProtocolSnapshot(timestamp: BigInt, period: BigInt): P
   if (previousSnapshot) {
     snapshot.totalValueLockedUSD = previousSnapshot.totalValueLockedUSD
     snapshot.activeVaultCount = previousSnapshot.activeVaultCount
-    snapshot.activeInvestorCount = previousSnapshot.activeInvestorCount
   }
 
   return snapshot

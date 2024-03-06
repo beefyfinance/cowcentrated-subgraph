@@ -124,12 +124,12 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
   vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
   vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(vault.underlyingAmount1USD)
-  vault.totalHarvestCount += 1
-  vault.totalHarvestedAmount0 = vault.totalHarvestedAmount0.plus(harvest.harvestedAmount0)
-  vault.totalHarvestedAmount1 = vault.totalHarvestedAmount1.plus(harvest.harvestedAmount1)
-  vault.totalHarvestedAmount0USD = vault.totalHarvestedAmount0USD.plus(harvest.harvestedAmount0USD)
-  vault.totalHarvestedAmount1USD = vault.totalHarvestedAmount1USD.plus(harvest.harvestedAmount1USD)
-  vault.totalHarvestValueUSD = vault.totalHarvestedAmount0USD.plus(vault.totalHarvestedAmount1USD)
+  vault.cumulativeHarvestCount += 1
+  vault.cumulativeHarvestedAmount0 = vault.cumulativeHarvestedAmount0.plus(harvest.harvestedAmount0)
+  vault.cumulativeHarvestedAmount1 = vault.cumulativeHarvestedAmount1.plus(harvest.harvestedAmount1)
+  vault.cumulativeHarvestedAmount0USD = vault.cumulativeHarvestedAmount0USD.plus(harvest.harvestedAmount0USD)
+  vault.cumulativeHarvestedAmount1USD = vault.cumulativeHarvestedAmount1USD.plus(harvest.harvestedAmount1USD)
+  vault.cumulativeHarvestValueUSD = vault.cumulativeHarvestedAmount0USD.plus(vault.cumulativeHarvestedAmount1USD)
   vault.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug('handleStrategyHarvest: updating vault snapshot for vault {} and period {}', [
