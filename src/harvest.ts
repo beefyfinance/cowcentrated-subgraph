@@ -213,7 +213,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   for (let i = 0; i < periods.length; i++) {
     log.debug('handleStrategyHarvest: updating protocol snapshot for period {}', [periods[i].toString()])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
-    protocolSnapshot.totalValueLockedUSD = protocolSnapshot.totalValueLockedUSD.plus(harvest.harvestValueUSD)
+    protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     protocolSnapshot.transactionCount += 1
     protocolSnapshot.harvesterTransactionsCount += 1
     protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
