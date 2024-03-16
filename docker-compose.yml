@@ -1,24 +1,24 @@
-version: '3'
+version: "3"
 services:
   postgres:
     image: postgres:14
     ports:
-      - '5432:5432'
-    command: ['postgres', '-cshared_preload_libraries=pg_stat_statements', '-cmax_connections=200']
+      - "5432:5432"
+    command: ["postgres", "-cshared_preload_libraries=pg_stat_statements", "-cmax_connections=200"]
     environment:
       POSTGRES_USER: graph-node
       POSTGRES_PASSWORD: let-me-in
       POSTGRES_DB: graph-node
-      POSTGRES_INITDB_ARGS: '-E UTF8 --locale=C'
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
     volumes:
       - ./docker/data/postgres:/var/lib/postgresql/data
     logging:
-      driver: 'local'
+      driver: "local"
       options:
-        max-size: '5M'
-        max-file: '3'
+        max-size: "5M"
+        max-file: "3"
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -q -d graph-node -U graph-node']
+      test: ["CMD-SHELL", "pg_isready -q -d graph-node -U graph-node"]
       interval: 1s
       timeout: 5s
       retries: 10
@@ -26,16 +26,16 @@ services:
   ipfs:
     image: ipfs/kubo:v0.14.0
     ports:
-      - '5001:5001'
+      - "5001:5001"
     volumes:
       - ./docker/data/ipfs:/data/ipfs
     logging:
-      driver: 'local'
+      driver: "local"
       options:
-        max-size: '5M'
-        max-file: '3'
+        max-size: "5M"
+        max-file: "3"
     healthcheck:
-      test: ['CMD', 'ipfs', 'id']
+      test: ["CMD", "ipfs", "id"]
       interval: 1s
       timeout: 5s
       retries: 5
@@ -43,11 +43,11 @@ services:
   graph-node:
     image: graphprotocol/graph-node
     ports:
-      - '8000:8000'
-      - '8001:8001'
-      - '8020:8020'
-      - '8030:8030'
-      - '8040:8040'
+      - "8000:8000"
+      - "8001:8001"
+      - "8020:8020"
+      - "8030:8030"
+      - "8040:8040"
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,11 +58,11 @@ services:
     volumes:
       - ./docker/graph-node:/etc/graph-node
     logging:
-      driver: 'local'
+      driver: "local"
       options:
-        max-size: '10M'
-        max-file: '3'
+        max-size: "10M"
+        max-file: "3"
     environment:
-      ipfs: 'ipfs:5001'
+      ipfs: "ipfs:5001"
       GRAPH_LOG: debug
       GRAPH_NODE_CONFIG: /etc/graph-node/config.toml

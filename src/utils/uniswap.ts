@@ -1,6 +1,6 @@
-import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
-import { ONE_BD, ZERO_BD } from './decimal'
-import { Token } from '../../generated/schema'
+import { BigDecimal, BigInt } from "@graphprotocol/graph-ts"
+import { ONE_BD, ZERO_BD } from "./decimal"
+import { Token } from "../../generated/schema"
 
 const Q96_BD = new BigDecimal(BigInt.fromI32(2).pow(96))
 
@@ -15,7 +15,7 @@ export function sqrtPriceX96ToPriceInToken1(sqrtPriceX96: BigInt, token0: Token,
   let p = sqrtPriceX96Dec.div(Q96_BD)
   let num = p.times(p) // p^2
   const f_den = f64(10 ** (token1.decimals.toI32() - token0.decimals.toI32()))
-  let den =  BigDecimal.fromString(f_den.toString())
+  let den = BigDecimal.fromString(f_den.toString())
   let adjusted10 = num.div(den)
   let adjusted01 = ZERO_BD
   if (!adjusted10.equals(ZERO_BD)) {
@@ -47,4 +47,3 @@ export function tickToPrice(tickIdx: BigInt, token0: Token, token1: Token): BigD
   // instead.
   return BigDecimal.fromString(res.toString())
 }
-

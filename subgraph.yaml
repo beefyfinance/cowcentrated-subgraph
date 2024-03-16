@@ -8,7 +8,7 @@ dataSources:
     name: BeefyCLVaultFactory
     network: arbitrum-one
     source:
-      address: '0x0Fc6daA59c04A8B49E8cB0E7e3ff230c643856B9'
+      address: "0x0Fc6daA59c04A8B49E8cB0E7e3ff230c643856B9"
       abi: BeefyVaultConcLiqFactory
       startBlock: 182836248
     mapping:
@@ -34,7 +34,7 @@ dataSources:
     name: ChainlinkClock
     network: arbitrum-one
     source:
-      address: '0x3607e46698d218B3a5Cae44bF381475C0a5e2ca7'
+      address: "0x3607e46698d218B3a5Cae44bF381475C0a5e2ca7"
       abi: ChainlinkClock
       startBlock: 182836248 # same as BeefyCLVaultFactory
     mapping:
@@ -156,5 +156,3 @@ templates:
         - event: ChargedFees(uint256,uint256,uint256)
           handler: handleChargedFees
           receipt: true
-
-          

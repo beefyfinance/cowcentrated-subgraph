@@ -1,14 +1,14 @@
-import { BigInt, Bytes } from '@graphprotocol/graph-ts'
-import { BeefyCLStrategy, BeefyCLVault, BeefyCLVaultSnapshot } from '../../generated/schema'
-import { ADDRESS_ZERO } from '../utils/address'
-import { ZERO_BD } from '../utils/decimal'
-import { PROTOCOL_BEEFY_CL_ID } from './protocol'
-import { getIntervalFromTimestamp } from '../utils/time'
-import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from '../utils/snapshot'
+import { BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { BeefyCLStrategy, BeefyCLVault, BeefyCLVaultSnapshot } from "../../generated/schema"
+import { ADDRESS_ZERO } from "../utils/address"
+import { ZERO_BD } from "../utils/decimal"
+import { PROTOCOL_BEEFY_CL_ID } from "./protocol"
+import { getIntervalFromTimestamp } from "../utils/time"
+import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from "../utils/snapshot"
 
-export const BEEFY_CL_VAULT_LIFECYCLE_INITIALIZING = 'INITIALIZING'
-export const BEEFY_CL_VAULT_LIFECYCLE_RUNNING = 'RUNNING'
-export const BEEFY_CL_VAULT_LIFECYCLE_PAUSED = 'PAUSED'
+export const BEEFY_CL_VAULT_LIFECYCLE_INITIALIZING = "INITIALIZING"
+export const BEEFY_CL_VAULT_LIFECYCLE_RUNNING = "RUNNING"
+export const BEEFY_CL_VAULT_LIFECYCLE_PAUSED = "PAUSED"
 
 export function isVaultRunning(vault: BeefyCLVault): boolean {
   return vault.lifecycle == BEEFY_CL_VAULT_LIFECYCLE_RUNNING

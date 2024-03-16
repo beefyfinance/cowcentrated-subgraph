@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts"
 
 
 @inline
@@ -6,7 +6,10 @@ export function getSnapshotIdSuffix(period: BigInt, interval: BigInt): Bytes {
   return Bytes.fromByteArray(Bytes.fromBigInt(period)).concat(Bytes.fromByteArray(Bytes.fromBigInt(interval)))
 }
 
+
 @inline
 export function getPreviousSnapshotIdSuffix(period: BigInt, interval: BigInt): Bytes {
-  return Bytes.fromByteArray(Bytes.fromBigInt(period)).concat(Bytes.fromByteArray(Bytes.fromBigInt(interval.minus(period))))
+  return Bytes.fromByteArray(Bytes.fromBigInt(period)).concat(
+    Bytes.fromByteArray(Bytes.fromBigInt(interval.minus(period))),
+  )
 }

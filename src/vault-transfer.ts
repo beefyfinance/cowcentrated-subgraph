@@ -1,21 +1,21 @@
-import { Address, BigDecimal, BigInt, ethereum, log } from '@graphprotocol/graph-ts'
+import { Address, BigDecimal, BigInt, ethereum, log } from "@graphprotocol/graph-ts"
 import {
   Deposit as DepositEvent,
   Withdraw as WithdrawEvent,
-} from './../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
-import { getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from './entity/vault'
-import { getTransaction } from './entity/transaction'
-import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from './entity/protocol'
-import { getInvestor, getInvestorSnapshot, isNewInvestor } from './entity/investor'
-import { ZERO_BD, ZERO_BI, tokenAmountToDecimal } from './utils/decimal'
-import { BeefyVaultConcLiq as BeefyCLVaultContract } from './../generated/templates/BeefyCLVault/BeefyVaultConcLiq'
-import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from './../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap'
-import { SNAPSHOT_PERIODS } from './utils/time'
-import { getToken } from './entity/token'
-import { getInvestorPosition, getInvestorPositionSnapshot, isNewInvestorPosition } from './entity/position'
-import { ADDRESS_ZERO } from './utils/address'
-import { sqrtPriceX96ToPriceInToken1, tickToPrice } from './utils/uniswap'
-import { getVaultPrices } from './mapping/price'
+} from "./../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
+import { getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
+import { getTransaction } from "./entity/transaction"
+import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
+import { getInvestor, getInvestorSnapshot, isNewInvestor } from "./entity/investor"
+import { ZERO_BD, ZERO_BI, tokenAmountToDecimal } from "./utils/decimal"
+import { BeefyVaultConcLiq as BeefyCLVaultContract } from "./../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
+import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "./../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
+import { SNAPSHOT_PERIODS } from "./utils/time"
+import { getToken } from "./entity/token"
+import { getInvestorPosition, getInvestorPositionSnapshot, isNewInvestorPosition } from "./entity/position"
+import { ADDRESS_ZERO } from "./utils/address"
+import { sqrtPriceX96ToPriceInToken1, tickToPrice } from "./utils/uniswap"
+import { getVaultPrices } from "./mapping/price"
 
 export function handleVaultDeposit(event: DepositEvent): void {
   updateUserPosition(event, event.params.user, true)
@@ -37,7 +37,7 @@ export function handleVaultWithdraw(event: WithdrawEvent): void {
 function updateUserPosition(event: ethereum.Event, investorAddress: Address, isDeposit: boolean): void {
   let vault = getBeefyCLVault(event.address)
   if (!isVaultRunning(vault)) {
-    log.error('updateUserPosition: vault {} not active at block {}: {}', [
+    log.error("updateUserPosition: vault {} not active at block {}: {}", [
       vault.id.toHexString(),
       event.block.number.toString(),
       vault.lifecycle,
@@ -45,8 +45,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     return
   }
 
-  log.debug('updateUserPosition: processing {} for vault {}', [
-    isDeposit ? 'deposit' : 'withdraw',
+  log.debug("updateUserPosition: processing {} for vault {}", [
+    isDeposit ? "deposit" : "withdraw",
     vault.id.toHexString(),
   ])
 
@@ -64,23 +64,23 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   ///////
   // fetch data on chain
   // TODO: use multicall3 to fetch all data in one call
-  log.debug('updateUserPosition: fetching data for vault {}', [vault.id.toHexString()])
+  log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])
   const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(vault.strategy))
 
   // current price
   const sqrtPriceRes = strategyContract.try_price() // TODO: replace with "try_sqrtPrice()" when new strats are deployed
   if (sqrtPriceRes.reverted) {
-    log.error('updateUserPosition: price() reverted for strategy {}', [vault.strategy.toHexString()])
-    throw Error('updateUserPosition: price() reverted')
+    log.error("updateUserPosition: price() reverted for strategy {}", [vault.strategy.toHexString()])
+    throw Error("updateUserPosition: price() reverted")
   }
   const currentPriceInToken1 = sqrtPriceX96ToPriceInToken1(sqrtPriceRes.value, token0, token1)
 
   // range the strategy is covering
   const rangeRes = strategyContract.try_positionMain() // TODO: use "try_range()" when new strats are deployed
   if (rangeRes.reverted) {
-    log.error('updateUserPosition: range() reverted for strategy {}', [vault.strategy.toHexString()])
-    throw Error('updateUserPosition: range() reverted')
+    log.error("updateUserPosition: range() reverted for strategy {}", [vault.strategy.toHexString()])
+    throw Error("updateUserPosition: range() reverted")
   }
   const rangeMinToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value0), token0, token1)
   const rangeMaxToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value1), token0, token1)
@@ -88,8 +88,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   // balances of the vault
   const vaultBalancesRes = vaultContract.try_balances()
   if (vaultBalancesRes.reverted) {
-    log.error('updateUserPosition: balances() reverted for strategy {}', [vault.strategy.toHexString()])
-    throw Error('updateUserPosition: balances() reverted')
+    log.error("updateUserPosition: balances() reverted for strategy {}", [vault.strategy.toHexString()])
+    throw Error("updateUserPosition: balances() reverted")
   }
   const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
   const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
@@ -97,8 +97,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   // get the new investor deposit value
   const investorBalanceRes = vaultContract.try_balanceOf(investorAddress)
   if (investorBalanceRes.reverted) {
-    log.error('updateUserPosition: balanceOf() reverted for vault {}', [vault.id.toHexString()])
-    throw Error('updateUserPosition: balanceOf() reverted')
+    log.error("updateUserPosition: balanceOf() reverted for vault {}", [vault.id.toHexString()])
+    throw Error("updateUserPosition: balanceOf() reverted")
   }
   const investorShareTokenBalanceRaw = investorBalanceRes.value
   const investorShareTokenBalance = tokenAmountToDecimal(investorShareTokenBalanceRaw, sharesToken.decimals)
@@ -109,8 +109,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   if (investorShareTokenBalanceRaw.gt(ZERO_BI)) {
     const previewWithdrawRes = vaultContract.try_previewWithdraw(investorShareTokenBalanceRaw)
     if (previewWithdrawRes.reverted) {
-      log.error('updateUserPosition: previewWithdraw() reverted for vault {}', [vault.id.toHexString()])
-      throw Error('updateUserPosition: previewWithdraw() reverted')
+      log.error("updateUserPosition: previewWithdraw() reverted for vault {}", [vault.id.toHexString()])
+      throw Error("updateUserPosition: previewWithdraw() reverted")
     }
     previewWithdraw0Raw = previewWithdrawRes.value.value0
     previewWithdraw1Raw = previewWithdrawRes.value.value1
@@ -125,14 +125,14 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
 
   ///////
   // compute derived values
-  log.debug('updateUserPosition: computing derived values for vault {}', [vault.id.toHexString()])
+  log.debug("updateUserPosition: computing derived values for vault {}", [vault.id.toHexString()])
   const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
   const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
   const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
 
   ///////
   // update investor positions
-  log.debug('updateUserPosition: updating investor position of investor {} for vault {}', [
+  log.debug("updateUserPosition: updating investor position of investor {} for vault {}", [
     investor.id.toHexString(),
     vault.id.toHexString(),
   ])
@@ -162,7 +162,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   const positionChangeUSD = position.positionValueUSD.minus(previousPositionValueUSD)
   position.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug('updateUserPosition: updating investor position snapshot of investor {} for vault {} and period {}', [
+    log.debug("updateUserPosition: updating investor position snapshot of investor {} for vault {} and period {}", [
       investor.id.toHexString(),
       vault.id.toHexString(),
       periods[i].toString(),
@@ -179,7 +179,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
 
   ///////
   // update vault entities
-  log.debug('updateUserPosition: updating vault entities for vault {}', [vault.id.toHexString()])
+  log.debug("updateUserPosition: updating vault entities for vault {}", [vault.id.toHexString()])
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
   vault.priceRangeMin1 = rangeMinToken1Price
   vault.priceRangeMax1 = rangeMaxToken1Price
@@ -197,7 +197,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   }
   vault.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug('updateUserPosition: updating vault snapshot for vault {} and period {}', [
+    log.debug("updateUserPosition: updating vault snapshot for vault {} and period {}", [
       vault.id.toHexString(),
       periods[i].toString(),
     ])
@@ -222,7 +222,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
 
   ///////
   // update protocol entities
-  log.debug('updateUserPosition: updating protocol entities for vault {}', [vault.id.toHexString()])
+  log.debug("updateUserPosition: updating protocol entities for vault {}", [vault.id.toHexString()])
   const protocol = getBeefyCLProtocol()
   protocol.cumulativeTransactionCount += 1
   protocol.cumulativeInvestorInteractionsCount += 1
@@ -232,7 +232,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   }
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug('updateUserPosition: updating protocol snapshot for vault {} and period {}', [
+    log.debug("updateUserPosition: updating protocol snapshot for vault {} and period {}", [
       vault.id.toHexString(),
       periods[i].toString(),
     ])
@@ -255,7 +255,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
 
   ///////
   // update investor entities
-  log.debug('updateUserPosition: updating investor entities for investor {}', [investor.id.toHexString()])
+  log.debug("updateUserPosition: updating investor entities for investor {}", [investor.id.toHexString()])
   if (isNewPosition) {
     investor.activePositionCount += 1
   }
@@ -283,7 +283,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   }
   investor.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug('updateUserPosition: updating investor snapshot for investor {} and period {}', [
+    log.debug("updateUserPosition: updating investor snapshot for investor {} and period {}", [
       investor.id.toHexString(),
       periods[i].toString(),
     ])

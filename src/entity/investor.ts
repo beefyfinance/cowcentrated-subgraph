@@ -1,8 +1,8 @@
-import { BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts'
-import { Investor, InvestorSnapshot } from '../../generated/schema'
-import { ZERO_BD, ZERO_BI } from '../utils/decimal'
-import { getIntervalFromTimestamp } from '../utils/time'
-import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from '../utils/snapshot'
+import { BigDecimal, BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { Investor, InvestorSnapshot } from "../../generated/schema"
+import { ZERO_BD, ZERO_BI } from "../utils/decimal"
+import { getIntervalFromTimestamp } from "../utils/time"
+import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from "../utils/snapshot"
 
 export function isNewInvestor(investor: Investor): boolean {
   // safe to assume as we only create investors when they interact with the protocol

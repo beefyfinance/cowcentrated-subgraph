@@ -1,9 +1,9 @@
-import { BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts'
-import { BeefyCLVault, Investor, InvestorPosition, InvestorPositionSnapshot } from '../../generated/schema'
-import { ADDRESS_ZERO } from '../utils/address'
-import { ZERO_BD, ZERO_BI } from '../utils/decimal'
-import { getIntervalFromTimestamp } from '../utils/time'
-import { getSnapshotIdSuffix } from '../utils/snapshot'
+import { BigDecimal, BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { BeefyCLVault, Investor, InvestorPosition, InvestorPositionSnapshot } from "../../generated/schema"
+import { ADDRESS_ZERO } from "../utils/address"
+import { ZERO_BD, ZERO_BI } from "../utils/decimal"
+import { getIntervalFromTimestamp } from "../utils/time"
+import { getSnapshotIdSuffix } from "../utils/snapshot"
 
 // @ts-ignore
 @inline
@@ -72,6 +72,6 @@ export function getInvestorPositionSnapshot(
     snapshot.underlyingBalance1USD = previousSnapshot.underlyingBalance1USD
     snapshot.positionValueUSD = previousSnapshot.positionValueUSD
   }
-  
+
   return snapshot
 }

@@ -1,10 +1,10 @@
-import { assert, clearStore, test, describe, afterAll } from 'matchstick-as/assembly/index'
-import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
-import { sqrtPriceX96ToPriceInToken1, tickToPrice } from '../../src/utils/uniswap'
-import { Token } from '../../generated/schema'
-import { ADDRESS_ZERO } from '../../src/utils/address'
+import { assert, clearStore, test, describe, afterAll } from "matchstick-as/assembly/index"
+import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
+import { sqrtPriceX96ToPriceInToken1, tickToPrice } from "../../src/utils/uniswap"
+import { Token } from "../../generated/schema"
+import { ADDRESS_ZERO } from "../../src/utils/address"
 
-describe('uniswap.sqrtPriceX96ToPriceInToken1', () => {
+describe("uniswap.sqrtPriceX96ToPriceInToken1", () => {
   afterAll(() => {
     clearStore()
   })
@@ -21,25 +21,25 @@ describe('uniswap.sqrtPriceX96ToPriceInToken1', () => {
    *
    * print(f'{sqrtPriceX96:.0f}')
    */
-  test('Can transform an sqrt price x96 into a true price', () => {
+  test("Can transform an sqrt price x96 into a true price", () => {
     // example from https://blog.uniswap.org/uniswap-v3-math-primer
-    const value = BigInt.fromString('2018382873588440326581633304624437')
+    const value = BigInt.fromString("2018382873588440326581633304624437")
     let usdc = new Token(ADDRESS_ZERO)
     let weth = new Token(ADDRESS_ZERO)
     usdc.decimals = BigInt.fromI32(6)
     weth.decimals = BigInt.fromI32(18)
 
     const token0PriceInToken1 = sqrtPriceX96ToPriceInToken1(value, usdc, weth)
-    log.info('token0PriceInToken1: {}', [token0PriceInToken1.toString()])
+    log.info("token0PriceInToken1: {}", [token0PriceInToken1.toString()])
 
-    let targetMin = BigDecimal.fromString('1540.82')
-    let targetMax = BigDecimal.fromString('1540.83')
-    assert.assertTrue(token0PriceInToken1.gt(targetMin), 'Decimal value should match')
-    assert.assertTrue(token0PriceInToken1.lt(targetMax), 'Decimal value should match')
+    let targetMin = BigDecimal.fromString("1540.82")
+    let targetMax = BigDecimal.fromString("1540.83")
+    assert.assertTrue(token0PriceInToken1.gt(targetMin), "Decimal value should match")
+    assert.assertTrue(token0PriceInToken1.lt(targetMax), "Decimal value should match")
   })
 
-  test('Can transform an sqrt price x96 into a true price when decimals are inverted', () => {
-    const value = BigInt.fromString('3108427325256432995123990')
+  test("Can transform an sqrt price x96 into a true price when decimals are inverted", () => {
+    const value = BigInt.fromString("3108427325256432995123990")
     let usdc = new Token(ADDRESS_ZERO)
     let weth = new Token(ADDRESS_ZERO)
     usdc.decimals = BigInt.fromI32(6)
@@ -47,14 +47,14 @@ describe('uniswap.sqrtPriceX96ToPriceInToken1', () => {
 
     const token0PriceInToken1 = sqrtPriceX96ToPriceInToken1(value, weth, usdc)
 
-    let targetMin = BigDecimal.fromString('0.00064')
-    let targetMax = BigDecimal.fromString('0.00065')
-    assert.assertTrue(token0PriceInToken1.gt(targetMin), 'Decimal value should match')
-    assert.assertTrue(token0PriceInToken1.lt(targetMax), 'Decimal value should match')
+    let targetMin = BigDecimal.fromString("0.00064")
+    let targetMax = BigDecimal.fromString("0.00065")
+    assert.assertTrue(token0PriceInToken1.gt(targetMin), "Decimal value should match")
+    assert.assertTrue(token0PriceInToken1.lt(targetMax), "Decimal value should match")
   })
 })
 
-describe('uniswap.tickToPrice', () => {
+describe("uniswap.tickToPrice", () => {
   afterAll(() => {
     clearStore()
   })
@@ -82,9 +82,9 @@ describe('uniswap.tickToPrice', () => {
    *     print("===tick: %d\n a: %f\n b: %f\n log_res: %f\n price0: %f\n price1: %f" % (tick, a, b, log_res, price0, price1))
    *
    */
-  test('Can transform a tick into a price', () => {
-    const minTick = BigInt.fromString('202910')
-    const maxTick = BigInt.fromString('202920')
+  test("Can transform a tick into a price", () => {
+    const minTick = BigInt.fromString("202910")
+    const maxTick = BigInt.fromString("202920")
     let usdc = new Token(ADDRESS_ZERO)
     let weth = new Token(ADDRESS_ZERO)
     usdc.decimals = BigInt.fromI32(6)
@@ -93,18 +93,18 @@ describe('uniswap.tickToPrice', () => {
     const minTickPriceInToken1 = tickToPrice(minTick, usdc, weth)
     const maxTickPriceInToken1 = tickToPrice(maxTick, usdc, weth)
 
-    let targetMinTickMin = BigDecimal.fromString('1542.30')
-    let targetMinTickMax = BigDecimal.fromString('1542.31')
-    let targetMaxTickMin = BigDecimal.fromString('1540.76')
-    let targetMaxTickMax = BigDecimal.fromString('1540.77')
-    assert.assertTrue(minTickPriceInToken1.gt(targetMinTickMin), 'Tick value should be approximately correct')
-    assert.assertTrue(minTickPriceInToken1.lt(targetMinTickMax), 'Tick value should be approximately correct')
-    assert.assertTrue(maxTickPriceInToken1.gt(targetMaxTickMin), 'Tick value should be approximately correct')
-    assert.assertTrue(maxTickPriceInToken1.lt(targetMaxTickMax), 'Tick value should be approximately correct')
+    let targetMinTickMin = BigDecimal.fromString("1542.30")
+    let targetMinTickMax = BigDecimal.fromString("1542.31")
+    let targetMaxTickMin = BigDecimal.fromString("1540.76")
+    let targetMaxTickMax = BigDecimal.fromString("1540.77")
+    assert.assertTrue(minTickPriceInToken1.gt(targetMinTickMin), "Tick value should be approximately correct")
+    assert.assertTrue(minTickPriceInToken1.lt(targetMinTickMax), "Tick value should be approximately correct")
+    assert.assertTrue(maxTickPriceInToken1.gt(targetMaxTickMin), "Tick value should be approximately correct")
+    assert.assertTrue(maxTickPriceInToken1.lt(targetMaxTickMax), "Tick value should be approximately correct")
   })
 
-  test('Can transform a tick into a price when ticks are negative', () => {
-    const tick = BigInt.fromString('-31001')
+  test("Can transform a tick into a price when ticks are negative", () => {
+    const tick = BigInt.fromString("-31001")
     let usdc = new Token(ADDRESS_ZERO)
     let weth = new Token(ADDRESS_ZERO)
     usdc.decimals = BigInt.fromI32(6)
@@ -112,14 +112,14 @@ describe('uniswap.tickToPrice', () => {
 
     const tickPriceInToken1 = tickToPrice(tick, usdc, weth)
 
-    let targetTickMin = BigDecimal.fromString('22196730546060.1')
-    let targetTickMax = BigDecimal.fromString('22196730546060.2')
-    assert.assertTrue(tickPriceInToken1.gt(targetTickMin), 'Tick value should be approximately correct')
-    assert.assertTrue(tickPriceInToken1.lt(targetTickMax), 'Tick value should be approximately correct')
+    let targetTickMin = BigDecimal.fromString("22196730546060.1")
+    let targetTickMax = BigDecimal.fromString("22196730546060.2")
+    assert.assertTrue(tickPriceInToken1.gt(targetTickMin), "Tick value should be approximately correct")
+    assert.assertTrue(tickPriceInToken1.lt(targetTickMax), "Tick value should be approximately correct")
   })
 
-  test('Can transform the maxTick in price', () => {
-    const tick = BigInt.fromString('887272')
+  test("Can transform the maxTick in price", () => {
+    const tick = BigInt.fromString("887272")
     let usdc = new Token(ADDRESS_ZERO)
     let weth = new Token(ADDRESS_ZERO)
     usdc.decimals = BigInt.fromI32(6)
@@ -127,14 +127,14 @@ describe('uniswap.tickToPrice', () => {
 
     const tickPriceInToken1 = tickToPrice(tick, usdc, weth)
 
-    let targetTickMin = BigDecimal.fromString('2.938956807614e-27')
-    let targetTickMax = BigDecimal.fromString('2.938956907615e-27')
-    assert.assertTrue(tickPriceInToken1.gt(targetTickMin), 'Tick value should be approximately correct')
-    assert.assertTrue(tickPriceInToken1.lt(targetTickMax), 'Tick value should be approximately correct')
+    let targetTickMin = BigDecimal.fromString("2.938956807614e-27")
+    let targetTickMax = BigDecimal.fromString("2.938956907615e-27")
+    assert.assertTrue(tickPriceInToken1.gt(targetTickMin), "Tick value should be approximately correct")
+    assert.assertTrue(tickPriceInToken1.lt(targetTickMax), "Tick value should be approximately correct")
   })
 
-  test('Can transform a very negative tick into a price', () => {
-    const tick = BigInt.fromString('-100000')
+  test("Can transform a very negative tick into a price", () => {
+    const tick = BigInt.fromString("-100000")
     let usdc = new Token(ADDRESS_ZERO)
     let weth = new Token(ADDRESS_ZERO)
     usdc.decimals = BigInt.fromI32(6)
@@ -142,15 +142,15 @@ describe('uniswap.tickToPrice', () => {
 
     const tickPriceInToken1 = tickToPrice(tick, usdc, weth)
 
-    let targetTickMin = BigDecimal.fromString('2.20154560485280e+16')
-    let targetTickMax = BigDecimal.fromString('2.20154560485281e+16')
+    let targetTickMin = BigDecimal.fromString("2.20154560485280e+16")
+    let targetTickMax = BigDecimal.fromString("2.20154560485281e+16")
 
-    assert.assertTrue(tickPriceInToken1.gt(targetTickMin), 'Tick value should be approximately correct')
-    assert.assertTrue(tickPriceInToken1.lt(targetTickMax), 'Tick value should be approximately correct')
+    assert.assertTrue(tickPriceInToken1.gt(targetTickMin), "Tick value should be approximately correct")
+    assert.assertTrue(tickPriceInToken1.lt(targetTickMax), "Tick value should be approximately correct")
   })
 
-  test('Can transform the min tick into a price', () => {
-    const tick = BigInt.fromString('-887272')
+  test("Can transform the min tick into a price", () => {
+    const tick = BigInt.fromString("-887272")
     let usdc = new Token(ADDRESS_ZERO)
     let weth = new Token(ADDRESS_ZERO)
     usdc.decimals = BigInt.fromI32(6)
@@ -159,12 +159,12 @@ describe('uniswap.tickToPrice', () => {
     const tickPriceInToken1 = tickToPrice(tick, usdc, weth)
 
     // true value is 340256786833063068514507077617520209684190474534912, close enough
-    let targetPrice = BigDecimal.fromString('340256786833063080000000000000000000000000000000000')
-    assert.assertTrue(tickPriceInToken1.equals(targetPrice), 'Tick value should be approximately correct')
+    let targetPrice = BigDecimal.fromString("340256786833063080000000000000000000000000000000000")
+    assert.assertTrue(tickPriceInToken1.equals(targetPrice), "Tick value should be approximately correct")
   })
 
-  test('Can transform a tick into a price when decimals are inverted', () => {
-    const tick = BigInt.fromString('887272')
+  test("Can transform a tick into a price when decimals are inverted", () => {
+    const tick = BigInt.fromString("887272")
     let usdc = new Token(ADDRESS_ZERO)
     let weth = new Token(ADDRESS_ZERO)
     usdc.decimals = BigInt.fromI32(18)
@@ -172,14 +172,14 @@ describe('uniswap.tickToPrice', () => {
 
     const tickPriceInToken1 = tickToPrice(tick, weth, usdc)
 
-    let targetTickMin = BigDecimal.fromString('2.93895680761429e-27')
-    let targetTickMax = BigDecimal.fromString('2.93895680761430e-27')
-    assert.assertTrue(tickPriceInToken1.gt(targetTickMin), 'Tick value should be approximately correct')
-    assert.assertTrue(tickPriceInToken1.lt(targetTickMax), 'Tick value should be approximately correct')
+    let targetTickMin = BigDecimal.fromString("2.93895680761429e-27")
+    let targetTickMax = BigDecimal.fromString("2.93895680761430e-27")
+    assert.assertTrue(tickPriceInToken1.gt(targetTickMin), "Tick value should be approximately correct")
+    assert.assertTrue(tickPriceInToken1.lt(targetTickMax), "Tick value should be approximately correct")
   })
 
-  test('Can transform a very negative tick into a price when decimals are inverted', () => {
-    const tick = BigInt.fromString('-887272')
+  test("Can transform a very negative tick into a price when decimals are inverted", () => {
+    const tick = BigInt.fromString("-887272")
     let usdc = new Token(ADDRESS_ZERO)
     let weth = new Token(ADDRESS_ZERO)
     usdc.decimals = BigInt.fromI32(18)
@@ -188,7 +188,7 @@ describe('uniswap.tickToPrice', () => {
     const tickPriceInToken1 = tickToPrice(tick, weth, usdc)
 
     // true value is 340256786833063525436630628682351520367867445903360, close enough
-    let targetTick = BigDecimal.fromString('340256786833063080000000000000000000000000000000000')
-    assert.assertTrue(tickPriceInToken1.equals(targetTick), 'Tick value should be correct')
+    let targetTick = BigDecimal.fromString("340256786833063080000000000000000000000000000000000")
+    assert.assertTrue(tickPriceInToken1.equals(targetTick), "Tick value should be correct")
   })
 })

@@ -1,11 +1,11 @@
-import { BigInt, Bytes } from '@graphprotocol/graph-ts'
-import { Protocol, ProtocolSnapshot } from '../../generated/schema'
-import { ONE_BI, ZERO_BD } from '../utils/decimal'
-import { getIntervalFromTimestamp } from '../utils/time'
-import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from '../utils/snapshot'
+import { BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { Protocol, ProtocolSnapshot } from "../../generated/schema"
+import { ONE_BI, ZERO_BD } from "../utils/decimal"
+import { getIntervalFromTimestamp } from "../utils/time"
+import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from "../utils/snapshot"
 
 export type ProtocolId = String
-export const PROTOCOL_BEEFY_CL: ProtocolId = 'BeefyCL'
+export const PROTOCOL_BEEFY_CL: ProtocolId = "BeefyCL"
 export const PROTOCOL_BEEFY_CL_ID: Bytes = Bytes.fromByteArray(Bytes.fromBigInt(ONE_BI))
 
 export function getBeefyCLProtocol(): Protocol {
@@ -13,7 +13,7 @@ export function getBeefyCLProtocol(): Protocol {
   let protocol = Protocol.load(protocolId)
   if (!protocol) {
     protocol = new Protocol(protocolId)
-    protocol.name = 'Beefy CL'
+    protocol.name = "Beefy CL"
     protocol.totalValueLockedUSD = ZERO_BD
     protocol.activeVaultCount = 0
     protocol.activeInvestorCount = 0

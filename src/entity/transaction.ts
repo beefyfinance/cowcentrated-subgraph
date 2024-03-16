@@ -1,6 +1,6 @@
-import { ethereum, log } from '@graphprotocol/graph-ts'
-import { Transaction } from '../../generated/schema'
-import { weiToBigDecimal } from '../utils/decimal'
+import { ethereum, log } from "@graphprotocol/graph-ts"
+import { Transaction } from "../../generated/schema"
+import { weiToBigDecimal } from "../utils/decimal"
 
 export function getTransaction(
   block: ethereum.Block,
