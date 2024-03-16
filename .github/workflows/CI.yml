@@ -39,12 +39,6 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Generate any subgraph.yaml file
-        run: yarn prepare:arbitrum-one
-
-      - name: Run GraphQL codegen
-        run: yarn codegen
-
       - name: Build project
         run: yarn build
 
