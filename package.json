@@ -5,7 +5,9 @@
     "postinstall": "npm run codegen",
     "codegen": "rm -Rf generated && graph codegen",
     "build": "graph build",
-    "test": "graph test",
+    "test": "yarn run --silent test:lint && yarn run --silent test:graph",
+    "test:graph": "graph test",
+    "test:lint": "prettier . --check",
     "create-local": "graph create beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "deploy-local": "graph deploy beefyfinance/beefy-cl --node http://127.0.0.1:8020 --ipfs http://localhost:5001",
     "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
@@ -25,5 +27,7 @@
     "prettier": "^3.2.5",
     "typescript": "^5.3.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "assemblyscript-prettier": "^3.0.1"
+  }
 }
