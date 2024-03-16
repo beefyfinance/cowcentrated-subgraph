@@ -6,11 +6,24 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: BeefyCLVaultFactory
-    network: arbitrum-one
+    network: {{network}}
+    context:
+      wrappedNativeDecimals:
+        type: BigInt
+        data: "{{wrappedNativeDecimals}}"
+      uniswapV3QuoterV2Address:
+        type: Bytes
+        data: "{{uniswapV3QuoterV2Address}}"
+      chainlinkNativePriceFeedAddress:
+        type: Bytes
+        data: "{{chainlinkNativePriceFeedAddress}}"
+      chainlinkNativePriceFeedDecimals:
+        type: BigInt
+        data: "{{chainlinkNativePriceFeedDecimals}}"
     source:
-      address: "0x0Fc6daA59c04A8B49E8cB0E7e3ff230c643856B9"
+      address: "{{vaultFactoryAddress}}"
       abi: BeefyVaultConcLiqFactory
-      startBlock: 182836248
+      startBlock: {{vaultFactoryStartBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
@@ -32,11 +45,24 @@ dataSources:
           receipt: true
   - kind: ethereum/contract
     name: ChainlinkClock
-    network: arbitrum-one
+    network: {{network}}
+    context:
+      wrappedNativeDecimals:
+        type: BigInt
+        data: "{{wrappedNativeDecimals}}"
+      uniswapV3QuoterV2Address:
+        type: Bytes
+        data: "{{uniswapV3QuoterV2Address}}"
+      chainlinkNativePriceFeedAddress:
+        type: Bytes
+        data: "{{chainlinkNativePriceFeedAddress}}"
+      chainlinkNativePriceFeedDecimals:
+        type: BigInt
+        data: "{{chainlinkNativePriceFeedDecimals}}"
     source:
-      address: "0x3607e46698d218B3a5Cae44bF381475C0a5e2ca7"
+      address: "{{chainlinkNativePriceFeedAddress}}"
       abi: ChainlinkClock
-      startBlock: 182836248 # same as BeefyCLVaultFactory
+      startBlock: {{vaultFactoryStartBlock}} # same as BeefyCLVaultFactory
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
@@ -73,7 +99,20 @@ dataSources:
 templates:
   - name: BeefyCLVault
     kind: ethereum/contract
-    network: arbitrum-one
+    network: {{network}}
+    context:
+      wrappedNativeDecimals:
+        type: BigInt
+        data: "{{wrappedNativeDecimals}}"
+      uniswapV3QuoterV2Address:
+        type: Bytes
+        data: "{{uniswapV3QuoterV2Address}}"
+      chainlinkNativePriceFeedAddress:
+        type: Bytes
+        data: "{{chainlinkNativePriceFeedAddress}}"
+      chainlinkNativePriceFeedDecimals:
+        type: BigInt
+        data: "{{chainlinkNativePriceFeedDecimals}}"
     source:
       abi: BeefyVaultConcLiq
     mapping:
@@ -115,7 +154,20 @@ templates:
 
   - name: BeefyCLStrategy
     kind: ethereum/contract
-    network: arbitrum-one
+    network: {{network}}
+    context:
+      wrappedNativeDecimals:
+        type: BigInt
+        data: "{{wrappedNativeDecimals}}"
+      uniswapV3QuoterV2Address:
+        type: Bytes
+        data: "{{uniswapV3QuoterV2Address}}"
+      chainlinkNativePriceFeedAddress:
+        type: Bytes
+        data: "{{chainlinkNativePriceFeedAddress}}"
+      chainlinkNativePriceFeedDecimals:
+        type: BigInt
+        data: "{{chainlinkNativePriceFeedDecimals}}"
     source:
       abi: StrategyPassiveManagerUniswap
     mapping:
