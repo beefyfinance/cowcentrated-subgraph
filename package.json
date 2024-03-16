@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "prepare": "husky install",
+    "postinstall": "yarn run --silent prepare:arbitrum-one && yarn run --silent codegen",
     "codegen": "rm -Rf generated && graph codegen",
     "build": "graph build",
     "format": "prettier . --write",

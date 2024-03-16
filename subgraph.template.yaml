@@ -95,24 +95,11 @@ dataSources:
         - handler: handleClockTick
           filter:
             kind: polling
-            every: 3600 # trigger every ~15min with 1 block every 250ms
+            every: {{clockTickBlocks}}
 templates:
   - name: BeefyCLVault
     kind: ethereum/contract
     network: {{network}}
-    context:
-      wrappedNativeDecimals:
-        type: BigInt
-        data: "{{wrappedNativeDecimals}}"
-      uniswapV3QuoterV2Address:
-        type: Bytes
-        data: "{{uniswapV3QuoterV2Address}}"
-      chainlinkNativePriceFeedAddress:
-        type: Bytes
-        data: "{{chainlinkNativePriceFeedAddress}}"
-      chainlinkNativePriceFeedDecimals:
-        type: BigInt
-        data: "{{chainlinkNativePriceFeedDecimals}}"
     source:
       abi: BeefyVaultConcLiq
     mapping:
@@ -155,19 +142,6 @@ templates:
   - name: BeefyCLStrategy
     kind: ethereum/contract
     network: {{network}}
-    context:
-      wrappedNativeDecimals:
-        type: BigInt
-        data: "{{wrappedNativeDecimals}}"
-      uniswapV3QuoterV2Address:
-        type: Bytes
-        data: "{{uniswapV3QuoterV2Address}}"
-      chainlinkNativePriceFeedAddress:
-        type: Bytes
-        data: "{{chainlinkNativePriceFeedAddress}}"
-      chainlinkNativePriceFeedDecimals:
-        type: BigInt
-        data: "{{chainlinkNativePriceFeedDecimals}}"
     source:
       abi: StrategyPassiveManagerUniswap
     mapping:

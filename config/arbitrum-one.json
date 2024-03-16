@@ -3,6 +3,7 @@
 
     "vaultFactoryAddress": "0xef79A90A93084e1d2a2b4ecD1F783e937C80Ef4C",
     "vaultFactoryStartBlock": 190612486,
+    "clockTickBlocks": 3600,
 
     "wrappedNativeAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
     "wrappedNativeDecimals": 18,
