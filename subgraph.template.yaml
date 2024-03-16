@@ -1,6 +1,6 @@
 specVersion: 0.1.0
-description: Beefy Finance Concentrated Liquidity Subgraphs
-repository: https://github.com/beefyfinance/beefy-subgraphs
+description: Beefy Finance Automated Liquidity Manager Subgraph
+repository: https://github.com/beefyfinance/subgraphs
 schema:
   file: ./schema.graphql
 dataSources:

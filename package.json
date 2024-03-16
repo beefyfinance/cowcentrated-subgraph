@@ -2,7 +2,6 @@
   "name": "subgraphs",
   "private": true,
   "scripts": {
-    "prepare": "husky install",
     "postinstall": "yarn run --silent prepare:arbitrum && yarn run --silent codegen",
     "codegen": "rm -Rf generated && graph codegen",
     "build": "graph build",
