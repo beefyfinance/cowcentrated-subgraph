@@ -4,13 +4,13 @@ import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "../../
 import { ONE_BD, exponentToBigInt, tokenAmountToDecimal } from "../utils/decimal"
 import { UniswapQuoterV2 } from "../../generated/templates/BeefyCLStrategy/UniswapQuoterV2"
 import { ChainLinkPriceFeed } from "../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed"
-import { dataSource } from '@graphprotocol/graph-ts'
+import { dataSource } from "@graphprotocol/graph-ts"
 
 const context = dataSource.context()
-const quoter = UniswapQuoterV2.bind(Address.fromBytes(context.getBytes('uniswapV3QuoterV2Address')))
-const WNATIVE_DECIMALS = context.getBigInt('wrappedNativeDecimals')
+const quoter = UniswapQuoterV2.bind(Address.fromBytes(context.getBytes("uniswapV3QuoterV2Address")))
+const WNATIVE_DECIMALS = context.getBigInt("wrappedNativeDecimals")
 const nativePriceFeed = ChainLinkPriceFeed.bind(Address.fromBytes(context.getBytes("chainlinkNativePriceFeedAddress")))
-const PRICE_FEED_DECIMALS = context.getBigInt('chainlinkNativePriceFeedDecimals')
+const PRICE_FEED_DECIMALS = context.getBigInt("chainlinkNativePriceFeedDecimals")
 
 export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token): VaultPrices {
   log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])

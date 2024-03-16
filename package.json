@@ -3,19 +3,20 @@
   "private": true,
   "scripts": {
     "prepare": "husky install",
-    "postinstall": "yarn run --silent prepare:arbitrum-one && yarn run --silent codegen",
+    "postinstall": "yarn run --silent prepare:arbitrum && yarn run --silent codegen",
     "codegen": "rm -Rf generated && graph codegen",
     "build": "graph build",
     "format": "prettier . --write",
     "test": "yarn run --silent test:lint && yarn run --silent test:graph",
     "test:graph": "graph test",
     "test:lint": "prettier . --check",
-    "prepare:arbitrum-one": "mustache config/arbitrum-one.json subgraph.template.yaml > subgraph.yaml",
-    "prepare:optimism": "mustache config/optimism.json subgraph.template.yaml > subgraph.yaml",
     "create-local": "graph create beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "deploy-local": "graph deploy beefyfinance/beefy-cl --node http://127.0.0.1:8020 --ipfs http://localhost:5001",
     "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
-    "deploy-remote": "0xgraph remove beefyfinance/beefy-cl && sleep 10 && 0xgraph create beefyfinance/beefy-cl && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/beefy-cl --version-label=v0.0.1"
+    "prepare:arbitrum": "mustache config/arbitrum.json subgraph.template.yaml > subgraph.yaml",
+    "prepare:optimism": "mustache config/optimism.json subgraph.template.yaml > subgraph.yaml",
+    "deploy:arbitrum": "0xgraph remove beefyfinance/alm-arbitrum && sleep 10 && 0xgraph create beefyfinance/alm-arbitrum && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/alm-arbitrum --version-label=v0.0.1",
+    "deploy:optimism": "0xgraph remove beefyfinance/alm-optimism && sleep 10 && 0xgraph create beefyfinance/alm-optimism && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/alm-optimism --version-label=v0.0.1"
   },
   "main": "./bin/index.js",
   "bin": {

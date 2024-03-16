@@ -1,13 +1,13 @@
 {
-    "network": "optimism",
+  "network": "optimism",
 
-    "vaultFactoryAddress": "0xf0C7eD247e22Bb0BaACA1F7975C8F02D79954198",
-    "vaultFactoryStartBlock": 117428248,
-    "clockTickBlocks": 750,
+  "vaultFactoryAddress": "0xf0C7eD247e22Bb0BaACA1F7975C8F02D79954198",
+  "vaultFactoryStartBlock": 117428248,
+  "clockTickBlocks": 750,
 
-    "wrappedNativeAddress": "0x4200000000000000000000000000000000000006",
-    "wrappedNativeDecimals": 18,
-    "uniswapV3QuoterV2Address": "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
-    "chainlinkNativePriceFeedAddress": "0x13e3Ee699D1909E989722E753853AE30b17e08c5",
-    "chainlinkNativePriceFeedDecimals": 8
+  "wrappedNativeAddress": "0x4200000000000000000000000000000000000006",
+  "wrappedNativeDecimals": 18,
+  "uniswapV3QuoterV2Address": "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+  "chainlinkNativePriceFeedAddress": "0x13e3Ee699D1909E989722E753853AE30b17e08c5",
+  "chainlinkNativePriceFeedDecimals": 8
 }
