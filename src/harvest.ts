@@ -114,6 +114,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   harvest.harvestValueUSD = harvest.harvestedAmount0USD.plus(harvest.harvestedAmount1USD)
   harvest.underlyingBalance0 = vaultBalanceUnderlying0
   harvest.underlyingBalance1 = vaultBalanceUnderlying1
+  harvest.priceOfToken0InToken1 = currentPriceInToken1
   harvest.save()
 
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
