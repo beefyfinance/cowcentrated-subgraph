@@ -466,6 +466,11 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
 
   "Total usd value of the harvest"
   harvestValueUSD: BigDecimal!
+
+  "The vault's balance of token0 at time of harvest"
+  underlyingBalance0: BigDecimal!
+  "The vault's balance of token1 at time of harvest"
+  underlyingBalance1: BigDecimal!
 }
 
 #######################
