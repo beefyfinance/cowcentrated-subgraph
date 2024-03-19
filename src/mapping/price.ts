@@ -1,16 +1,18 @@
-import { Address, BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
+import { Address, BigDecimal, log } from "@graphprotocol/graph-ts"
 import { BeefyCLVault, Token } from "../../generated/schema"
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
 import { ONE_BD, exponentToBigInt, tokenAmountToDecimal } from "../utils/decimal"
 import { UniswapQuoterV2 } from "../../generated/templates/BeefyCLStrategy/UniswapQuoterV2"
 import { ChainLinkPriceFeed } from "../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed"
-import { dataSource } from "@graphprotocol/graph-ts"
+import {
+  CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
+  PRICE_FEED_DECIMALS,
+  UNISWAP_V3_QUOTER_V2_ADDRESS,
+  WNATIVE_DECIMALS,
+} from "../config"
 
-const context = dataSource.context()
-const quoter = UniswapQuoterV2.bind(Address.fromBytes(context.getBytes("uniswapV3QuoterV2Address")))
-const WNATIVE_DECIMALS = context.getBigInt("wrappedNativeDecimals")
-const nativePriceFeed = ChainLinkPriceFeed.bind(Address.fromBytes(context.getBytes("chainlinkNativePriceFeedAddress")))
-const PRICE_FEED_DECIMALS = context.getBigInt("chainlinkNativePriceFeedDecimals")
+const quoter = UniswapQuoterV2.bind(UNISWAP_V3_QUOTER_V2_ADDRESS)
+const nativePriceFeed = ChainLinkPriceFeed.bind(CHAINLINK_NATIVE_PRICE_FEED_ADDRESS)
 
 export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token): VaultPrices {
   log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])

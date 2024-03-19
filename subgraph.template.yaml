@@ -7,19 +7,6 @@ dataSources:
   - kind: ethereum/contract
     name: BeefyCLVaultFactory
     network: {{network}}
-    context:
-      wrappedNativeDecimals:
-        type: BigInt
-        data: "{{wrappedNativeDecimals}}"
-      uniswapV3QuoterV2Address:
-        type: Bytes
-        data: "{{uniswapV3QuoterV2Address}}"
-      chainlinkNativePriceFeedAddress:
-        type: Bytes
-        data: "{{chainlinkNativePriceFeedAddress}}"
-      chainlinkNativePriceFeedDecimals:
-        type: BigInt
-        data: "{{chainlinkNativePriceFeedDecimals}}"
     source:
       address: "{{vaultFactoryAddress}}"
       abi: BeefyVaultConcLiqFactory
@@ -46,19 +33,6 @@ dataSources:
   - kind: ethereum/contract
     name: ChainlinkClock
     network: {{network}}
-    context:
-      wrappedNativeDecimals:
-        type: BigInt
-        data: "{{wrappedNativeDecimals}}"
-      uniswapV3QuoterV2Address:
-        type: Bytes
-        data: "{{uniswapV3QuoterV2Address}}"
-      chainlinkNativePriceFeedAddress:
-        type: Bytes
-        data: "{{chainlinkNativePriceFeedAddress}}"
-      chainlinkNativePriceFeedDecimals:
-        type: BigInt
-        data: "{{chainlinkNativePriceFeedDecimals}}"
     source:
       address: "{{chainlinkNativePriceFeedAddress}}"
       abi: ChainlinkClock
