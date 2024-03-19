@@ -14,8 +14,8 @@
     "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "prepare:arbitrum": "mustache config/arbitrum.json subgraph.template.yaml > subgraph.yaml",
     "prepare:optimism": "mustache config/optimism.json subgraph.template.yaml > subgraph.yaml",
-    "deploy:arbitrum": "0xgraph remove beefyfinance/alm-arbitrum && sleep 10 && 0xgraph create beefyfinance/alm-arbitrum && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/alm-arbitrum --version-label=v0.0.1",
-    "deploy:optimism": "0xgraph remove beefyfinance/alm-optimism && sleep 10 && 0xgraph create beefyfinance/alm-optimism && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/alm-optimism --version-label=v0.0.1"
+    "deploy:arbitrum": "0xgraph remove beefyfinance/clm-arbitrum && sleep 10 && 0xgraph create beefyfinance/clm-arbitrum && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/clm-arbitrum --version-label=v0.0.1",
+    "deploy:optimism": "0xgraph remove beefyfinance/clm-optimism && sleep 10 && 0xgraph create beefyfinance/clm-optimism && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/clm-optimism --version-label=v0.0.1"
   },
   "main": "./bin/index.js",
   "bin": {
