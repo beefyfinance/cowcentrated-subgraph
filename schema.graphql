@@ -315,6 +315,9 @@ type BeefyCLVault @entity {
 
   "Snapshot of the vault's stats"
   snapshots: [BeefyCLVaultSnapshot!]! @derivedFrom(field: "vault")
+
+  "All vault interactions for this vault"
+  interactions: [InvestorPositionInteraction!]! @derivedFrom(field: "vault")
 }
 
 """
@@ -557,6 +560,9 @@ type Investor @entity {
 
   "All investor snapshots"
   snapshots: [InvestorSnapshot!]! @derivedFrom(field: "investor")
+
+  "All investor interactions"
+  interactions: [InvestorPositionInteraction!]! @derivedFrom(field: "investor")
 }
 
 """
@@ -642,6 +648,9 @@ type InvestorPosition @entity {
 
   "All investor position snapshots"
   snapshots: [InvestorPositionSnapshot!]! @derivedFrom(field: "investorPosition")
+
+  "All investor position interactions"
+  interactions: [InvestorPositionInteraction!]! @derivedFrom(field: "investorPosition")
 }
 
 """
@@ -685,4 +694,60 @@ type InvestorPositionSnapshot implements Snapshot @entity {
 
   "Current position value in USD"
   positionValueUSD: BigDecimal!
+}
+
+enum InvestorPositionInteractionType {
+  "The investor deposited funds into the vault"
+  DEPOSIT
+  "The investor withdrew funds from the vault"
+  WITHDRAW
+  "The investor transferred funds from one vault to another vault"
+  TRANSFER
+}
+
+type InvestorPositionInteraction @entity(immutable: true) {
+  "transaction hash"
+  id: Bytes!
+
+  "The vault the investor has a position in"
+  vault: BeefyCLVault!
+  "The investor that has a position in the vault"
+  investor: Investor!
+  "The investor position the interaction is for"
+  investorPosition: InvestorPosition!
+
+  "The transaction that created the investor position interaction"
+  createdWith: Transaction!
+
+  "The timestamp of the interaction"
+  timestamp: BigInt!
+
+  "The type of the interaction"
+  type: InvestorPositionInteractionType!
+
+  "The amount of shares the investor holds at the time of the interaction"
+  sharesBalance: BigDecimal!
+  "The amount of first underlying tokens the investor is entitled to at the time of the interaction"
+  underlyingBalance0: BigDecimal!
+  "The amount of second underlying tokens the investor is entitled to at the time of the interaction"
+  underlyingBalance1: BigDecimal!
+  "The amount of first underlying tokens the investor is entitled to in USD at the time of the interaction"
+  underlyingBalance0USD: BigDecimal!
+  "The amount of second underlying tokens the investor is entitled to in USD at the time of the interaction"
+  underlyingBalance1USD: BigDecimal!
+  "Current position value in USD at the time of the interaction"
+  positionValueUSD: BigDecimal!
+
+  "Amount of shares change in the interaction"
+  sharesBalanceDelta: BigDecimal!
+  "Amount of underlying token 0 change in the interaction"
+  underlyingBalance0Delta: BigDecimal!
+  "Amount of underlying token 0 change in the interaction"
+  underlyingBalance1Delta: BigDecimal!
+  "Amount of underlying token 0 change in USD in the interaction"
+  underlyingBalance0DeltaUSD: BigDecimal!
+  "Amount of underlying token 1 change in USD in the interaction"
+  underlyingBalance1DeltaUSD: BigDecimal!
+  "Position value change in USD in the interaction"
+  positionValueUSDDelta: BigDecimal!
 }

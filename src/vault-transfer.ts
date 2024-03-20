@@ -16,6 +16,8 @@ import { getInvestorPosition, getInvestorPositionSnapshot, isNewInvestorPosition
 import { ADDRESS_ZERO } from "./utils/address"
 import { sqrtPriceX96ToPriceInToken1, tickToPrice } from "./utils/uniswap"
 import { getVaultPrices } from "./mapping/price"
+import { InvestorPositionInteraction } from "../generated/schema"
+import { getEventIdentifier } from "./utils/event"
 
 export function handleVaultDeposit(event: DepositEvent): void {
   updateUserPosition(event, event.params.user, true)
@@ -137,6 +139,12 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     vault.id.toHexString(),
   ])
   const position = getInvestorPosition(vault, investor)
+  const previousSharesBalance = position.sharesBalance
+  const previousUnderlyingBalance0 = position.underlyingBalance0
+  const previousUnderlyingBalance1 = position.underlyingBalance1
+  const previousUnderlyingBalance0USD = position.underlyingBalance0USD
+  const previousUnderlyingBalance1USD = position.underlyingBalance1USD
+  const previousPositionValueUSD = position.positionValueUSD
   const isNewPosition = isNewInvestorPosition(position)
   const isClosingPosition = isDeposit ? false : investorShareTokenBalance.equals(ZERO_BD)
   if (ADDRESS_ZERO.equals(position.createdWith)) {
@@ -151,15 +159,18 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     )
     position.positionOpenAtTimestamp = ZERO_BI
   }
-
   position.sharesBalance = investorShareTokenBalance
-  const previousPositionValueUSD = position.positionValueUSD
   position.underlyingBalance0 = investorBalanceUnderlying0
   position.underlyingBalance1 = investorBalanceUnderlying1
   position.underlyingBalance0USD = position.underlyingBalance0.times(token0PriceInUSD)
   position.underlyingBalance1USD = position.underlyingBalance1.times(token1PriceInUSD)
   position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)
-  const positionChangeUSD = position.positionValueUSD.minus(previousPositionValueUSD)
+  const sharesBalanceDelta = position.sharesBalance.minus(previousSharesBalance)
+  const underlyingBalance0Delta = position.underlyingBalance0.minus(previousUnderlyingBalance0)
+  const underlyingBalance1Delta = position.underlyingBalance1.minus(previousUnderlyingBalance1)
+  const underlyingBalance0DeltaUSD = position.underlyingBalance0USD.minus(previousUnderlyingBalance0USD)
+  const underlyingBalance1DeltaUSD = position.underlyingBalance1USD.minus(previousUnderlyingBalance1USD)
+  const positionValueUSDDelta = position.positionValueUSD.minus(previousPositionValueUSD)
   position.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("updateUserPosition: updating investor position snapshot of investor {} for vault {} and period {}", [
@@ -176,6 +187,26 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     positionSnapshot.positionValueUSD = position.positionValueUSD
     positionSnapshot.save()
   }
+  let positionInteraction = new InvestorPositionInteraction(getEventIdentifier(event))
+  positionInteraction.vault = vault.id
+  positionInteraction.investor = investor.id
+  positionInteraction.investorPosition = position.id
+  positionInteraction.createdWith = tx.id
+  positionInteraction.timestamp = event.block.timestamp
+  positionInteraction.type = isDeposit ? "DEPOSIT" : "WITHDRAW"
+  positionInteraction.sharesBalance = position.sharesBalance
+  positionInteraction.underlyingBalance0 = position.underlyingBalance0
+  positionInteraction.underlyingBalance1 = position.underlyingBalance1
+  positionInteraction.underlyingBalance0USD = position.underlyingBalance0USD
+  positionInteraction.underlyingBalance1USD = position.underlyingBalance1USD
+  positionInteraction.positionValueUSD = position.positionValueUSD
+  positionInteraction.sharesBalanceDelta = sharesBalanceDelta
+  positionInteraction.underlyingBalance0Delta = underlyingBalance0Delta
+  positionInteraction.underlyingBalance1Delta = underlyingBalance1Delta
+  positionInteraction.underlyingBalance0DeltaUSD = underlyingBalance0DeltaUSD
+  positionInteraction.underlyingBalance1DeltaUSD = underlyingBalance1DeltaUSD
+  positionInteraction.positionValueUSDDelta = positionValueUSDDelta
+  positionInteraction.save()
 
   ///////
   // update vault entities
@@ -189,7 +220,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   vault.underlyingAmount1 = vaultBalanceUnderlying1
   vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
   vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
-  vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(positionChangeUSD)
+  vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(positionValueUSDDelta)
   if (isDeposit) {
     vault.cumulativeDepositCount += 1
   } else {
@@ -226,7 +257,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   const protocol = getBeefyCLProtocol()
   protocol.cumulativeTransactionCount += 1
   protocol.cumulativeInvestorInteractionsCount += 1
-  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(positionChangeUSD)
+  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(positionValueUSDDelta)
   if (isNewPosition) {
     protocol.activeInvestorCount += 1
   }
@@ -274,7 +305,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     investor.currentInvestmentOpenAtTimestamp = ZERO_BI
   }
   investor.lastInteractionAt = event.block.timestamp
-  investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
+  investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionValueUSDDelta)
   investor.cumulativeInteractionsCount += 1
   if (isDeposit) {
     investor.cumulativeDepositCount += 1
