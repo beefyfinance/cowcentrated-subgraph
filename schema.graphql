@@ -3,15 +3,6 @@
 ##################################
 
 """
-This is a generic interface that represents an Ethereum address.
-It allows to make queries that are not specific to a particular type of address.
-"""
-interface EvmAddress {
-  "The account or contract address"
-  id: Bytes!
-}
-
-"""
 A token is a representation of a fungible asset on the blockchain
 as specified by the ERC20 standard.
 """
@@ -40,8 +31,8 @@ type Transaction @entity(immutable: true) {
   "The timestamp of the block the transaction was included in"
   blockTimestamp: BigInt!
 
-  "The sender of the transaction"
-  sender: EvmAddress!
+  "The address of the sender of the transaction"
+  sender: Bytes!
 
   "Gas fee paid for the transaction in the native token"
   gasFee: BigDecimal!
@@ -228,7 +219,7 @@ enum VaultLifecycle {
   PAUSED
 }
 
-type BeefyCLVault implements EvmAddress @entity {
+type BeefyCLVault @entity {
   "The vault address"
   id: Bytes!
 
@@ -419,7 +410,7 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
 A strategy is a contract that manages the assets of a vault.
 This is mostly used to start tracking the events and link them to the vault on new event
 """
-type BeefyCLStrategy implements EvmAddress @entity {
+type BeefyCLStrategy @entity {
   "The strategy address"
   id: Bytes!
 
@@ -477,7 +468,7 @@ A vault incentive is a reward given to the investors of a vault.
 The reward is given in a dedicated incentive token during a set period of time.
 This is most commonly referred to as a "boost".
 """
-type BeefyVaultIncentive implements EvmAddress @entity {
+type BeefyVaultIncentive @entity {
   "The inventive contract address"
   id: Bytes!
 
@@ -527,7 +518,7 @@ type BeefyVaultIncentiveClaimEvent @entity(immutable: true) {
 ##### Investor Position ####
 ############################
 
-type Investor implements EvmAddress @entity {
+type Investor @entity {
   "The investor address"
   id: Bytes!
 

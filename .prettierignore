@@ -1,1 +1,2 @@
 subgraph.template.yaml
+src/config.template.ts
