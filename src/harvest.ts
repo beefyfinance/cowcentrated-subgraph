@@ -47,7 +47,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   )
 
   // current price
-  const sqrtPriceRes = strategyContract.try_price() // TODO: replace with "try_sqrtPrice()" when new strats are deployed
+  const sqrtPriceRes = strategyContract.try_sqrtPrice()
   if (sqrtPriceRes.reverted) {
     log.error("handleStrategyHarvest: price() reverted for strategy {}", [vault.strategy.toHexString()])
     throw Error("handleStrategyHarvest: price() reverted")
@@ -55,7 +55,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   const currentPriceInToken1 = sqrtPriceX96ToPriceInToken1(sqrtPriceRes.value, token0, token1)
 
   // range the strategy is covering
-  const rangeRes = strategyContract.try_positionMain() // TODO: use "try_range()" when new strats are deployed
+  const rangeRes = strategyContract.try_range()
   if (rangeRes.reverted) {
     log.error("handleStrategyHarvest: range() reverted for strategy {}", [vault.strategy.toHexString()])
     throw Error("handleStrategyHarvest: range() reverted")
@@ -160,11 +160,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   ///////
   // update investor positions
   log.debug("handleStrategyHarvest: updating investor positions for vault {}", [vault.id.toHexString()])
-  // TODO: 0xgraph doesn't support Bytes id entity loading yet, remove this when it does
-  // Subgraph failed with non-deterministic error: failed to process trigger: block #183002377 (0x116c…3387), transaction 719378e6102da7970aa2af7f405f3c29dac47d431fd3bfdc89cba8a5e1312f05:
-  // store error: operator does not exist: bytea = text wasm backtrace: 0: 0x8bf8
   let positions = vault.positions.load()
-  //let positions = new InvestorPositionLoader('BeefyCLVault', changetype<string>(vault.id), 'positions').load()
   let positivePositionCount = 0
   for (let i = 0; i < positions.length; i++) {
     let position = positions[i]

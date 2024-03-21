@@ -1,34 +1,52 @@
 [
   {
-    "inputs": [{ "internalType": "address", "name": "_instance", "type": "address" }],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_instance",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
   },
   {
-    "anonymous": false,
-    "inputs": [{ "indexed": false, "internalType": "address", "name": "proxy", "type": "address" }],
-    "name": "ProxyCreated",
-    "type": "event"
-  },
-  {
-    "inputs": [{ "internalType": "address", "name": "implementation", "type": "address" }],
-    "name": "cloneContract",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
+    "type": "function",
     "name": "cloneVault",
-    "outputs": [{ "internalType": "contract BeefyVaultConcLiq", "name": "", "type": "address" }],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract BeefyVaultConcLiq"
+      }
+    ],
+    "stateMutability": "nonpayable"
   },
   {
-    "inputs": [],
+    "type": "function",
     "name": "instance",
-    "outputs": [{ "internalType": "contract BeefyVaultConcLiq", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract BeefyVaultConcLiq"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "ProxyCreated",
+    "inputs": [
+      {
+        "name": "proxy",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
   }
 ]

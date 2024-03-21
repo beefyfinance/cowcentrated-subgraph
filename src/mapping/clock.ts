@@ -388,7 +388,7 @@ export function handleNewDay(tick: ClockTick): void {
 function getCurrentPriceInToken1(strategyAddress: Bytes, token0: Token, token1: Token): BigDecimal {
   log.debug("fetching data for strategy {}", [strategyAddress.toHexString()])
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(strategyAddress))
-  const sqrtPriceRes = strategyContract.try_price() // TODO: replace with "try_sqrtPrice()" when new strats are deployed
+  const sqrtPriceRes = strategyContract.try_sqrtPrice()
   if (sqrtPriceRes.reverted) {
     return ZERO_BD
   }

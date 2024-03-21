@@ -1,116 +1,292 @@
 [
   {
-    "inputs": [{ "internalType": "address", "name": "_keeper", "type": "address" }],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  { "inputs": [], "name": "NotManager", "type": "error" },
-  { "inputs": [], "name": "StratVersionExists", "type": "error" },
-  {
-    "anonymous": false,
+    "type": "constructor",
     "inputs": [
-      { "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" },
-      { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }
+      {
+        "name": "_keeper",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    "name": "OwnershipTransferred",
-    "type": "event"
+    "stateMutability": "nonpayable"
   },
   {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": false, "internalType": "string", "name": "strategyName", "type": "string" },
-      { "indexed": false, "internalType": "uint32", "name": "version", "type": "uint32" },
-      { "indexed": false, "internalType": "address", "name": "proxy", "type": "address" }
-    ],
-    "name": "ProxyCreated",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      { "internalType": "string", "name": "_strategyName", "type": "string" },
-      { "internalType": "uint32", "name": "_version", "type": "uint32" },
-      { "internalType": "address", "name": "_implementation", "type": "address" }
-    ],
+    "type": "function",
     "name": "addStrategy",
+    "inputs": [
+      {
+        "name": "_strategyName",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "_implementation",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
   },
   {
-    "inputs": [
-      { "internalType": "string", "name": "_strategyName", "type": "string" },
-      { "internalType": "uint32", "name": "_version", "type": "uint32" }
-    ],
+    "type": "function",
     "name": "createStrategy",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "inputs": [
+      {
+        "name": "_strategyName",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
   },
   {
-    "inputs": [
-      { "internalType": "string", "name": "_strategyName", "type": "string" },
-      { "internalType": "uint32", "name": "_version", "type": "uint32" }
-    ],
+    "type": "function",
     "name": "getImplementation",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
+    "inputs": [
+      {
+        "name": "_strategyName",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    "inputs": [],
+    "type": "function",
     "name": "getStrategies",
-    "outputs": [{ "internalType": "address[]", "name": "", "type": "address[]" }],
-    "stateMutability": "view",
-    "type": "function"
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      { "internalType": "string", "name": "", "type": "string" },
-      { "internalType": "uint32", "name": "", "type": "uint32" }
-    ],
+    "type": "function",
     "name": "instances",
-    "outputs": [{ "internalType": "contract UpgradeableBeacon", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "keeper",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
-  {
-    "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "name": "strategies",
-    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [
-      { "internalType": "string", "name": "_strategyName", "type": "string" },
-      { "internalType": "uint32", "name": "_version", "type": "uint32" },
-      { "internalType": "address", "name": "_newImplementation", "type": "address" }
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
     ],
-    "name": "upgradeTo",
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract UpgradeableBeacon"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "keeper",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "renounceOwnership",
+    "inputs": [],
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "strategies",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
+      {
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "upgradeTo",
+    "inputs": [
+      {
+        "name": "_strategyName",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "_newImplementation",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "InstanceUpgraded",
+    "inputs": [
+      {
+        "name": "strategyName",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "newImplementation",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "NewStrategyAdded",
+    "inputs": [
+      {
+        "name": "strategyName",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "implementation",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ProxyCreated",
+    "inputs": [
+      {
+        "name": "strategyName",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "proxy",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "NotManager",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OwnableInvalidOwner",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "OwnableUnauthorizedAccount",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "StratVersionExists",
+    "inputs": []
   }
 ]

@@ -71,7 +71,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(vault.strategy))
 
   // current price
-  const sqrtPriceRes = strategyContract.try_price() // TODO: replace with "try_sqrtPrice()" when new strats are deployed
+  const sqrtPriceRes = strategyContract.try_sqrtPrice()
   if (sqrtPriceRes.reverted) {
     log.error("updateUserPosition: price() reverted for strategy {}", [vault.strategy.toHexString()])
     throw Error("updateUserPosition: price() reverted")
@@ -79,7 +79,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   const currentPriceInToken1 = sqrtPriceX96ToPriceInToken1(sqrtPriceRes.value, token0, token1)
 
   // range the strategy is covering
-  const rangeRes = strategyContract.try_positionMain() // TODO: use "try_range()" when new strats are deployed
+  const rangeRes = strategyContract.try_range()
   if (rangeRes.reverted) {
     log.error("updateUserPosition: range() reverted for strategy {}", [vault.strategy.toHexString()])
     throw Error("updateUserPosition: range() reverted")
