@@ -94,7 +94,7 @@ export function handleNew15Minutes(tick: ClockTick): void {
     }
     const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
     const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
-    const currentPriceInToken1 = getCurrentPriceInToken1(vault.strategy, token0, token1)
+    const currentPriceInToken1 = getCurrentPriceInToken1(vault.strategy, false)
     const prices = getVaultPrices(vault, token0, token1)
     const token0PriceInNative = prices.token0ToNative
     const token1PriceInNative = prices.token1ToNative
@@ -229,7 +229,7 @@ export function handleNewDay(tick: ClockTick): void {
     }
     const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
     const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
-    const currentPriceInToken1 = getCurrentPriceInToken1(vault.strategy, token0, token1)
+    const currentPriceInToken1 = getCurrentPriceInToken1(vault.strategy, false)
     const prices = getVaultPrices(vault, token0, token1)
     const token0PriceInNative = prices.token0ToNative
     const token1PriceInNative = prices.token1ToNative

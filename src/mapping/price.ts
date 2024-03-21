@@ -1,4 +1,4 @@
-import { Address, BigDecimal, Bytes, log } from "@graphprotocol/graph-ts"
+import { Address, BigDecimal, BigInt, Bytes, log } from "@graphprotocol/graph-ts"
 import { BeefyCLVault, Token } from "../../generated/schema"
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
 import { ONE_BD, ZERO_BD, exponentToBigInt, tokenAmountToDecimal } from "../utils/decimal"
@@ -67,17 +67,39 @@ export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token
   return new VaultPrices(token0PriceInNative, token1PriceInNative, nativePriceUSD)
 }
 
-export function getCurrentPriceInToken1(strategyAddress: Bytes, token0: Token, token1: Token): BigDecimal {
-  log.debug("fetching data for strategy {}", [strategyAddress.toHexString()])
+export function getCurrentPriceInToken1(strategyAddress: Bytes, throwOnError: boolean): BigDecimal {
+  log.debug("fetching current price for strategy {}", [strategyAddress.toHexString()])
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(strategyAddress))
   const priceRes = strategyContract.try_price()
   if (priceRes.reverted) {
+    if (throwOnError) {
+      log.error("updateUserPosition: price() reverted for strategy {}", [strategyAddress.toHexString()])
+      throw Error("updateUserPosition: price() reverted")
+    }
     return ZERO_BD
   }
 
-  // price is the amount of token1 per token0, expressed with token0.decimals + token1.decimals
-  const price = tokenAmountToDecimal(priceRes.value, token0.decimals.plus(token1.decimals))
-  return price
+  // price is the amount of token1 per token0, expressed with 36 decimals
+  const encodingDecimals = BigInt.fromU32(36)
+  return tokenAmountToDecimal(priceRes.value, encodingDecimals)
+}
+
+export function getVaultPriceRangeInToken1(strategyAddress: Bytes, throwOnError: boolean): PriceRange {
+  log.debug("fetching current price range for strategy {}", [strategyAddress.toHexString()])
+  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(strategyAddress))
+  const rangeRes = strategyContract.try_range()
+  if (rangeRes.reverted) {
+    if (throwOnError) {
+      log.error("updateUserPosition: range() reverted for strategy {}", [strategyAddress.toHexString()])
+      throw Error("updateUserPosition: range() reverted")
+    }
+    return new PriceRange(ZERO_BD, ZERO_BD)
+  }
+  // this is purposely inverted as we want prices in token1
+  const encodingDecimals = BigInt.fromU32(36)
+  const rangeMinToken1Price = tokenAmountToDecimal(BigInt.fromI32(rangeRes.value.value0), encodingDecimals)
+  const rangeMaxToken1Price = tokenAmountToDecimal(BigInt.fromI32(rangeRes.value.value1), encodingDecimals)
+  return new PriceRange(rangeMinToken1Price, rangeMaxToken1Price)
 }
 
 export function getNativePriceUSD(): BigDecimal {
@@ -87,6 +109,23 @@ export function getNativePriceUSD(): BigDecimal {
     throw Error("updateUserPosition: latestRoundData() reverted")
   }
   return tokenAmountToDecimal(nativePriceUSDRes.value.getAnswer(), PRICE_FEED_DECIMALS)
+}
+
+class PriceRange {
+  _min: BigDecimal
+  _max: BigDecimal
+  constructor(min: BigDecimal, max: BigDecimal) {
+    this._min = min
+    this._max = max
+  }
+
+  get min(): BigDecimal {
+    return this._min
+  }
+
+  get max(): BigDecimal {
+    return this._max
+  }
 }
 
 class VaultPrices {

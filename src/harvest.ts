@@ -1,6 +1,5 @@
 import { Address, BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
 import { Harvest as HarvestEvent } from "./../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
-import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "./../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "./../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
 import { getTransaction } from "./entity/transaction"
@@ -8,12 +7,11 @@ import { BeefyCLVaultHarvestEvent } from "./../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { getToken } from "./entity/token"
 import { ONE_BD, ZERO_BD, tokenAmountToDecimal, decimalToTokenAmount } from "./utils/decimal"
-import { tickToPrice } from "./utils/uniswap"
 import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestorPositionSnapshot } from "./entity/position"
 import { getInvestor } from "./entity/investor"
-import { getCurrentPriceInToken1, getVaultPrices } from "./mapping/price"
+import { getCurrentPriceInToken1, getVaultPriceRangeInToken1, getVaultPrices } from "./mapping/price"
 
 export function handleStrategyHarvest(event: HarvestEvent): void {
   let strategy = getBeefyCLStrategy(event.address)
@@ -43,20 +41,10 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   log.debug("handleStrategyHarvest: fetching data for vault {}", [vault.id.toHexString()])
   const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
   const strategyAddress = Address.fromBytes(vault.strategy)
-  const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
 
-  // current price
-  const currentPriceInToken1 = getCurrentPriceInToken1(strategyAddress, token0, token1)
-
-  // range the strategy is covering
-  const rangeRes = strategyContract.try_range()
-  if (rangeRes.reverted) {
-    log.error("handleStrategyHarvest: range() reverted for strategy {}", [vault.strategy.toHexString()])
-    throw Error("handleStrategyHarvest: range() reverted")
-  }
-  // this is purposely inverted as we want prices in token1
-  const rangeMinToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value1), token0, token1)
-  const rangeMaxToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value0), token0, token1)
+  // current prices
+  const currentPriceInToken1 = getCurrentPriceInToken1(strategyAddress, true)
+  const rangeToken1Price = getVaultPriceRangeInToken1(strategyAddress, true)
 
   // balances of the vault
   const vaultBalancesRes = vaultContract.try_balances()
@@ -110,8 +98,8 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   harvest.save()
 
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
-  vault.priceRangeMin1 = rangeMinToken1Price
-  vault.priceRangeMax1 = rangeMaxToken1Price
+  vault.priceRangeMin1 = rangeToken1Price.min
+  vault.priceRangeMax1 = rangeToken1Price.max
   vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
   vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
   vault.underlyingAmount0 = vaultBalanceUnderlying0

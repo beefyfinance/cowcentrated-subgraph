@@ -9,13 +9,11 @@ import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protoco
 import { getInvestor, getInvestorSnapshot, isNewInvestor } from "./entity/investor"
 import { ZERO_BD, ZERO_BI, tokenAmountToDecimal } from "./utils/decimal"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "./../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
-import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "./../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
 import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getToken } from "./entity/token"
 import { getInvestorPosition, getInvestorPositionSnapshot, isNewInvestorPosition } from "./entity/position"
 import { ADDRESS_ZERO } from "./utils/address"
-import { tickToPrice } from "./utils/uniswap"
-import { getCurrentPriceInToken1, getVaultPrices } from "./mapping/price"
+import { getCurrentPriceInToken1, getVaultPriceRangeInToken1, getVaultPrices } from "./mapping/price"
 import { InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 
@@ -69,20 +67,10 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])
   const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
   const strategyAddress = Address.fromBytes(vault.strategy)
-  const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
 
-  // current price
-  const currentPriceInToken1 = getCurrentPriceInToken1(strategyAddress, token0, token1)
-
-  // range the strategy is covering
-  const rangeRes = strategyContract.try_range()
-  if (rangeRes.reverted) {
-    log.error("updateUserPosition: range() reverted for strategy {}", [vault.strategy.toHexString()])
-    throw Error("updateUserPosition: range() reverted")
-  }
-  // this is purposely inverted as we want prices in token1
-  const rangeMinToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value1), token0, token1)
-  const rangeMaxToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value0), token0, token1)
+  // current prices
+  const currentPriceInToken1 = getCurrentPriceInToken1(strategyAddress, true)
+  const rangeToken1Price = getVaultPriceRangeInToken1(strategyAddress, true)
 
   // balances of the vault
   const vaultBalancesRes = vaultContract.try_balances()
@@ -209,8 +197,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   // update vault entities
   log.debug("updateUserPosition: updating vault entities for vault {}", [vault.id.toHexString()])
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
-  vault.priceRangeMin1 = rangeMinToken1Price
-  vault.priceRangeMax1 = rangeMaxToken1Price
+  vault.priceRangeMin1 = rangeToken1Price.min
+  vault.priceRangeMax1 = rangeToken1Price.max
   vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
   vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
   vault.underlyingAmount0 = vaultBalanceUnderlying0
