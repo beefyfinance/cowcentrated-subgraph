@@ -235,9 +235,9 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     ])
     const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
-    vaultSnapshot.priceRangeMin1 = vault.priceRangeMax1
+    vaultSnapshot.priceRangeMin1 = vault.priceRangeMin1
     vaultSnapshot.priceRangeMax1 = vault.priceRangeMax1
-    vaultSnapshot.priceRangeMinUSD = vault.priceRangeMaxUSD
+    vaultSnapshot.priceRangeMinUSD = vault.priceRangeMinUSD
     vaultSnapshot.priceRangeMaxUSD = vault.priceRangeMaxUSD
     vaultSnapshot.underlyingAmount0 = vault.underlyingAmount0
     vaultSnapshot.underlyingAmount1 = vault.underlyingAmount1
