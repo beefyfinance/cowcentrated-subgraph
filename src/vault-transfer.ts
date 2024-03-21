@@ -14,8 +14,8 @@ import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getToken } from "./entity/token"
 import { getInvestorPosition, getInvestorPositionSnapshot, isNewInvestorPosition } from "./entity/position"
 import { ADDRESS_ZERO } from "./utils/address"
-import { sqrtPriceX96ToPriceInToken1, tickToPrice } from "./utils/uniswap"
-import { getVaultPrices } from "./mapping/price"
+import { tickToPrice } from "./utils/uniswap"
+import { getCurrentPriceInToken1, getVaultPrices } from "./mapping/price"
 import { InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 
@@ -68,15 +68,11 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   // TODO: use multicall3 to fetch all data in one call
   log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])
   const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
-  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(vault.strategy))
+  const strategyAddress = Address.fromBytes(vault.strategy)
+  const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
 
   // current price
-  const sqrtPriceRes = strategyContract.try_sqrtPrice()
-  if (sqrtPriceRes.reverted) {
-    log.error("updateUserPosition: price() reverted for strategy {}", [vault.strategy.toHexString()])
-    throw Error("updateUserPosition: price() reverted")
-  }
-  const currentPriceInToken1 = sqrtPriceX96ToPriceInToken1(sqrtPriceRes.value, token0, token1)
+  const currentPriceInToken1 = getCurrentPriceInToken1(strategyAddress, token0, token1)
 
   // range the strategy is covering
   const rangeRes = strategyContract.try_range()

@@ -8,12 +8,12 @@ import { BeefyCLVaultHarvestEvent } from "./../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { getToken } from "./entity/token"
 import { ONE_BD, ZERO_BD, tokenAmountToDecimal, decimalToTokenAmount } from "./utils/decimal"
-import { sqrtPriceX96ToPriceInToken1, tickToPrice } from "./utils/uniswap"
+import { tickToPrice } from "./utils/uniswap"
 import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestorPositionSnapshot } from "./entity/position"
 import { getInvestor } from "./entity/investor"
-import { getVaultPrices } from "./mapping/price"
+import { getCurrentPriceInToken1, getVaultPrices } from "./mapping/price"
 
 export function handleStrategyHarvest(event: HarvestEvent): void {
   let strategy = getBeefyCLStrategy(event.address)
@@ -41,18 +41,12 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   // fetch data on chain
   // TODO: use multicall3 to fetch all data in one call
   log.debug("handleStrategyHarvest: fetching data for vault {}", [vault.id.toHexString()])
-  const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(Address.fromHexString(vault.id.toHexString())))
-  const strategyContract = BeefyCLStrategyContract.bind(
-    Address.fromBytes(Address.fromHexString(vault.strategy.toHexString())),
-  )
+  const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
+  const strategyAddress = Address.fromBytes(vault.strategy)
+  const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
 
   // current price
-  const sqrtPriceRes = strategyContract.try_sqrtPrice()
-  if (sqrtPriceRes.reverted) {
-    log.error("handleStrategyHarvest: price() reverted for strategy {}", [vault.strategy.toHexString()])
-    throw Error("handleStrategyHarvest: price() reverted")
-  }
-  const currentPriceInToken1 = sqrtPriceX96ToPriceInToken1(sqrtPriceRes.value, token0, token1)
+  const currentPriceInToken1 = getCurrentPriceInToken1(strategyAddress, token0, token1)
 
   // range the strategy is covering
   const rangeRes = strategyContract.try_range()

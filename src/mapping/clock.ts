@@ -5,9 +5,7 @@ import { getClockTickId } from "../entity/clock"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "../entity/protocol"
 import { ZERO_BD, tokenAmountToDecimal } from "../utils/decimal"
 import { getToken } from "../entity/token"
-import { sqrtPriceX96ToPriceInToken1 } from "../utils/uniswap"
-import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
-import { getVaultPrices } from "./price"
+import { getCurrentPriceInToken1, getVaultPrices } from "./price"
 import { getBeefyCLVaultSnapshot, isVaultRunning } from "../entity/vault"
 import { getInvestorPositionSnapshot } from "../entity/position"
 import { getInvestorSnapshot } from "../entity/investor"
@@ -383,14 +381,4 @@ export function handleNewDay(tick: ClockTick): void {
   protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
   protocolSnapshot.activeVaultCount = protocol.activeVaultCount
   log.debug("handleNewDay: done for {} vaults", [vaults.length.toString()])
-}
-
-function getCurrentPriceInToken1(strategyAddress: Bytes, token0: Token, token1: Token): BigDecimal {
-  log.debug("fetching data for strategy {}", [strategyAddress.toHexString()])
-  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(strategyAddress))
-  const sqrtPriceRes = strategyContract.try_sqrtPrice()
-  if (sqrtPriceRes.reverted) {
-    return ZERO_BD
-  }
-  return sqrtPriceX96ToPriceInToken1(sqrtPriceRes.value, token0, token1)
 }

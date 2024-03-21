@@ -1,58 +1,8 @@
 import { assert, clearStore, test, describe, afterAll } from "matchstick-as/assembly/index"
 import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
-import { sqrtPriceX96ToPriceInToken1, tickToPrice } from "../../src/utils/uniswap"
+import { tickToPrice } from "../../src/utils/uniswap"
 import { Token } from "../../generated/schema"
 import { ADDRESS_ZERO } from "../../src/utils/address"
-
-describe("uniswap.sqrtPriceX96ToPriceInToken1", () => {
-  afterAll(() => {
-    clearStore()
-  })
-  /**
-   * example from https://blog.uniswap.org/uniswap-v3-math-primer
-   * sqrtPriceX96toPriceInToken1.py:
-   *
-   * from decimal import Decimal, get_context
-   *
-   * get_context().prec = 200
-   * reserve0 = Decimal('1000000000000000000')
-   * reserve1 = Decimal('1539296453')
-   * sqrtPriceX96 = (reserve1/reserve0).sqrt() * (2**96)
-   *
-   * print(f'{sqrtPriceX96:.0f}')
-   */
-  test("Can transform an sqrt price x96 into a true price", () => {
-    // example from https://blog.uniswap.org/uniswap-v3-math-primer
-    const value = BigInt.fromString("2018382873588440326581633304624437")
-    let usdc = new Token(ADDRESS_ZERO)
-    let weth = new Token(ADDRESS_ZERO)
-    usdc.decimals = BigInt.fromI32(6)
-    weth.decimals = BigInt.fromI32(18)
-
-    const token0PriceInToken1 = sqrtPriceX96ToPriceInToken1(value, usdc, weth)
-    log.info("token0PriceInToken1: {}", [token0PriceInToken1.toString()])
-
-    let targetMin = BigDecimal.fromString("1540.82")
-    let targetMax = BigDecimal.fromString("1540.83")
-    assert.assertTrue(token0PriceInToken1.gt(targetMin), "Decimal value should match")
-    assert.assertTrue(token0PriceInToken1.lt(targetMax), "Decimal value should match")
-  })
-
-  test("Can transform an sqrt price x96 into a true price when decimals are inverted", () => {
-    const value = BigInt.fromString("3108427325256432995123990")
-    let usdc = new Token(ADDRESS_ZERO)
-    let weth = new Token(ADDRESS_ZERO)
-    usdc.decimals = BigInt.fromI32(6)
-    weth.decimals = BigInt.fromI32(18)
-
-    const token0PriceInToken1 = sqrtPriceX96ToPriceInToken1(value, weth, usdc)
-
-    let targetMin = BigDecimal.fromString("0.00064")
-    let targetMax = BigDecimal.fromString("0.00065")
-    assert.assertTrue(token0PriceInToken1.gt(targetMin), "Decimal value should match")
-    assert.assertTrue(token0PriceInToken1.lt(targetMax), "Decimal value should match")
-  })
-})
 
 describe("uniswap.tickToPrice", () => {
   afterAll(() => {

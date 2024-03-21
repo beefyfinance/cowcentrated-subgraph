@@ -1,7 +1,7 @@
-import { Address, BigDecimal, log } from "@graphprotocol/graph-ts"
+import { Address, BigDecimal, Bytes, log } from "@graphprotocol/graph-ts"
 import { BeefyCLVault, Token } from "../../generated/schema"
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
-import { ONE_BD, exponentToBigInt, tokenAmountToDecimal } from "../utils/decimal"
+import { ONE_BD, ZERO_BD, exponentToBigInt, tokenAmountToDecimal } from "../utils/decimal"
 import { UniswapQuoterV2 } from "../../generated/templates/BeefyCLStrategy/UniswapQuoterV2"
 import { ChainLinkPriceFeed } from "../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed"
 import {
@@ -65,6 +65,19 @@ export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token
   log.debug("updateUserPosition: nativePriceUSD: {}", [nativePriceUSD.toString()])
 
   return new VaultPrices(token0PriceInNative, token1PriceInNative, nativePriceUSD)
+}
+
+export function getCurrentPriceInToken1(strategyAddress: Bytes, token0: Token, token1: Token): BigDecimal {
+  log.debug("fetching data for strategy {}", [strategyAddress.toHexString()])
+  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(strategyAddress))
+  const priceRes = strategyContract.try_price()
+  if (priceRes.reverted) {
+    return ZERO_BD
+  }
+
+  // price is the amount of token1 per token0, expressed with token0.decimals + token1.decimals
+  const price = tokenAmountToDecimal(priceRes.value, token0.decimals.plus(token1.decimals))
+  return price
 }
 
 export function getNativePriceUSD(): BigDecimal {
