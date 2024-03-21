@@ -60,8 +60,9 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
     log.error("handleStrategyHarvest: range() reverted for strategy {}", [vault.strategy.toHexString()])
     throw Error("handleStrategyHarvest: range() reverted")
   }
-  const rangeMinToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value0), token0, token1)
-  const rangeMaxToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value1), token0, token1)
+  // this is purposely inverted as we want prices in token1
+  const rangeMinToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value1), token0, token1)
+  const rangeMaxToken1Price = tickToPrice(BigInt.fromI32(rangeRes.value.value0), token0, token1)
 
   // balances of the vault
   const vaultBalancesRes = vaultContract.try_balances()
@@ -117,8 +118,8 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
   vault.priceRangeMin1 = rangeMinToken1Price
   vault.priceRangeMax1 = rangeMaxToken1Price
-  vault.priceRangeMin1USD = vault.priceRangeMin1.times(token1PriceInUSD)
-  vault.priceRangeMax1USD = vault.priceRangeMax1.times(token1PriceInUSD)
+  vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
+  vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
   vault.underlyingAmount0 = vaultBalanceUnderlying0
   vault.underlyingAmount1 = vaultBalanceUnderlying1
   vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
@@ -140,8 +141,8 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
     vaultSnapshot.priceRangeMin1 = vault.priceRangeMax1
     vaultSnapshot.priceRangeMax1 = vault.priceRangeMax1
-    vaultSnapshot.priceRangeMin1USD = vault.priceRangeMax1USD
-    vaultSnapshot.priceRangeMax1USD = vault.priceRangeMax1USD
+    vaultSnapshot.priceRangeMinUSD = vault.priceRangeMaxUSD
+    vaultSnapshot.priceRangeMaxUSD = vault.priceRangeMaxUSD
     vaultSnapshot.underlyingAmount0 = vault.underlyingAmount0
     vaultSnapshot.underlyingAmount1 = vault.underlyingAmount1
     vaultSnapshot.underlyingAmount0USD = vault.underlyingAmount0USD

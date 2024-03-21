@@ -112,8 +112,8 @@ export function handleNew15Minutes(tick: ClockTick): void {
     // update latest vault usd values
     log.debug("handleNew15Minutes: updating vault usd values for vault {}", [vault.id.toHexString()])
     vault.currentPriceOfToken0InToken1 = currentPriceInToken1
-    vault.priceRangeMin1USD = vault.priceRangeMin1.times(token1PriceInUSD)
-    vault.priceRangeMax1USD = vault.priceRangeMax1.times(token1PriceInUSD)
+    vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
+    vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
     vault.underlyingAmount0 = vaultBalanceUnderlying0
     vault.underlyingAmount1 = vaultBalanceUnderlying1
     vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
@@ -247,8 +247,8 @@ export function handleNewDay(tick: ClockTick): void {
     // update vault usd values
     log.debug("handleNewDay: updating vault usd values for vault {}", [vault.id.toHexString()])
     vault.currentPriceOfToken0InToken1 = currentPriceInToken1
-    vault.priceRangeMin1USD = vault.priceRangeMin1.times(token1PriceInUSD)
-    vault.priceRangeMax1USD = vault.priceRangeMax1.times(token1PriceInUSD)
+    vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
+    vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
     vault.underlyingAmount0 = vaultBalanceUnderlying0
     vault.underlyingAmount1 = vaultBalanceUnderlying1
     vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
@@ -263,8 +263,8 @@ export function handleNewDay(tick: ClockTick): void {
     ])
     const vaultSnapshot = getBeefyCLVaultSnapshot(vault, tick.timestamp, period)
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
-    vaultSnapshot.priceRangeMin1USD = vault.priceRangeMax1USD
-    vaultSnapshot.priceRangeMax1USD = vault.priceRangeMax1USD
+    vaultSnapshot.priceRangeMinUSD = vault.priceRangeMinUSD
+    vaultSnapshot.priceRangeMaxUSD = vault.priceRangeMaxUSD
     vaultSnapshot.underlyingAmount0 = vault.underlyingAmount0
     vaultSnapshot.underlyingAmount1 = vault.underlyingAmount1
     vaultSnapshot.underlyingAmount0USD = vault.underlyingAmount0USD

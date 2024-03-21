@@ -30,8 +30,8 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
     vault.currentPriceOfToken0InToken1 = ZERO_BD
     vault.priceRangeMin1 = ZERO_BD
     vault.priceRangeMax1 = ZERO_BD
-    vault.priceRangeMin1USD = ZERO_BD
-    vault.priceRangeMax1USD = ZERO_BD
+    vault.priceRangeMinUSD = ZERO_BD
+    vault.priceRangeMaxUSD = ZERO_BD
     vault.underlyingAmount0 = ZERO_BD
     vault.underlyingAmount1 = ZERO_BD
     vault.underlyingAmount0USD = ZERO_BD
@@ -80,8 +80,8 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
     snapshot.currentPriceOfToken0InToken1 = ZERO_BD
     snapshot.priceRangeMin1 = ZERO_BD
     snapshot.priceRangeMax1 = ZERO_BD
-    snapshot.priceRangeMin1USD = ZERO_BD
-    snapshot.priceRangeMax1USD = ZERO_BD
+    snapshot.priceRangeMinUSD = ZERO_BD
+    snapshot.priceRangeMaxUSD = ZERO_BD
     snapshot.underlyingAmount0 = ZERO_BD
     snapshot.underlyingAmount1 = ZERO_BD
     snapshot.underlyingAmount0USD = ZERO_BD
@@ -111,8 +111,8 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
     snapshot.currentPriceOfToken0InToken1 = previousSnapshot.currentPriceOfToken0InToken1
     snapshot.priceRangeMin1 = previousSnapshot.priceRangeMin1
     snapshot.priceRangeMax1 = previousSnapshot.priceRangeMax1
-    snapshot.priceRangeMin1USD = previousSnapshot.priceRangeMin1USD
-    snapshot.priceRangeMax1USD = previousSnapshot.priceRangeMax1USD
+    snapshot.priceRangeMinUSD = previousSnapshot.priceRangeMinUSD
+    snapshot.priceRangeMaxUSD = previousSnapshot.priceRangeMaxUSD
     snapshot.underlyingAmount0 = previousSnapshot.underlyingAmount0
     snapshot.underlyingAmount1 = previousSnapshot.underlyingAmount1
     snapshot.underlyingAmount0USD = previousSnapshot.underlyingAmount0USD

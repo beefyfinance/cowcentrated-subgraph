@@ -253,14 +253,14 @@ type BeefyCLVault @entity {
   """
   currentPriceOfToken0InToken1: BigDecimal!
 
-  "Price range start this vault is currently configured to operate in"
+  "Price range start this vault is currently configured to operate in, in token 1"
   priceRangeMin1: BigDecimal!
-  "Price range end this vault is currently configured to operate in"
+  "Price range end this vault is currently configured to operate in, in token 1"
   priceRangeMax1: BigDecimal!
-  "Price range start this vault is currently configured to operate in in USD"
-  priceRangeMin1USD: BigDecimal!
-  "Price range end this vault is currently configured to operate in in USD"
-  priceRangeMax1USD: BigDecimal!
+  "Price range start this vault is currently configured to operate in, in USD"
+  priceRangeMinUSD: BigDecimal!
+  "Price range end this vault is currently configured to operate in, in USD"
+  priceRangeMaxUSD: BigDecimal!
 
   "Amount of underlying tokens in the vault. This is the first token."
   underlyingAmount0: BigDecimal!
@@ -352,14 +352,14 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   """
   currentPriceOfToken0InToken1: BigDecimal!
 
-  "Price range start this vault is currently configured to operate in"
+  "Price range start this vault is currently configured to operate in, in token 1"
   priceRangeMin1: BigDecimal!
-  "Price range end this vault is currently configured to operate in"
+  "Price range end this vault is currently configured to operate in, in token 1"
   priceRangeMax1: BigDecimal!
-  "Price range start this vault is currently configured to operate in in USD"
-  priceRangeMin1USD: BigDecimal!
-  "Price range end this vault is currently configured to operate in in USD"
-  priceRangeMax1USD: BigDecimal!
+  "Price range start this vault is currently configured to operate in, in USD"
+  priceRangeMinUSD: BigDecimal!
+  "Price range end this vault is currently configured to operate in, in USD"
+  priceRangeMaxUSD: BigDecimal!
 
   "Amount of underlying tokens in the vault. This is the first token."
   underlyingAmount0: BigDecimal!
