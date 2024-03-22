@@ -83,13 +83,20 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
 
   ///////
-  // update vault entities
+  // store the raw harvest event
   log.debug("handleStrategyHarvest: updating vault entities for vault {}", [vault.id.toHexString()])
   let harvest = new BeefyCLVaultHarvestEvent(getEventIdentifier(event))
   harvest.vault = vault.id
   harvest.strategy = strategy.id
   harvest.createdWith = tx.id
   harvest.timestamp = event.block.timestamp
+  harvest.underlyingAmount0 = vaultBalanceUnderlying0
+  harvest.underlyingAmount1 = vaultBalanceUnderlying1
+  harvest.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
+  harvest.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
+  harvest.totalValueLockedUSD = vault.underlyingAmount0
+    .times(token0PriceInUSD)
+    .plus(vault.underlyingAmount1.times(token1PriceInUSD))
   harvest.harvestedAmount0 = tokenAmountToDecimal(event.params.fee0, token0.decimals)
   harvest.harvestedAmount1 = tokenAmountToDecimal(event.params.fee1, token1.decimals)
   harvest.harvestedAmount0USD = harvest.harvestedAmount0.times(token0PriceInUSD)
@@ -97,6 +104,8 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   harvest.harvestValueUSD = harvest.harvestedAmount0USD.plus(harvest.harvestedAmount1USD)
   harvest.save()
 
+  ///////
+  // update vault entities
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
   vault.priceRangeMin1 = rangeToken1Price.min
   vault.priceRangeMax1 = rangeToken1Price.max

@@ -448,6 +448,19 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
   "The timestamp of the harvest event so you can sort by time"
   timestamp: BigInt!
 
+  "Underlying balance of the first token after the harvest"
+  underlyingAmount0: BigDecimal!
+  "Underlying balance of the second token after the harvest"
+  underlyingAmount1: BigDecimal!
+
+  "Underlying balance of the first token after the harvest in USD"
+  underlyingAmount0USD: BigDecimal!
+  "Underlying balance of the second token after the harvest in USD"
+  underlyingAmount1USD: BigDecimal!
+
+  "Total value locked in the vault after the harvest in USD"
+  totalValueLockedUSD: BigDecimal!
+
   "The amount of first underlying tokens harvested"
   harvestedAmount0: BigDecimal!
   "The amount of second underlying tokens harvested"
