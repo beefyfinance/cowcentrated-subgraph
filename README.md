@@ -1,54 +1,114 @@
-done, to test:
+# Beefy CLM Subgraph
 
-- feat: ingest vault harvests
+This Subgraph sources events from the Beefy CLM contracts in different networks.
 
-  - update all user positions on harvest?
+# Deployments
 
-- fix: update token totalSupply on deposit/withdraw and withdraw
-- fix: update underlying amount on deposit/withdraw and withdraw
+## Goldsky.com
 
-todo:
+### GraphiQL Explorer
 
-- fix: fetch token decimals on token init (crashes atm)
-- feat: ingest fees
+- Arbitrum: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn)
+- Optimism: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn)
+
+### Api Endpoints
+
+- Arbitrum: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn)
+- Optimism: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn)
+
+## 0xgraph.xyz
+
+### GraphiQL Explorer
+
+- Arbitrum: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum/graphql](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum/graphql)
+- Optimism: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism/graphql](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism/graphql)
+
+### Api Endpoints
+
+- Arbitrum: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum)
+- Optimism: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism)
+
+# Contributing
+
+## Prerequisites
+
+- Git: [git-scm.com](https://git-scm.com)
+- Node.js: [nodejs.org](https://nodejs.org), see version in [.nvmrc](.nvmrc)
+- Yarn: [yarnpkg.com](https://yarnpkg.com)
+- Docker: [docker.com](https://www.docker.com)
+- Docker Compose: [docker.com](https://docs.docker.com/compose/install/)
+
+## Setup the project
+
+```bash
+yarn install
+```
+
+## Running a local instance of graph-node locally
+
+```bash
+yarn infra:strat
+```
+
+## Deploying the subgraph locally
+
+```bash
+yarn remove-local # if you have already deployed the subgraph
+yarn create-local # create the subgraph locally
+yarn prepare:<network> # apply configuration for the network
+yarn codegen # generate the typescript types
+yarn build # build the subgraph code
+yarn deploy-local # deploy the subgraph locally
+```
+
+## Run tests
+
+```bash
+yarn test # run all tests
+yarn test:graph # run only matchstick-as graph tests
+yarn test:lint # run prettier linter
+```
+
+## HOWTOs
+
+### How to add a new network
+
+1. Add the network configuration [config/<network>.json](config/).
+2. Add dev RPCs in graph-node config [docker/graph-node/config.toml](docker/graph-node/config.toml).
+3. Add a new `prepare:<network>` script in [package.json](package.json).
+4. Add a new `deploy:<network>:<provider>` script in [package.json](package.json).
+
+### How to update the schema
+
+1. Create or update the [schema.graphql](schema.graphql) file.
+
+- See TheGraph docs for [defining entities](https://thegraph.com/docs/en/developing/creating-a-subgraph/#defining-entities)
+
+2. Run `yarn codegen` to generate the typescript types.
+
+- See TheGraph docs for [TypeScript code generation](https://thegraph.com/docs/en/developing/creating-a-subgraph/#code-generation)
+
+3. Update [subgraph.template.yaml](subgraph.template.yaml) with the new entity bindings and/or data sources if needed.
+
+- TheGraph docs for [defining a call handler](https://thegraph.com/docs/en/developing/creating-a-subgraph/#defining-a-call-handler)
+- TheGraph docs for [defining a block handler](https://thegraph.com/docs/en/developing/creating-a-subgraph/#block-handlers)
+- TheGraph docs for [defining a data source template](https://thegraph.com/docs/en/developing/creating-a-subgraph/#data-source-templates)
+
+4. Update or create the mappings in the [mappings](src/mappings) folder to handle the new entity.
+
+- TheGraph docs for [defining mappings](https://thegraph.com/docs/en/developing/creating-a-subgraph/#mapping-function)
+- TheGraph [AssemblyScript API](https://thegraph.com/docs/en/developing/graph-ts/api/)
+
+5. Write tests for the new mappings in the [tests](tests/) folder.
+
+- TheGraph docs for [testing mappings](https://thegraph.com/docs/en/developing/unit-testing-framework/)
+
+# TODO list
+
+- feat: add APR
+- feat: add P&L
+- feat: handle boosts
 - feat: handle moo token transfers (avoid duplication with deposit/withdraw events)
-- feat: use bigdecimals for amounts
 - feat: use arrays for token amounts instead of token0, token1?
   - might be more resilient to changes in the future
   - might also be more annoying to work with
-
-contract changes proposal:
-
-- perf: view contract or multicall for vault init (get token names, etc)
-- make StrategyPassiveManagerUniswap implement IStrategyConcLiq?
-- make factories init the contract at deploy time?
-
-- getEthRateUniV3:
-
-  - https://github.com/convex-community/convex-subgraph/blob/1d0255a870c7a99cc58f5979138de5efe4904741/packages/utils/pricing.ts#L70
-
-- multicall:
-
-  - https://github.com/curvefi/volume-subgraphs/blob/757fc0e266ac467883cc7d227d92fc724822a010/subgraphs/crvusd/src/services/userstate.ts#L10C10-L10C19
-  - https://github.com/curvefi/volume-subgraphs/blob/757fc0e266ac467883cc7d227d92fc724822a010/subgraphs/crvusd/src/services/snapshot.ts#L95
-  - https://github.com/curvefi/volume-subgraphs/blob/757fc0e266ac467883cc7d227d92fc724822a010/subgraphs/volume/src/services/multicall.ts#L33
-
-- snapshots:
-
-  - https://github.com/curvefi/volume-subgraphs/blob/757fc0e266ac467883cc7d227d92fc724822a010/subgraphs/crvusd/src/services/snapshot.ts#L74
-  - https://github.com/curvefi/volume-subgraphs/blob/757fc0e266ac467883cc7d227d92fc724822a010/subgraphs/crvusd/src/services/time.ts#L9
-  - https://github.com/curvefi/volume-subgraphs/blob/757fc0e266ac467883cc7d227d92fc724822a010/subgraphs/crvusd/src/llamma.ts#L60
-
-- uniswap prices:
-  - https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/mappings/core.ts#L46
-  - https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/utils/pricing.ts#L74
-  - https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/mappings/core.ts#L80
-  - https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/mappings/core.ts#L38
-  - https://github.com/Uniswap/v3-subgraph/blob/bf03f940f17c3d32ee58bd37386f26713cff21e2/src/utils/pricing.ts#L62
-
-they index all prices in "token0/token1" ofc
-then they convert that to WETH using some heuristic (looping over a set of pools, etc)
-then they just read from their WETH/USDC market to do native->usd
-
-https://github.com/Uniswap/v3-periphery/blob/v1.0.0/contracts/lens/Quoter.sol
-https://docs.uniswap.org/contracts/v3/reference/periphery/interfaces/IQuoter

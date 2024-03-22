@@ -9,6 +9,8 @@
     "test": "yarn run --silent test:lint && yarn run --silent test:graph",
     "test:graph": "graph test",
     "test:lint": "prettier . --check",
+    "infra:start": "docker compose up -d",
+    "infra:stop": "docker compose down",
     "create-local": "graph create beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "deploy-local": "graph deploy beefyfinance/beefy-cl --node http://127.0.0.1:8020 --ipfs http://localhost:5001",
     "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
