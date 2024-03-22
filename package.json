@@ -13,10 +13,12 @@
     "deploy-local": "graph deploy beefyfinance/beefy-cl --node http://127.0.0.1:8020 --ipfs http://localhost:5001",
     "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "deploy:all": "yarn --silent prepare:arbitrum && yarn --silent deploy:arbitrum && yarn --silent prepare:optimism && yarn --silent deploy:optimism",
+    "deploy:arbitrum": "yarn --silent prepare:arbitrum && yarn --silent publish:arbitrum",
+    "deploy:optimism": "yarn --silent prepare:optimism && yarn --silent publish:optimism",
     "prepare:arbitrum": "mustache config/arbitrum.json subgraph.template.yaml > subgraph.yaml && mustache config/arbitrum.json src/config.template.ts > src/config.ts ",
     "prepare:optimism": "mustache config/optimism.json subgraph.template.yaml > subgraph.yaml && mustache config/optimism.json src/config.template.ts > src/config.ts ",
-    "deploy:arbitrum": "0xgraph remove beefyfinance/clm-arbitrum && sleep 10 && 0xgraph create beefyfinance/clm-arbitrum && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/clm-arbitrum --version-label=v0.0.1",
-    "deploy:optimism": "0xgraph remove beefyfinance/clm-optimism && sleep 10 && 0xgraph create beefyfinance/clm-optimism && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/clm-optimism --version-label=v0.0.1"
+    "publish:arbitrum": "0xgraph remove beefyfinance/clm-arbitrum && sleep 10 && 0xgraph create beefyfinance/clm-arbitrum && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/clm-arbitrum --version-label=v0.0.1",
+    "publish:optimism": "0xgraph remove beefyfinance/clm-optimism && sleep 10 && 0xgraph create beefyfinance/clm-optimism && yarn --silent codegen && 0xgraph build && sleep 5 && 0xgraph deploy beefyfinance/clm-optimism --version-label=v0.0.1"
   },
   "main": "./bin/index.js",
   "bin": {
