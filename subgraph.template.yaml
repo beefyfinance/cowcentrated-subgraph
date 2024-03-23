@@ -3,6 +3,8 @@ description: Beefy Finance Automated Liquidity Manager Subgraph
 repository: https://github.com/beefyfinance/subgraphs
 schema:
   file: ./schema.graphql
+indexerHints:
+  prune: auto # we have our own snapshotting mechanism
 dataSources:
   - kind: ethereum/contract
     name: BeefyCLVaultFactory
