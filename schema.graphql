@@ -466,12 +466,10 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
   underlyingAmount0: BigDecimal!
   "Underlying balance of the second token after the harvest"
   underlyingAmount1: BigDecimal!
-
   "Underlying balance of the first token after the harvest in USD"
   underlyingAmount0USD: BigDecimal!
   "Underlying balance of the second token after the harvest in USD"
   underlyingAmount1USD: BigDecimal!
-
   "Total value locked in the vault after the harvest in USD"
   totalValueLockedUSD: BigDecimal!
 
@@ -479,14 +477,59 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
   harvestedAmount0: BigDecimal!
   "The amount of second underlying tokens harvested"
   harvestedAmount1: BigDecimal!
-
   "The amount of first underlying tokens harvested in USD"
   harvestedAmount0USD: BigDecimal!
   "The amount of second underlying tokens harvested in USD"
   harvestedAmount1USD: BigDecimal!
-
   "Total usd value of the harvest"
   harvestValueUSD: BigDecimal!
+
+  "Price of the first token in expressed as the second token at the time of the harvest"
+  priceOfToken0InToken1: BigDecimal!
+  "Price of the first token in USD at the time of the harvest"
+  priceOfToken0InUSD: BigDecimal!
+}
+
+"""
+This event is emitted when we collect earned trading fees from the underlying pool.
+It has a different meaning as the harvest event as we may collect fees on multiple occasions, including on harvest.
+"""
+type BeefyCLVaultUnderlyingFeesCollectedEvent @entity(immutable: true) {
+  "transaction hash + log index"
+  id: Bytes!
+
+  "The vault the harvest event is for"
+  vault: BeefyCLVault!
+  "The strategy that harvested the vault"
+  strategy: BeefyCLStrategy!
+
+  "The transaction that created the vault harvest event"
+  createdWith: Transaction!
+
+  "The timestamp of the harvest event so you can sort by time"
+  timestamp: BigInt!
+
+  "Underlying balance of the first token after the harvest"
+  underlyingAmount0: BigDecimal!
+  "Underlying balance of the second token after the harvest"
+  underlyingAmount1: BigDecimal!
+  "Underlying balance of the first token after the harvest in USD"
+  underlyingAmount0USD: BigDecimal!
+  "Underlying balance of the second token after the harvest in USD"
+  underlyingAmount1USD: BigDecimal!
+  "Total value locked in the vault after the harvest in USD"
+  totalValueLockedUSD: BigDecimal!
+
+  "Amount of collected fees in the first token"
+  collectedAmount0: BigDecimal!
+  "Amount of collected fees in the second token"
+  collectedAmount1: BigDecimal!
+  "Amount of collected fees in the first token in USD"
+  collectedAmount0USD: BigDecimal!
+  "Amount of collected fees in the second token in USD"
+  collectedAmount1USD: BigDecimal!
+  "Total usd value of the collected fees"
+  collectedValueUSD: BigDecimal!
 
   "Price of the first token in expressed as the second token at the time of the harvest"
   priceOfToken0InToken1: BigDecimal!

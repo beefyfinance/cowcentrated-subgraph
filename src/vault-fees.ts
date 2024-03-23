@@ -10,11 +10,11 @@ import { getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { weiToBigDecimal } from "./utils/decimal"
 import { fetchNativePriceUSD } from "./utils/price"
 
-export function handleChargedFees(event: ChargedFees): void {
+export function handleStrategyChargedFees(event: ChargedFees): void {
   let strategy = getBeefyCLStrategy(event.address)
   let vault = getBeefyCLVault(strategy.vault)
   if (!isVaultRunning(vault)) {
-    log.error("updateUserPosition: vault {} not active at block {}: {}", [
+    log.error("handleStrategyChargedFees: vault {} not active at block {}: {}", [
       vault.id.toHexString(),
       event.block.number.toString(),
       vault.lifecycle,
@@ -22,7 +22,7 @@ export function handleChargedFees(event: ChargedFees): void {
     return
   }
 
-  log.info("handleChargedFees: vault {}", [vault.id.toHexString()])
+  log.info("handleStrategyChargedFees: vault {}", [vault.id.toHexString()])
 
   const periods = SNAPSHOT_PERIODS
   const sharesToken = getToken(vault.sharesToken)
@@ -50,9 +50,9 @@ export function handleChargedFees(event: ChargedFees): void {
 
   ///////
   // update protocol entities
-  log.debug("handleChargedFees: update protocol", [])
+  log.debug("handleStrategyChargedFees: update protocol", [])
   for (let i = 0; i < periods.length; i++) {
-    log.debug("updateUserPosition: updating protocol snapshot for period {}", [periods[i].toString()])
+    log.debug("handleStrategyChargedFees: updating protocol snapshot for period {}", [periods[i].toString()])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
     protocolSnapshot.protocolFeesCollectedNative = protocolSnapshot.protocolFeesCollectedNative.plus(beefyFeeNative)
     protocolSnapshot.protocolFeesCollectedUSD = protocolSnapshot.protocolFeesCollectedUSD.plus(
@@ -73,7 +73,7 @@ export function handleChargedFees(event: ChargedFees): void {
 
   ///////
   // update vault entities
-  log.debug("handleChargedFees: update vault", [])
+  log.debug("handleStrategyChargedFees: update vault", [])
   vault.cumulativeProtocolFeeCollectedNative = vault.cumulativeProtocolFeeCollectedNative.plus(beefyFeeNative)
   vault.cumulativeProtocolFeeCollectedUSD = vault.cumulativeProtocolFeeCollectedUSD.plus(
     beefyFeeNative.times(nativePriceUSD),
@@ -89,7 +89,7 @@ export function handleChargedFees(event: ChargedFees): void {
   vault.save()
 
   for (let i = 0; i < periods.length; i++) {
-    log.debug("handleChargedFees: update vault snapshot for period {}", [periods[i].toString()])
+    log.debug("handleStrategyChargedFees: update vault snapshot for period {}", [periods[i].toString()])
     const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
     vaultSnapshot.protocolFeeCollectedNative = vaultSnapshot.protocolFeeCollectedNative.plus(beefyFeeNative)
     vaultSnapshot.protocolFeeCollectedUSD = vaultSnapshot.protocolFeeCollectedUSD.plus(

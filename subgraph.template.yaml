@@ -158,6 +158,9 @@ templates:
         - event: ChargedFees(uint256,uint256,uint256)
           handler: handleChargedFees
           receipt: true
+        - event: ClaimedFees(uint256,uint256,uint256,uint256)
+          handler: handleClaimedFees
+          receipt: true
         - event: SetLpToken0ToNativePath(bytes)
           handler: handleSetLpToken0ToNativePath
         - event: SetLpToken1ToNativePath(bytes)

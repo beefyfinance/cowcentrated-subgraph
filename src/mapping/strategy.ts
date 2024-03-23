@@ -4,8 +4,11 @@ export {
   handleStrategyUnpaused as handleUnpaused,
 } from "../vault-lifecycle"
 export { handleStrategyOwnershipTransferred as handleOwnershipTransferred } from "../ownership"
-export { handleStrategyHarvest as handleHarvest } from "../harvest"
-export { handleChargedFees } from "../vault-fees"
+export {
+  handleStrategyHarvest as handleHarvest,
+  handleStrategyClaimedFees as handleClaimedFees,
+} from "../vault-compound"
+export { handleStrategyChargedFees as handleChargedFees } from "../vault-fees"
 export {
   handleStrategySetLpToken0ToNativePath as handleSetLpToken0ToNativePath,
   handleStrategySetLpToken1ToNativePath as handleSetLpToken1ToNativePath,
