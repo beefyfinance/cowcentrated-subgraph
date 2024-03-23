@@ -9,6 +9,7 @@ import {
   PRICE_FEED_DECIMALS,
   UNISWAP_V3_QUOTER_V2_ADDRESS,
   WNATIVE_DECIMALS,
+  WNATIVE_TOKEN_ADDRESS,
 } from "../config"
 
 const quoter = UniswapQuoterV2.bind(UNISWAP_V3_QUOTER_V2_ADDRESS)
@@ -21,7 +22,7 @@ export function fetchVaultPrices(vault: BeefyCLVault, token0: Token, token1: Tok
 
   // fetch the token prices to native
   let token0PriceInNative = ONE_BD
-  if (token0Path.length > 0) {
+  if (token0Path.length > 0 && token0.id.notEqual(WNATIVE_TOKEN_ADDRESS)) {
     const token0PriceInNativeRes = quoter.try_quoteExactInput(token0Path, exponentToBigInt(token0.decimals))
     if (token0PriceInNativeRes.reverted) {
       log.error("updateUserPosition: quoteExactInput() reverted for token {}", [token0.id.toHexString()])
@@ -31,7 +32,7 @@ export function fetchVaultPrices(vault: BeefyCLVault, token0: Token, token1: Tok
     log.debug("updateUserPosition: token0PriceInNativeRes: {}", [token0PriceInNative.toString()])
   }
   let token1PriceInNative = ONE_BD
-  if (token1Path.length > 0) {
+  if (token1Path.length > 0 && token1.id.notEqual(WNATIVE_TOKEN_ADDRESS)) {
     const token1PriceInNativeRes = quoter.try_quoteExactInput(token1Path, exponentToBigInt(token1.decimals))
     if (token1PriceInNativeRes.reverted) {
       log.error("updateUserPosition: quoteExactInput() reverted for token {}", [token1.id.toHexString()])
