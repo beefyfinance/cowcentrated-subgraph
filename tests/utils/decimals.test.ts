@@ -1,6 +1,6 @@
 import { assert, clearStore, test, describe, afterAll } from "matchstick-as/assembly/index"
 import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
-import { decimalToTokenAmount, exponentToBigDecimal, tokenAmountToDecimal } from "../../src/utils/decimal"
+import { bigMin, decimalToTokenAmount, exponentToBigDecimal, tokenAmountToDecimal } from "../../src/utils/decimal"
 
 describe("decimals.tokenAmountToDecimal", () => {
   afterAll(() => {
@@ -107,5 +107,14 @@ describe("decimals.exponentToBigInt", () => {
     const value = BigInt.fromI32(0)
     const res = exponentToBigDecimal(value)
     assert.stringEquals(res.toString(), "1", "Decimal value should match")
+  })
+})
+
+describe("decimals.bigMin", () => {
+  test("Can return the minimum of two big decimals", () => {
+    const a = BigDecimal.fromString("1")
+    const b = BigDecimal.fromString("2")
+    const res = bigMin(a, b)
+    assert.stringEquals(res.toString(), "1", "Minimum value should match")
   })
 })

@@ -97,3 +97,9 @@ function safeDiv(amount0: BigDecimal, amount1: BigDecimal): BigDecimal {
     return amount0.div(amount1)
   }
 }
+
+
+@inline
+export function bigMin(a: BigDecimal, b: BigDecimal): BigDecimal {
+  return a.lt(b) ? a : b
+}

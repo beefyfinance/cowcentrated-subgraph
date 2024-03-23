@@ -112,41 +112,16 @@ export function getNativePriceUSD(): BigDecimal {
 }
 
 class PriceRange {
-  _min: BigDecimal
-  _max: BigDecimal
-  constructor(min: BigDecimal, max: BigDecimal) {
-    this._min = min
-    this._max = max
-  }
-
-  get min(): BigDecimal {
-    return this._min
-  }
-
-  get max(): BigDecimal {
-    return this._max
-  }
+  constructor(
+    public min: BigDecimal,
+    public max: BigDecimal,
+  ) {}
 }
 
 class VaultPrices {
-  _token0ToNative: BigDecimal
-  _token1ToNative: BigDecimal
-  _nativeToUsd: BigDecimal
-  constructor(_token0ToNative: BigDecimal, _token1ToNative: BigDecimal, _nativeToUsd: BigDecimal) {
-    this._token0ToNative = _token0ToNative
-    this._token1ToNative = _token1ToNative
-    this._nativeToUsd = _nativeToUsd
-  }
-
-  get token0ToNative(): BigDecimal {
-    return this._token0ToNative
-  }
-
-  get token1ToNative(): BigDecimal {
-    return this._token1ToNative
-  }
-
-  get nativeToUsd(): BigDecimal {
-    return this._nativeToUsd
-  }
+  constructor(
+    public token0ToNative: BigDecimal,
+    public token1ToNative: BigDecimal,
+    public nativeToUsd: BigDecimal,
+  ) {}
 }
