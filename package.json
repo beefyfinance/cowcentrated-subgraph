@@ -15,14 +15,7 @@
     "deploy-local": "graph deploy beefyfinance/beefy-cl --node http://127.0.0.1:8020 --ipfs http://localhost:5001",
     "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "prepare:arbitrum": "./bin/prepare.sh arbitrum",
-    "prepare:optimism": "./bin/prepare.sh optimism",
-    "deploy:all": "yarn deploy:all:0xgraph && yarn deploy:all:goldsky",
-    "deploy:all:0xgraph": "yarn deploy:arbitrum:0xgraph && yarn deploy:optimism:0xgraph",
-    "deploy:arbitrum:0xgraph": "./bin/deploy_0xgraph.sh arbitrum",
-    "deploy:optimism:0xgraph": "./bin/deploy_0xgraph.sh optimism",
-    "deploy:all:goldsky": "yarn deploy:arbitrum:goldsky && yarn deploy:optimism:goldsky",
-    "deploy:arbitrum:goldsky": "./bin/deploy_goldsky.sh arbitrum",
-    "deploy:optimism:goldsky": "./bin/deploy_goldsky.sh optimism"
+    "prepare:optimism": "./bin/prepare.sh optimism"
   },
   "main": "./bin/index.js",
   "bin": {

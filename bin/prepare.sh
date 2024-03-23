@@ -1,9 +1,15 @@
 #!/bin/bash
 
 CHAIN=$1
+valid_chains=("arbitrum" "optimism")
 
 if [ -z "$CHAIN" ]; then
     echo "Usage: $0 <chain>"
+    exit 1
+fi
+
+if [[ ! " ${valid_chains[@]} " =~ " ${CHAIN} " ]]; then
+    echo "invalid chain"
     exit 1
 fi
 
