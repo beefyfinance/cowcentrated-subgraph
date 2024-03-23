@@ -8,5 +8,5 @@ export { handleStrategyHarvest as handleHarvest } from "../harvest"
 export { handleChargedFees } from "../vault-fees"
 export {
   handleStrategySetLpToken0ToNativePath as handleSetLpToken0ToNativePath,
-  handleStrategySetLpToken0ToNativePath as handleSetLpToken1ToNativePath,
+  handleStrategySetLpToken1ToNativePath as handleSetLpToken1ToNativePath,
 } from "../strategy-config"
