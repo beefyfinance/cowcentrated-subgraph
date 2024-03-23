@@ -10,6 +10,11 @@ export function handleStrategySetLpToken0ToNativePath(event: SetLpToken0ToNative
   let strategy = getBeefyCLStrategy(event.address)
   strategy.lpToken0ToNativePath = event.params.path
   strategy.save()
+
+  log.debug("handleSetLpToken0ToNativePath: saved path {} (token0) for strategy {}", [
+    event.params.path.toHexString(),
+    strategy.id.toHexString(),
+  ])
 }
 
 export function handleStrategySetLpToken1ToNativePath(event: SetLpToken1ToNativePathEvent): void {
@@ -17,4 +22,9 @@ export function handleStrategySetLpToken1ToNativePath(event: SetLpToken1ToNative
   let strategy = getBeefyCLStrategy(event.address)
   strategy.lpToken1ToNativePath = event.params.path
   strategy.save()
+
+  log.debug("handleSetLpToken1ToNativePath: saved path {} (token1) for strategy {}", [
+    event.params.path.toHexString(),
+    strategy.id.toHexString(),
+  ])
 }
