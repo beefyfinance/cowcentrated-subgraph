@@ -17,6 +17,7 @@ import { ADDRESS_ZERO } from "./utils/address"
 import { getCurrentPriceInToken1, getVaultPriceRangeInToken1, getVaultPrices } from "./mapping/price"
 import { InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
+import { SHARE_TOKEN_MINT_ADDRESS } from "./config"
 
 export function handleVaultDeposit(event: DepositEvent): void {
   updateUserPosition(event, event.params.user, true, false)
@@ -25,6 +26,34 @@ export function handleVaultWithdraw(event: WithdrawEvent): void {
   updateUserPosition(event, event.params.user, false, false)
 }
 export function handleVaultTransfer(event: TransferEvent): void {
+  if (event.params.from.equals(event.params.to)) {
+    log.info("handleVaultTransfer: from and to addresses are the same for vault {} at block {}", [
+      event.address.toHexString(),
+      event.block.number.toString(),
+    ])
+    return
+  }
+
+  if (event.params.value.equals(ZERO_BI)) {
+    log.info("handleVaultTransfer: transfer value is zero for vault {} at block {}", [
+      event.address.toHexString(),
+      event.block.number.toString(),
+    ])
+    return
+  }
+
+  // don't duplicate processing between Transfer and Deposit/Withdraw
+  if (event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) || event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS)) {
+    log.debug("handleVaultTransfer: skipping processing for vault {} at block {}", [
+      event.address.toHexString(),
+      event.block.number.toString(),
+    ])
+    return
+  }
+  log.info("handleVaultTransfer: processing transfer for vault {} at block {}", [
+    event.address.toHexString(),
+    event.block.number.toString(),
+  ])
   updateUserPosition(event, event.params.to, true, true)
   updateUserPosition(event, event.params.from, false, true)
 }

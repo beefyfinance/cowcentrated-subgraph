@@ -1,6 +1,7 @@
 {
   "network": "arbitrum-one",
 
+  "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
   "vaultFactoryAddress": "0xef79A90A93084e1d2a2b4ecD1F783e937C80Ef4C",
   "vaultFactoryStartBlock": 190612486,
   "clockTickBlocks": 3600,
