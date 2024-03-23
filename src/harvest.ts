@@ -78,7 +78,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   let shareTokenToUnderlying0Rate = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   let shareTokenToUnderlying1Rate = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
 
-  const prices = fetchVaultPrices(vault, token0, token1)
+  const prices = fetchVaultPrices(vault, strategy, token0, token1)
   const token0PriceInNative = prices.token0ToNative
   const token1PriceInNative = prices.token1ToNative
   const nativePriceUSD = prices.nativeToUsd

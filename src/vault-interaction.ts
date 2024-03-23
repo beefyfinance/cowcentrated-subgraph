@@ -4,7 +4,7 @@ import {
   Withdraw as WithdrawEvent,
   Transfer as TransferEvent,
 } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
-import { getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
+import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
 import { getTransaction } from "./entity/transaction"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestor, getInvestorSnapshot, isNewInvestor } from "./entity/investor"
@@ -81,6 +81,7 @@ function updateUserPosition(
   ])
 
   const periods = SNAPSHOT_PERIODS
+  const strategy = getBeefyCLStrategy(vault.strategy)
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
@@ -135,7 +136,7 @@ function updateUserPosition(
   let investorBalanceUnderlying0 = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   let investorBalanceUnderlying1 = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
 
-  const prices = fetchVaultPrices(vault, token0, token1)
+  const prices = fetchVaultPrices(vault, strategy, token0, token1)
   const token0PriceInNative = prices.token0ToNative
   const token1PriceInNative = prices.token1ToNative
   const nativePriceUSD = prices.nativeToUsd

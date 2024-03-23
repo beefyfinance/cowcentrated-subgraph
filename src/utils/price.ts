@@ -1,5 +1,5 @@
 import { Address, BigDecimal, BigInt, Bytes, log } from "@graphprotocol/graph-ts"
-import { BeefyCLVault, Token } from "../../generated/schema"
+import { BeefyCLStrategy, BeefyCLVault, Token } from "../../generated/schema"
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
 import { ONE_BD, ZERO_BD, exponentToBigInt, tokenAmountToDecimal } from "./decimal"
 import { UniswapQuoterV2 } from "../../generated/templates/BeefyCLStrategy/UniswapQuoterV2"
@@ -15,10 +15,15 @@ import {
 const quoter = UniswapQuoterV2.bind(UNISWAP_V3_QUOTER_V2_ADDRESS)
 const nativePriceFeed = ChainLinkPriceFeed.bind(CHAINLINK_NATIVE_PRICE_FEED_ADDRESS)
 
-export function fetchVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token): VaultPrices {
+export function fetchVaultPrices(
+  vault: BeefyCLVault,
+  strategy: BeefyCLStrategy,
+  token0: Token,
+  token1: Token,
+): VaultPrices {
   log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])
-  const token0Path = vault.lpToken0ToNativePath
-  const token1Path = vault.lpToken1ToNativePath
+  const token0Path = strategy.lpToken0ToNativePath
+  const token1Path = strategy.lpToken1ToNativePath
 
   // fetch the token prices to native
   let token0PriceInNative = ONE_BD

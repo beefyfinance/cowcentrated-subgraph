@@ -6,7 +6,7 @@ import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protoco
 import { ZERO_BD, tokenAmountToDecimal } from "./utils/decimal"
 import { getToken } from "./entity/token"
 import { fetchCurrentPriceInToken1, fetchVaultPrices } from "./utils/price"
-import { getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
+import { getBeefyCLStrategy, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
 import { getInvestorPositionSnapshot } from "./entity/position"
 import { getInvestorSnapshot } from "./entity/investor"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
@@ -79,6 +79,7 @@ function handleNew15Minutes(tick: ClockTick): void {
       continue
     }
 
+    const strategy = getBeefyCLStrategy(vault.strategy)
     const positions = vault.positions.load()
     const token0 = getToken(vault.underlyingToken0)
     const token1 = getToken(vault.underlyingToken1)
@@ -95,7 +96,7 @@ function handleNew15Minutes(tick: ClockTick): void {
     const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
     const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
     const currentPriceInToken1 = fetchCurrentPriceInToken1(vault.strategy, false)
-    const prices = fetchVaultPrices(vault, token0, token1)
+    const prices = fetchVaultPrices(vault, strategy, token0, token1)
     const token0PriceInNative = prices.token0ToNative
     const token1PriceInNative = prices.token1ToNative
     const nativePriceUSD = prices.nativeToUsd
@@ -215,6 +216,7 @@ function handleNewDay(tick: ClockTick): void {
       continue
     }
 
+    const strategy = getBeefyCLStrategy(vault.strategy)
     const positions = vault.positions.load()
     const token0 = getToken(vault.underlyingToken0)
     const token1 = getToken(vault.underlyingToken1)
@@ -231,7 +233,7 @@ function handleNewDay(tick: ClockTick): void {
     const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
     const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
     const currentPriceInToken1 = fetchCurrentPriceInToken1(vault.strategy, false)
-    const prices = fetchVaultPrices(vault, token0, token1)
+    const prices = fetchVaultPrices(vault, strategy, token0, token1)
     const token0PriceInNative = prices.token0ToNative
     const token1PriceInNative = prices.token1ToNative
     const nativePriceUSD = prices.nativeToUsd
