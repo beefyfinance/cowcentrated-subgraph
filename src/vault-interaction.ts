@@ -3,13 +3,13 @@ import {
   Deposit as DepositEvent,
   Withdraw as WithdrawEvent,
   Transfer as TransferEvent,
-} from "./../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
+} from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
 import { getTransaction } from "./entity/transaction"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestor, getInvestorSnapshot, isNewInvestor } from "./entity/investor"
 import { ONE_BD, ZERO_BD, ZERO_BI, tokenAmountToDecimal } from "./utils/decimal"
-import { BeefyVaultConcLiq as BeefyCLVaultContract } from "./../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
+import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getToken } from "./entity/token"
 import { getInvestorPosition, getInvestorPositionSnapshot, isNewInvestorPosition } from "./entity/position"
