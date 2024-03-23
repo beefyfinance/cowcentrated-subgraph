@@ -570,10 +570,8 @@ type Investor @entity {
 
   "The transactions count that the investor was the sender of"
   cumulativeInteractionsCount: Int!
-
   "All deposits of the investor"
   cumulativeDepositCount: Int!
-
   "All withdraws of the investor"
   cumulativeWithdrawCount: Int!
 
@@ -621,10 +619,8 @@ type InvestorSnapshot implements Snapshot @entity {
 
   "Interactions count for the investor at the time of the snapshot"
   interactionsCount: Int!
-
   "Deposits count for the investor at the time of the snapshot"
   depositCount: Int!
-
   "Withdraws count for the investor at the time of the snapshot"
   withdrawCount: Int!
 
@@ -674,6 +670,17 @@ type InvestorPosition @entity {
   "The last daily position values in USD for the last 30 days. Most recent last."
   last30DailyPositionValuesUSD: [BigDecimal!]!
 
+  "The harvested amount of the first token"
+  cumulativeHarvestedAmount0: BigDecimal!
+  "The harvested amount of the second token"
+  cumulativeHarvestedAmount1: BigDecimal!
+  "The harvested amount of the first token in USD"
+  cumulativeHarvestedAmount0USD: BigDecimal!
+  "The harvested amount of the second token in USD"
+  cumulativeHarvestedAmount1USD: BigDecimal!
+  "The harvested amount in USD"
+  cumulativeHarvestValueUSD: BigDecimal!
+
   "All investor position snapshots"
   snapshots: [InvestorPositionSnapshot!]! @derivedFrom(field: "investorPosition")
 
@@ -722,6 +729,17 @@ type InvestorPositionSnapshot implements Snapshot @entity {
 
   "Current position value in USD"
   positionValueUSD: BigDecimal!
+
+  "The harvested amount of the first token at the time of the snapshot"
+  harvestedAmount0: BigDecimal!
+  "The harvested amount of the second token at the time of the snapshot"
+  harvestedAmount1: BigDecimal!
+  "The harvested amount of the first token in USD at the time of the snapshot"
+  harvestedAmount0USD: BigDecimal!
+  "The harvested amount of the second token in USD at the time of the snapshot"
+  harvestedAmount1USD: BigDecimal!
+  "The harvested amount in USD at the time of the snapshot"
+  harvestValueUSD: BigDecimal!
 }
 
 enum InvestorPositionInteractionType {

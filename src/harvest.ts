@@ -55,6 +55,14 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
   const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
 
+  // vault shares total supply
+  const sharesTotalSupplyRes = vaultContract.try_totalSupply()
+  if (sharesTotalSupplyRes.reverted) {
+    log.error("handleStrategyHarvest: totalSupply() reverted for vault {}", [vault.id.toHexString()])
+    throw Error("handleStrategyHarvest: totalSupply() reverted")
+  }
+  const sharesTotalSupply = tokenAmountToDecimal(sharesTotalSupplyRes.value, sharesToken.decimals)
+
   // preview withdraw of 1 share token
   let previewWithdraw0Raw = BigInt.fromI32(0)
   let previewWithdraw1Raw = BigInt.fromI32(0)
@@ -162,6 +170,8 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
     }
     positivePositionCount += 1
 
+    const positionPercentOfTotalSupply = position.sharesBalance.div(sharesTotalSupply)
+
     log.debug("handleStrategyHarvest: updating investor position for investor {}", [position.investor.toHexString()])
     let investor = getInvestor(position.investor)
     position.underlyingBalance0 = position.sharesBalance.times(shareTokenToUnderlying0Rate)
@@ -171,6 +181,19 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
     const previousPositionValueUSD = position.positionValueUSD
     position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)
     const positionChangeUSD = position.positionValueUSD.minus(previousPositionValueUSD)
+    position.cumulativeHarvestedAmount0 = position.cumulativeHarvestedAmount0.plus(
+      harvest.harvestedAmount0.times(positionPercentOfTotalSupply),
+    )
+    position.cumulativeHarvestedAmount1 = position.cumulativeHarvestedAmount1.plus(
+      harvest.harvestedAmount1.times(positionPercentOfTotalSupply),
+    )
+    position.cumulativeHarvestedAmount0USD = position.cumulativeHarvestedAmount0USD.plus(
+      harvest.harvestedAmount0USD.times(positionPercentOfTotalSupply),
+    )
+    position.cumulativeHarvestedAmount1USD = position.cumulativeHarvestedAmount1USD.plus(
+      harvest.harvestedAmount1USD.times(positionPercentOfTotalSupply),
+    )
+    position.cumulativeHarvestValueUSD = position.cumulativeHarvestValueUSD.plus(positionChangeUSD)
     position.save()
     for (let i = 0; i < periods.length; i++) {
       log.debug("handleStrategyHarvest: updating investor position snapshot for investor {} and period {}", [
@@ -184,6 +207,19 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
       positionSnapshot.underlyingBalance0USD = position.underlyingBalance0USD
       positionSnapshot.underlyingBalance1USD = position.underlyingBalance1USD
       positionSnapshot.positionValueUSD = position.positionValueUSD
+      positionSnapshot.harvestedAmount0 = positionSnapshot.harvestedAmount0.plus(
+        harvest.harvestedAmount0.times(positionPercentOfTotalSupply),
+      )
+      positionSnapshot.harvestedAmount1 = positionSnapshot.harvestedAmount1.plus(
+        harvest.harvestedAmount1.times(positionPercentOfTotalSupply),
+      )
+      positionSnapshot.harvestedAmount0USD = positionSnapshot.harvestedAmount0USD.plus(
+        harvest.harvestedAmount0USD.times(positionPercentOfTotalSupply),
+      )
+      positionSnapshot.harvestedAmount1USD = positionSnapshot.harvestedAmount1USD.plus(
+        harvest.harvestedAmount1USD.times(positionPercentOfTotalSupply),
+      )
+      positionSnapshot.harvestValueUSD = positionSnapshot.harvestValueUSD.plus(positionChangeUSD)
       positionSnapshot.save()
     }
 
