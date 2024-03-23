@@ -50,6 +50,7 @@ export function handleVaultTransfer(event: TransferEvent): void {
     ])
     return
   }
+
   log.info("handleVaultTransfer: processing transfer for vault {} at block {}", [
     event.address.toHexString(),
     event.block.number.toString(),

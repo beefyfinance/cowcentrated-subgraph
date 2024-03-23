@@ -577,6 +577,9 @@ type Investor @entity {
   "All withdraws of the investor"
   cumulativeWithdrawCount: Int!
 
+  "All time harvested amount in USD"
+  cumulativeHarvestValueUSD: BigDecimal!
+
   "All investor beefy positions"
   positions: [InvestorPosition!]! @derivedFrom(field: "investor")
 
@@ -624,6 +627,9 @@ type InvestorSnapshot implements Snapshot @entity {
 
   "Withdraws count for the investor at the time of the snapshot"
   withdrawCount: Int!
+
+  "The harvested amount in USD at the time of the snapshot"
+  harvestValueUSD: BigDecimal!
 }
 
 """

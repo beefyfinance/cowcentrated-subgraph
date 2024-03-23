@@ -10,7 +10,7 @@ import { ONE_BD, ZERO_BD, tokenAmountToDecimal, decimalToTokenAmount } from "./u
 import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestorPositionSnapshot } from "./entity/position"
-import { getInvestor } from "./entity/investor"
+import { getInvestor, getInvestorSnapshot } from "./entity/investor"
 import { getCurrentPriceInToken1, getVaultPriceRangeInToken1, getVaultPrices } from "./mapping/price"
 
 export function handleStrategyHarvest(event: HarvestEvent): void {
@@ -189,7 +189,18 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
 
     log.debug("handleStrategyHarvest: updating investor for investor {}", [position.investor.toHexString()])
     investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
+    investor.cumulativeHarvestValueUSD = investor.cumulativeHarvestValueUSD.plus(positionChangeUSD)
     investor.save()
+    for (let i = 0; i < periods.length; i++) {
+      log.debug("handleStrategyHarvest: updating investor snapshot for investor {} and period {}", [
+        position.investor.toHexString(),
+        periods[i].toString(),
+      ])
+      const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, periods[i])
+      investorSnapshot.totalPositionValueUSD = investor.totalPositionValueUSD
+      investorSnapshot.harvestValueUSD = investorSnapshot.harvestValueUSD.plus(positionChangeUSD)
+      investorSnapshot.save()
+    }
   }
 
   ///////
