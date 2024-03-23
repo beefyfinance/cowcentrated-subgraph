@@ -286,16 +286,16 @@ type BeefyCLVault @entity {
   "Transfer count for that vault"
   cumulativeTransferCount: Int!
 
-  "The harvested amount of the first token"
-  cumulativeHarvestedAmount0: BigDecimal!
-  "The harvested amount of the second token"
-  cumulativeHarvestedAmount1: BigDecimal!
-  "The harvested amount of the first token in USD"
-  cumulativeHarvestedAmount0USD: BigDecimal!
-  "The harvested amount of the second token in USD"
-  cumulativeHarvestedAmount1USD: BigDecimal!
-  "The harvested amount in USD"
-  cumulativeHarvestValueUSD: BigDecimal!
+  "The compounded amount of the first token"
+  cumulativeCompoundedAmount0: BigDecimal!
+  "The compounded amount of the second token"
+  cumulativeCompoundedAmount1: BigDecimal!
+  "The compounded amount of the first token in USD"
+  cumulativeCompoundedAmount0USD: BigDecimal!
+  "The compounded amount of the second token in USD"
+  cumulativeCompoundedAmount1USD: BigDecimal!
+  "The compounded amount in USD"
+  cumulativeCompoundedValueUSD: BigDecimal!
 
   "Amount of native token charged as call fee incentive"
   cumulativeHarvesterFeeCollectedNative: BigDecimal!
@@ -395,16 +395,16 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   "Transfer count for that vault"
   transferCount: Int!
 
-  "The harvested amount of the first token"
-  harvestedAmount0: BigDecimal!
-  "The harvested amount of the second token"
-  harvestedAmount1: BigDecimal!
-  "The harvested amount of the first token in USD"
-  harvestedAmount0USD: BigDecimal!
-  "The harvested amount of the second token in USD"
-  harvestedAmount1USD: BigDecimal!
-  "The harvested amount in USD"
-  harvestValueUSD: BigDecimal!
+  "The compounded amount of the first token"
+  compoundedAmount0: BigDecimal!
+  "The compounded amount of the second token"
+  compoundedAmount1: BigDecimal!
+  "The compounded amount of the first token in USD"
+  compoundedAmount0USD: BigDecimal!
+  "The compounded amount of the second token in USD"
+  compoundedAmount1USD: BigDecimal!
+  "The compounded amount in USD"
+  compoundedValueUSD: BigDecimal!
 
   "Amount of native token charged as call fee incentive"
   harvesterFeeCollectedNative: BigDecimal!
@@ -479,16 +479,16 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
   "Total value locked in the vault after the harvest in USD"
   totalValueLockedUSD: BigDecimal!
 
-  "The amount of first underlying tokens harvested"
-  harvestedAmount0: BigDecimal!
-  "The amount of second underlying tokens harvested"
-  harvestedAmount1: BigDecimal!
-  "The amount of first underlying tokens harvested in USD"
-  harvestedAmount0USD: BigDecimal!
-  "The amount of second underlying tokens harvested in USD"
-  harvestedAmount1USD: BigDecimal!
-  "Total usd value of the harvest"
-  harvestValueUSD: BigDecimal!
+  "The amount of first underlying tokens compounded"
+  compoundedAmount0: BigDecimal!
+  "The amount of second underlying tokens compounded"
+  compoundedAmount1: BigDecimal!
+  "The amount of first underlying tokens compounded in USD"
+  compoundedAmount0USD: BigDecimal!
+  "The amount of second underlying tokens compounded in USD"
+  compoundedAmount1USD: BigDecimal!
+  "Total usd value of the compounded"
+  compoundedValueUSD: BigDecimal!
 
   "Price of the first token in expressed as the second token at the time of the harvest"
   priceOfToken0InToken1: BigDecimal!
@@ -504,26 +504,26 @@ type BeefyCLVaultUnderlyingFeesCollectedEvent @entity(immutable: true) {
   "transaction hash + log index"
   id: Bytes!
 
-  "The vault the harvest event is for"
+  "The vault the collect event is for"
   vault: BeefyCLVault!
-  "The strategy that harvested the vault"
+  "The strategy that collect for the vault"
   strategy: BeefyCLStrategy!
 
-  "The transaction that created the vault harvest event"
+  "The transaction that created the vault collect event"
   createdWith: Transaction!
 
-  "The timestamp of the harvest event so you can sort by time"
+  "The timestamp of the collect event so you can sort by time"
   timestamp: BigInt!
 
-  "Underlying balance of the first token after the harvest"
+  "Underlying balance of the first token after the collect"
   underlyingAmount0: BigDecimal!
-  "Underlying balance of the second token after the harvest"
+  "Underlying balance of the second token after the collect"
   underlyingAmount1: BigDecimal!
-  "Underlying balance of the first token after the harvest in USD"
+  "Underlying balance of the first token after the collect in USD"
   underlyingAmount0USD: BigDecimal!
-  "Underlying balance of the second token after the harvest in USD"
+  "Underlying balance of the second token after the collect in USD"
   underlyingAmount1USD: BigDecimal!
-  "Total value locked in the vault after the harvest in USD"
+  "Total value locked in the vault after the collect in USD"
   totalValueLockedUSD: BigDecimal!
 
   "Amount of collected fees in the first token"
@@ -537,9 +537,9 @@ type BeefyCLVaultUnderlyingFeesCollectedEvent @entity(immutable: true) {
   "Total usd value of the collected fees"
   collectedValueUSD: BigDecimal!
 
-  "Price of the first token in expressed as the second token at the time of the harvest"
+  "Price of the first token in expressed as the second token at the time of the collect"
   priceOfToken0InToken1: BigDecimal!
-  "Price of the first token in USD at the time of the harvest"
+  "Price of the first token in USD at the time of the collect"
   priceOfToken0InUSD: BigDecimal!
 }
 
@@ -634,8 +634,8 @@ type Investor @entity {
   "All withdraws of the investor"
   cumulativeWithdrawCount: Int!
 
-  "All time harvested amount in USD"
-  cumulativeHarvestValueUSD: BigDecimal!
+  "All time compounded amount in USD"
+  cumulativeCompoundedValueUSD: BigDecimal!
 
   "All investor beefy positions"
   positions: [InvestorPosition!]! @derivedFrom(field: "investor")
@@ -683,8 +683,8 @@ type InvestorSnapshot implements Snapshot @entity {
   "Withdraws count for the investor at the time of the snapshot"
   withdrawCount: Int!
 
-  "The harvested amount in USD at the time of the snapshot"
-  harvestValueUSD: BigDecimal!
+  "The compounded amount in USD at the time of the snapshot"
+  compoundedValueUSD: BigDecimal!
 }
 
 """
@@ -740,16 +740,16 @@ type InvestorPosition @entity {
   "The last daily position values in USD for the last 30 days. Most recent last."
   last30DailyPositionValuesUSD: [BigDecimal!]!
 
-  "The harvested amount of the first token"
-  cumulativeHarvestedAmount0: BigDecimal!
-  "The harvested amount of the second token"
-  cumulativeHarvestedAmount1: BigDecimal!
-  "The harvested amount of the first token in USD"
-  cumulativeHarvestedAmount0USD: BigDecimal!
-  "The harvested amount of the second token in USD"
-  cumulativeHarvestedAmount1USD: BigDecimal!
-  "The harvested amount in USD"
-  cumulativeHarvestValueUSD: BigDecimal!
+  "The compounded amount of the first token"
+  cumulativeCompoundedAmount0: BigDecimal!
+  "The compounded amount of the second token"
+  cumulativeCompoundedAmount1: BigDecimal!
+  "The compounded amount of the first token in USD"
+  cumulativeCompoundedAmount0USD: BigDecimal!
+  "The compounded amount of the second token in USD"
+  cumulativeCompoundedAmount1USD: BigDecimal!
+  "The compounded amount in USD"
+  cumulativeCompoundedValueUSD: BigDecimal!
 
   "All investor position snapshots"
   snapshots: [InvestorPositionSnapshot!]! @derivedFrom(field: "investorPosition")
@@ -800,16 +800,16 @@ type InvestorPositionSnapshot implements Snapshot @entity {
   "Current position value in USD"
   positionValueUSD: BigDecimal!
 
-  "The harvested amount of the first token at the time of the snapshot"
-  harvestedAmount0: BigDecimal!
-  "The harvested amount of the second token at the time of the snapshot"
-  harvestedAmount1: BigDecimal!
-  "The harvested amount of the first token in USD at the time of the snapshot"
-  harvestedAmount0USD: BigDecimal!
-  "The harvested amount of the second token in USD at the time of the snapshot"
-  harvestedAmount1USD: BigDecimal!
-  "The harvested amount in USD at the time of the snapshot"
-  harvestValueUSD: BigDecimal!
+  "The compounded amount of the first token at the time of the snapshot"
+  compoundedAmount0: BigDecimal!
+  "The compounded amount of the second token at the time of the snapshot"
+  compoundedAmount1: BigDecimal!
+  "The compounded amount of the first token in USD at the time of the snapshot"
+  compoundedAmount0USD: BigDecimal!
+  "The compounded amount of the second token in USD at the time of the snapshot"
+  compoundedAmount1USD: BigDecimal!
+  "The compounded amount in USD at the time of the snapshot"
+  compoundedValueUSD: BigDecimal!
 }
 
 enum InvestorPositionInteractionType {

@@ -108,11 +108,11 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   harvest.totalValueLockedUSD = vaultBalanceUnderlying0
     .times(token0PriceInUSD)
     .plus(vaultBalanceUnderlying1.times(token1PriceInUSD))
-  harvest.harvestedAmount0 = tokenAmountToDecimal(event.params.fee0, token0.decimals)
-  harvest.harvestedAmount1 = tokenAmountToDecimal(event.params.fee1, token1.decimals)
-  harvest.harvestedAmount0USD = harvest.harvestedAmount0.times(token0PriceInUSD)
-  harvest.harvestedAmount1USD = harvest.harvestedAmount1.times(token1PriceInUSD)
-  harvest.harvestValueUSD = harvest.harvestedAmount0USD.plus(harvest.harvestedAmount1USD)
+  harvest.compoundedAmount0 = tokenAmountToDecimal(event.params.fee0, token0.decimals)
+  harvest.compoundedAmount1 = tokenAmountToDecimal(event.params.fee1, token1.decimals)
+  harvest.compoundedAmount0USD = harvest.compoundedAmount0.times(token0PriceInUSD)
+  harvest.compoundedAmount1USD = harvest.compoundedAmount1.times(token1PriceInUSD)
+  harvest.compoundedValueUSD = harvest.compoundedAmount0USD.plus(harvest.compoundedAmount1USD)
   harvest.priceOfToken0InToken1 = currentPriceInToken1
   harvest.priceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
   harvest.save()
@@ -120,11 +120,11 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   ///////
   // update vault entities
   vault.cumulativeHarvestCount += 1
-  vault.cumulativeHarvestedAmount0 = vault.cumulativeHarvestedAmount0.plus(harvest.harvestedAmount0)
-  vault.cumulativeHarvestedAmount1 = vault.cumulativeHarvestedAmount1.plus(harvest.harvestedAmount1)
-  vault.cumulativeHarvestedAmount0USD = vault.cumulativeHarvestedAmount0USD.plus(harvest.harvestedAmount0USD)
-  vault.cumulativeHarvestedAmount1USD = vault.cumulativeHarvestedAmount1USD.plus(harvest.harvestedAmount1USD)
-  vault.cumulativeHarvestValueUSD = vault.cumulativeHarvestedAmount0USD.plus(vault.cumulativeHarvestedAmount1USD)
+  vault.cumulativeCompoundedAmount0 = vault.cumulativeCompoundedAmount0.plus(harvest.compoundedAmount0)
+  vault.cumulativeCompoundedAmount1 = vault.cumulativeCompoundedAmount1.plus(harvest.compoundedAmount1)
+  vault.cumulativeCompoundedAmount0USD = vault.cumulativeCompoundedAmount0USD.plus(harvest.compoundedAmount0USD)
+  vault.cumulativeCompoundedAmount1USD = vault.cumulativeCompoundedAmount1USD.plus(harvest.compoundedAmount1USD)
+  vault.cumulativeCompoundedValueUSD = vault.cumulativeCompoundedAmount0USD.plus(vault.cumulativeCompoundedAmount1USD)
   vault.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("handleStrategyHarvest: updating vault snapshot for vault {} and period {}", [
@@ -133,11 +133,11 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
     ])
     const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
     vaultSnapshot.harvestCount += 1
-    vaultSnapshot.harvestedAmount0 = vaultSnapshot.harvestedAmount0.plus(harvest.harvestedAmount0)
-    vaultSnapshot.harvestedAmount1 = vaultSnapshot.harvestedAmount1.plus(harvest.harvestedAmount1)
-    vaultSnapshot.harvestedAmount0USD = vaultSnapshot.harvestedAmount0USD.plus(harvest.harvestedAmount0USD)
-    vaultSnapshot.harvestedAmount1USD = vaultSnapshot.harvestedAmount1USD.plus(harvest.harvestedAmount1USD)
-    vaultSnapshot.harvestValueUSD = vaultSnapshot.harvestedAmount0USD.plus(vaultSnapshot.harvestedAmount1USD)
+    vaultSnapshot.compoundedAmount0 = vaultSnapshot.compoundedAmount0.plus(harvest.compoundedAmount0)
+    vaultSnapshot.compoundedAmount1 = vaultSnapshot.compoundedAmount1.plus(harvest.compoundedAmount1)
+    vaultSnapshot.compoundedAmount0USD = vaultSnapshot.compoundedAmount0USD.plus(harvest.compoundedAmount0USD)
+    vaultSnapshot.compoundedAmount1USD = vaultSnapshot.compoundedAmount1USD.plus(harvest.compoundedAmount1USD)
+    vaultSnapshot.compoundedValueUSD = vaultSnapshot.compoundedAmount0USD.plus(vaultSnapshot.compoundedAmount1USD)
     vaultSnapshot.save()
   }
 
@@ -154,23 +154,23 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
     positivePositionCount += 1
 
     const positionPercentOfTotalSupply = position.sharesBalance.div(sharesTotalSupply)
-    const positionChangeUSD = positionPercentOfTotalSupply.times(harvest.harvestValueUSD)
+    const positionChangeUSD = positionPercentOfTotalSupply.times(harvest.compoundedValueUSD)
 
     log.debug("handleStrategyHarvest: updating investor position for investor {}", [position.investor.toHexString()])
     let investor = getInvestor(position.investor)
-    position.cumulativeHarvestedAmount0 = position.cumulativeHarvestedAmount0.plus(
-      harvest.harvestedAmount0.times(positionPercentOfTotalSupply),
+    position.cumulativeCompoundedAmount0 = position.cumulativeCompoundedAmount0.plus(
+      harvest.compoundedAmount0.times(positionPercentOfTotalSupply),
     )
-    position.cumulativeHarvestedAmount1 = position.cumulativeHarvestedAmount1.plus(
-      harvest.harvestedAmount1.times(positionPercentOfTotalSupply),
+    position.cumulativeCompoundedAmount1 = position.cumulativeCompoundedAmount1.plus(
+      harvest.compoundedAmount1.times(positionPercentOfTotalSupply),
     )
-    position.cumulativeHarvestedAmount0USD = position.cumulativeHarvestedAmount0USD.plus(
-      harvest.harvestedAmount0USD.times(positionPercentOfTotalSupply),
+    position.cumulativeCompoundedAmount0USD = position.cumulativeCompoundedAmount0USD.plus(
+      harvest.compoundedAmount0USD.times(positionPercentOfTotalSupply),
     )
-    position.cumulativeHarvestedAmount1USD = position.cumulativeHarvestedAmount1USD.plus(
-      harvest.harvestedAmount1USD.times(positionPercentOfTotalSupply),
+    position.cumulativeCompoundedAmount1USD = position.cumulativeCompoundedAmount1USD.plus(
+      harvest.compoundedAmount1USD.times(positionPercentOfTotalSupply),
     )
-    position.cumulativeHarvestValueUSD = position.cumulativeHarvestValueUSD.plus(positionChangeUSD)
+    position.cumulativeCompoundedValueUSD = position.cumulativeCompoundedValueUSD.plus(positionChangeUSD)
     position.save()
     for (let i = 0; i < periods.length; i++) {
       log.debug("handleStrategyHarvest: updating investor position snapshot for investor {} and period {}", [
@@ -178,24 +178,24 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
         periods[i].toString(),
       ])
       const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, periods[i])
-      positionSnapshot.harvestedAmount0 = positionSnapshot.harvestedAmount0.plus(
-        harvest.harvestedAmount0.times(positionPercentOfTotalSupply),
+      positionSnapshot.compoundedAmount0 = positionSnapshot.compoundedAmount0.plus(
+        harvest.compoundedAmount0.times(positionPercentOfTotalSupply),
       )
-      positionSnapshot.harvestedAmount1 = positionSnapshot.harvestedAmount1.plus(
-        harvest.harvestedAmount1.times(positionPercentOfTotalSupply),
+      positionSnapshot.compoundedAmount1 = positionSnapshot.compoundedAmount1.plus(
+        harvest.compoundedAmount1.times(positionPercentOfTotalSupply),
       )
-      positionSnapshot.harvestedAmount0USD = positionSnapshot.harvestedAmount0USD.plus(
-        harvest.harvestedAmount0USD.times(positionPercentOfTotalSupply),
+      positionSnapshot.compoundedAmount0USD = positionSnapshot.compoundedAmount0USD.plus(
+        harvest.compoundedAmount0USD.times(positionPercentOfTotalSupply),
       )
-      positionSnapshot.harvestedAmount1USD = positionSnapshot.harvestedAmount1USD.plus(
-        harvest.harvestedAmount1USD.times(positionPercentOfTotalSupply),
+      positionSnapshot.compoundedAmount1USD = positionSnapshot.compoundedAmount1USD.plus(
+        harvest.compoundedAmount1USD.times(positionPercentOfTotalSupply),
       )
-      positionSnapshot.harvestValueUSD = positionSnapshot.harvestValueUSD.plus(positionChangeUSD)
+      positionSnapshot.compoundedValueUSD = positionSnapshot.compoundedValueUSD.plus(positionChangeUSD)
       positionSnapshot.save()
     }
 
     log.debug("handleStrategyHarvest: updating investor for investor {}", [position.investor.toHexString()])
-    investor.cumulativeHarvestValueUSD = investor.cumulativeHarvestValueUSD.plus(positionChangeUSD)
+    investor.cumulativeCompoundedValueUSD = investor.cumulativeCompoundedValueUSD.plus(positionChangeUSD)
     investor.save()
     for (let i = 0; i < periods.length; i++) {
       log.debug("handleStrategyHarvest: updating investor snapshot for investor {} and period {}", [
@@ -203,7 +203,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
         periods[i].toString(),
       ])
       const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, periods[i])
-      investorSnapshot.harvestValueUSD = investorSnapshot.harvestValueUSD.plus(positionChangeUSD)
+      investorSnapshot.compoundedValueUSD = investorSnapshot.compoundedValueUSD.plus(positionChangeUSD)
       investorSnapshot.save()
     }
   }

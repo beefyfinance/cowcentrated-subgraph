@@ -33,11 +33,11 @@ export function getInvestorPosition(vault: BeefyCLVault, investor: Investor): In
     position.positionValueUSD = ZERO_BD
     position.averageDailyPositionValueUSD30D = ZERO_BD
     position.last30DailyPositionValuesUSD = new Array<BigDecimal>()
-    position.cumulativeHarvestedAmount0 = ZERO_BD
-    position.cumulativeHarvestedAmount1 = ZERO_BD
-    position.cumulativeHarvestedAmount0USD = ZERO_BD
-    position.cumulativeHarvestedAmount1USD = ZERO_BD
-    position.cumulativeHarvestValueUSD = ZERO_BD
+    position.cumulativeCompoundedAmount0 = ZERO_BD
+    position.cumulativeCompoundedAmount1 = ZERO_BD
+    position.cumulativeCompoundedAmount0USD = ZERO_BD
+    position.cumulativeCompoundedAmount1USD = ZERO_BD
+    position.cumulativeCompoundedValueUSD = ZERO_BD
   }
   return position
 }
@@ -64,11 +64,11 @@ export function getInvestorPositionSnapshot(
     snapshot.underlyingBalance0USD = ZERO_BD
     snapshot.underlyingBalance1USD = ZERO_BD
     snapshot.positionValueUSD = ZERO_BD
-    snapshot.harvestedAmount0 = ZERO_BD
-    snapshot.harvestedAmount1 = ZERO_BD
-    snapshot.harvestedAmount0USD = ZERO_BD
-    snapshot.harvestedAmount1USD = ZERO_BD
-    snapshot.harvestValueUSD = ZERO_BD
+    snapshot.compoundedAmount0 = ZERO_BD
+    snapshot.compoundedAmount1 = ZERO_BD
+    snapshot.compoundedAmount0USD = ZERO_BD
+    snapshot.compoundedAmount1USD = ZERO_BD
+    snapshot.compoundedValueUSD = ZERO_BD
   }
 
   // copy non-reseting values from the previous snapshot to the new snapshot

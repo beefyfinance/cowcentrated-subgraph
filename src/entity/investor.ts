@@ -23,7 +23,7 @@ export function getInvestor(accountAddress: Bytes): Investor {
     investor.cumulativeInteractionsCount = 0
     investor.cumulativeDepositCount = 0
     investor.cumulativeWithdrawCount = 0
-    investor.cumulativeHarvestValueUSD = ZERO_BD
+    investor.cumulativeCompoundedValueUSD = ZERO_BD
   }
 
   return investor
@@ -43,7 +43,7 @@ export function getInvestorSnapshot(investor: Investor, timestamp: BigInt, perio
     snapshot.interactionsCount = 0
     snapshot.depositCount = 0
     snapshot.withdrawCount = 0
-    snapshot.harvestValueUSD = ZERO_BD
+    snapshot.compoundedValueUSD = ZERO_BD
   }
 
   // copy non-reseting values from the previous snapshot to the new snapshot
