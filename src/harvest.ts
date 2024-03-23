@@ -110,6 +110,8 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   harvest.harvestedAmount0USD = harvest.harvestedAmount0.times(token0PriceInUSD)
   harvest.harvestedAmount1USD = harvest.harvestedAmount1.times(token1PriceInUSD)
   harvest.harvestValueUSD = harvest.harvestedAmount0USD.plus(harvest.harvestedAmount1USD)
+  harvest.priceOfToken0InToken1 = currentPriceInToken1
+  harvest.priceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
   harvest.save()
 
   ///////
