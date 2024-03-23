@@ -97,8 +97,8 @@ export function getVaultPriceRangeInToken1(strategyAddress: Bytes, throwOnError:
   }
   // this is purposely inverted as we want prices in token1
   const encodingDecimals = BigInt.fromU32(36)
-  const rangeMinToken1Price = tokenAmountToDecimal(BigInt.fromU64(rangeRes.value.value0), encodingDecimals)
-  const rangeMaxToken1Price = tokenAmountToDecimal(BigInt.fromU64(rangeRes.value.value1), encodingDecimals)
+  const rangeMinToken1Price = tokenAmountToDecimal(rangeRes.value.value0, encodingDecimals)
+  const rangeMaxToken1Price = tokenAmountToDecimal(rangeRes.value.value1, encodingDecimals)
   return new PriceRange(rangeMinToken1Price, rangeMaxToken1Price)
 }
 

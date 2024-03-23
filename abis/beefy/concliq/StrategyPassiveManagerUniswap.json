@@ -1,1383 +1,672 @@
 [
   {
-    "type": "function",
-    "name": "balances",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "token0Bal",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "token1Bal",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "balancesOfPool",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "token0Bal",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "token1Bal",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "mainAmount0",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "mainAmount1",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "altAmount0",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "altAmount1",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "balancesOfThis",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "token0Bal",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "token1Bal",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "beefyFeeConfig",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IFeeConfig"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "beefyFeeRecipient",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "beforeAction",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "currentTick",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "tick",
-        "type": "int24",
-        "internalType": "int24"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "deposit",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "depositFee",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "fees0",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "fees1",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getAllFees",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "tuple",
-        "internalType": "struct IFeeConfig.AllFees",
-        "components": [
-          {
-            "name": "performance",
-            "type": "tuple",
-            "internalType": "struct IFeeConfig.FeeCategory",
-            "components": [
-              {
-                "name": "total",
-                "type": "uint256",
-                "internalType": "uint256"
-              },
-              {
-                "name": "beefy",
-                "type": "uint256",
-                "internalType": "uint256"
-              },
-              {
-                "name": "call",
-                "type": "uint256",
-                "internalType": "uint256"
-              },
-              {
-                "name": "strategist",
-                "type": "uint256",
-                "internalType": "uint256"
-              },
-              {
-                "name": "label",
-                "type": "string",
-                "internalType": "string"
-              },
-              {
-                "name": "active",
-                "type": "bool",
-                "internalType": "bool"
-              }
-            ]
-          },
-          {
-            "name": "deposit",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "withdraw",
-            "type": "uint256",
-            "internalType": "uint256"
-          }
-        ]
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getKeys",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "keyMain",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "keyAlt",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getStratFeeId",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "harvest",
-    "inputs": [
-      {
-        "name": "_callFeeRecipient",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "harvest",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "initialize",
-    "inputs": [
-      {
-        "name": "_pool",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_native",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_positionWidth",
-        "type": "int24",
-        "internalType": "int24"
-      },
-      {
-        "name": "_lpToken0ToNativePath",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
-        "name": "_lpToken1ToNativePath",
-        "type": "bytes",
-        "internalType": "bytes"
-      },
-      {
-        "name": "_commonAddresses",
-        "type": "tuple",
-        "internalType": "struct StratFeeManagerInitializable.CommonAddresses",
-        "components": [
-          {
-            "name": "vault",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "unirouter",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "keeper",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "strategist",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "beefyFeeRecipient",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "beefyFeeConfig",
-            "type": "address",
-            "internalType": "address"
-          }
-        ]
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "keeper",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "lastHarvest",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "lockedProfit",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "locked0",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "locked1",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "lpToken0",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "lpToken0ToNative",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address[]",
-        "internalType": "address[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "lpToken0ToNativePath",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes",
-        "internalType": "bytes"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "lpToken1",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "lpToken1ToNative",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address[]",
-        "internalType": "address[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "lpToken1ToNativePath",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes",
-        "internalType": "bytes"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "maxTickDeviation",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "int56",
-        "internalType": "int56"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "native",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "owner",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "panic",
-    "inputs": [
-      {
-        "name": "_minAmount0",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_minAmount1",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "paused",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "pool",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "positionAlt",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "tickLower",
-        "type": "int24",
-        "internalType": "int24"
-      },
-      {
-        "name": "tickUpper",
-        "type": "int24",
-        "internalType": "int24"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "positionMain",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "tickLower",
-        "type": "int24",
-        "internalType": "int24"
-      },
-      {
-        "name": "tickUpper",
-        "type": "int24",
-        "internalType": "int24"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "positionWidth",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "int24",
-        "internalType": "int24"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "price",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "_price",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "range",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "tickLower",
-        "type": "int24",
-        "internalType": "int24"
-      },
-      {
-        "name": "tickUpper",
-        "type": "int24",
-        "internalType": "int24"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "renounceOwnership",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setBeefyFeeConfig",
-    "inputs": [
-      {
-        "name": "_beefyFeeConfig",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setBeefyFeeRecipient",
-    "inputs": [
-      {
-        "name": "_beefyFeeRecipient",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setDeviation",
-    "inputs": [
-      {
-        "name": "_maxDeviation",
-        "type": "int56",
-        "internalType": "int56"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setKeeper",
-    "inputs": [
-      {
-        "name": "_keeper",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setLpToken0ToNativePath",
-    "inputs": [
-      {
-        "name": "_path",
-        "type": "bytes",
-        "internalType": "bytes"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setLpToken1ToNativePath",
-    "inputs": [
-      {
-        "name": "_path",
-        "type": "bytes",
-        "internalType": "bytes"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setPositionWidth",
-    "inputs": [
-      {
-        "name": "_width",
-        "type": "int24",
-        "internalType": "int24"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setStratFeeId",
-    "inputs": [
-      {
-        "name": "_feeId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setStrategist",
-    "inputs": [
-      {
-        "name": "_strategist",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setTwapInterval",
-    "inputs": [
-      {
-        "name": "_interval",
-        "type": "int32",
-        "internalType": "int32"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setUnirouter",
-    "inputs": [
-      {
-        "name": "_unirouter",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "sqrtPrice",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "sqrtPriceX96",
-        "type": "uint160",
-        "internalType": "uint160"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "strategist",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "totalLocked0",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "totalLocked1",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "transferOwnership",
-    "inputs": [
-      {
-        "name": "newOwner",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "twap",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "twapTick",
-        "type": "int56",
-        "internalType": "int56"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "twapInterval",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "int32",
-        "internalType": "int32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "unirouter",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "uniswapV3MintCallback",
-    "inputs": [
-      {
-        "name": "amount0",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "amount1",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "",
-        "type": "bytes",
-        "internalType": "bytes"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "unpause",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "vault",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "withdraw",
-    "inputs": [
-      {
-        "name": "_amount0",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_amount1",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "withdrawFee",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "event",
-    "name": "ChargedFees",
-    "inputs": [
-      {
-        "name": "callFeeAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "beefyFeeAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "strategistFeeAmount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "ClaimedFees",
-    "inputs": [
-      {
-        "name": "feeMain0",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "feeMain1",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "feeAlt0",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "feeAlt1",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "Deposit",
-    "inputs": [
-      {
-        "name": "bal0",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "bal1",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "Harvest",
-    "inputs": [
-      {
-        "name": "fee0",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "fee1",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "Initialized",
-    "inputs": [
-      {
-        "name": "version",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "OwnershipTransferred",
-    "inputs": [
-      {
-        "name": "previousOwner",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "newOwner",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "Paused",
-    "inputs": [
-      {
-        "name": "account",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetBeefyFeeConfig",
-    "inputs": [
-      {
-        "name": "beefyFeeConfig",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetBeefyFeeRecipient",
-    "inputs": [
-      {
-        "name": "beefyFeeRecipient",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetDeviation",
-    "inputs": [
-      {
-        "name": "maxTickDeviation",
-        "type": "int56",
-        "indexed": false,
-        "internalType": "int56"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetKeeper",
-    "inputs": [
-      {
-        "name": "keeper",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetLpToken0ToNativePath",
-    "inputs": [
-      {
-        "name": "path",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetLpToken1ToNativePath",
-    "inputs": [
-      {
-        "name": "path",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetPositionWidth",
-    "inputs": [
-      {
-        "name": "oldWidth",
-        "type": "int24",
-        "indexed": false,
-        "internalType": "int24"
-      },
-      {
-        "name": "width",
-        "type": "int24",
-        "indexed": false,
-        "internalType": "int24"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetStratFeeId",
-    "inputs": [
-      {
-        "name": "feeId",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetStrategist",
-    "inputs": [
-      {
-        "name": "strategist",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetTwapInterval",
-    "inputs": [
-      {
-        "name": "oldInterval",
-        "type": "int32",
-        "indexed": false,
-        "internalType": "int32"
-      },
-      {
-        "name": "interval",
-        "type": "int32",
-        "indexed": false,
-        "internalType": "int32"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetUnirouter",
-    "inputs": [
-      {
-        "name": "unirouter",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "Unpaused",
-    "inputs": [
-      {
-        "name": "account",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "Withdraw",
-    "inputs": [
-      {
-        "name": "bal0",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "bal1",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "error",
+    "inputs": [{ "internalType": "address", "name": "target", "type": "address" }],
     "name": "AddressEmptyCode",
-    "inputs": [
-      {
-        "name": "target",
-        "type": "address",
-        "internalType": "address"
-      }
-    ]
+    "type": "error"
   },
   {
-    "type": "error",
+    "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
     "name": "AddressInsufficientBalance",
-    "inputs": [
-      {
-        "name": "account",
-        "type": "address",
-        "internalType": "address"
-      }
-    ]
+    "type": "error"
   },
+  { "inputs": [], "name": "FailedInnerCall", "type": "error" },
+  { "inputs": [], "name": "InvalidEntry", "type": "error" },
+  { "inputs": [], "name": "InvalidInput", "type": "error" },
+  { "inputs": [], "name": "InvalidOutput", "type": "error" },
+  { "inputs": [], "name": "NotAuthorized", "type": "error" },
+  { "inputs": [], "name": "NotCalm", "type": "error" },
+  { "inputs": [], "name": "NotManager", "type": "error" },
+  { "inputs": [], "name": "NotPool", "type": "error" },
+  { "inputs": [], "name": "NotStrategist", "type": "error" },
+  { "inputs": [], "name": "NotVault", "type": "error" },
+  { "inputs": [], "name": "OverLimit", "type": "error" },
   {
-    "type": "error",
-    "name": "FailedInnerCall",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidEntry",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidInput",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidOutput",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotAuthorized",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotCalm",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotManager",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotPool",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotStrategist",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NotVault",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "OverLimit",
-    "inputs": []
-  },
-  {
-    "type": "error",
+    "inputs": [{ "internalType": "address", "name": "token", "type": "address" }],
     "name": "SafeERC20FailedOperation",
+    "type": "error"
+  },
+  { "inputs": [], "name": "TooMuchSlippage", "type": "error" },
+  {
+    "anonymous": false,
     "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      }
-    ]
+      { "indexed": false, "internalType": "uint256", "name": "callFeeAmount", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "beefyFeeAmount", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "strategistFeeAmount", "type": "uint256" }
+    ],
+    "name": "ChargedFees",
+    "type": "event"
   },
   {
-    "type": "error",
-    "name": "TooMuchSlippage",
-    "inputs": []
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "feeMain0", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "feeMain1", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "feeAlt0", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "feeAlt1", "type": "uint256" }
+    ],
+    "name": "ClaimedFees",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "bal0", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "bal1", "type": "uint256" }
+    ],
+    "name": "Deposit",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "fee0", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "fee1", "type": "uint256" }
+    ],
+    "name": "Harvest",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "uint8", "name": "version", "type": "uint8" }],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "address", "name": "previousOwner", "type": "address" },
+      { "indexed": true, "internalType": "address", "name": "newOwner", "type": "address" }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "address", "name": "account", "type": "address" }],
+    "name": "Paused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "address", "name": "beefyFeeConfig", "type": "address" }],
+    "name": "SetBeefyFeeConfig",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "address", "name": "beefyFeeRecipient", "type": "address" }],
+    "name": "SetBeefyFeeRecipient",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "int56", "name": "maxTickDeviation", "type": "int56" }],
+    "name": "SetDeviation",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "address", "name": "keeper", "type": "address" }],
+    "name": "SetKeeper",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "bytes", "name": "path", "type": "bytes" }],
+    "name": "SetLpToken0ToNativePath",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "bytes", "name": "path", "type": "bytes" }],
+    "name": "SetLpToken1ToNativePath",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "int24", "name": "oldWidth", "type": "int24" },
+      { "indexed": false, "internalType": "int24", "name": "width", "type": "int24" }
+    ],
+    "name": "SetPositionWidth",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "uint256", "name": "feeId", "type": "uint256" }],
+    "name": "SetStratFeeId",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "address", "name": "strategist", "type": "address" }],
+    "name": "SetStrategist",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "int32", "name": "oldInterval", "type": "int32" },
+      { "indexed": false, "internalType": "int32", "name": "interval", "type": "int32" }
+    ],
+    "name": "SetTwapInterval",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "address", "name": "unirouter", "type": "address" }],
+    "name": "SetUnirouter",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "address", "name": "account", "type": "address" }],
+    "name": "Unpaused",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "bal0", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "bal1", "type": "uint256" }
+    ],
+    "name": "Withdraw",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "balances",
+    "outputs": [
+      { "internalType": "uint256", "name": "token0Bal", "type": "uint256" },
+      { "internalType": "uint256", "name": "token1Bal", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "balancesOfPool",
+    "outputs": [
+      { "internalType": "uint256", "name": "token0Bal", "type": "uint256" },
+      { "internalType": "uint256", "name": "token1Bal", "type": "uint256" },
+      { "internalType": "uint256", "name": "mainAmount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "mainAmount1", "type": "uint256" },
+      { "internalType": "uint256", "name": "altAmount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "altAmount1", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "balancesOfThis",
+    "outputs": [
+      { "internalType": "uint256", "name": "token0Bal", "type": "uint256" },
+      { "internalType": "uint256", "name": "token1Bal", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "beefyFeeConfig",
+    "outputs": [{ "internalType": "contract IFeeConfig", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "beefyFeeRecipient",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  { "inputs": [], "name": "beforeAction", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  {
+    "inputs": [],
+    "name": "claimEarnings",
+    "outputs": [
+      { "internalType": "uint256", "name": "fee0", "type": "uint256" },
+      { "internalType": "uint256", "name": "fee1", "type": "uint256" },
+      { "internalType": "uint256", "name": "feeAlt0", "type": "uint256" },
+      { "internalType": "uint256", "name": "feeAlt1", "type": "uint256" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "currentTick",
+    "outputs": [{ "internalType": "int24", "name": "tick", "type": "int24" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  { "inputs": [], "name": "deposit", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  {
+    "inputs": [],
+    "name": "depositFee",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fees0",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "fees1",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAllFees",
+    "outputs": [
+      {
+        "components": [
+          {
+            "components": [
+              { "internalType": "uint256", "name": "total", "type": "uint256" },
+              { "internalType": "uint256", "name": "beefy", "type": "uint256" },
+              { "internalType": "uint256", "name": "call", "type": "uint256" },
+              { "internalType": "uint256", "name": "strategist", "type": "uint256" },
+              { "internalType": "string", "name": "label", "type": "string" },
+              { "internalType": "bool", "name": "active", "type": "bool" }
+            ],
+            "internalType": "struct IFeeConfig.FeeCategory",
+            "name": "performance",
+            "type": "tuple"
+          },
+          { "internalType": "uint256", "name": "deposit", "type": "uint256" },
+          { "internalType": "uint256", "name": "withdraw", "type": "uint256" }
+        ],
+        "internalType": "struct IFeeConfig.AllFees",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getKeys",
+    "outputs": [
+      { "internalType": "bytes32", "name": "keyMain", "type": "bytes32" },
+      { "internalType": "bytes32", "name": "keyAlt", "type": "bytes32" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getStratFeeId",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "_callFeeRecipient", "type": "address" }],
+    "name": "harvest",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  { "inputs": [], "name": "harvest", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_pool", "type": "address" },
+      { "internalType": "address", "name": "_native", "type": "address" },
+      { "internalType": "int24", "name": "_positionWidth", "type": "int24" },
+      { "internalType": "bytes", "name": "_lpToken0ToNativePath", "type": "bytes" },
+      { "internalType": "bytes", "name": "_lpToken1ToNativePath", "type": "bytes" },
+      {
+        "components": [
+          { "internalType": "address", "name": "vault", "type": "address" },
+          { "internalType": "address", "name": "unirouter", "type": "address" },
+          { "internalType": "address", "name": "keeper", "type": "address" },
+          { "internalType": "address", "name": "strategist", "type": "address" },
+          { "internalType": "address", "name": "beefyFeeRecipient", "type": "address" },
+          { "internalType": "address", "name": "beefyFeeConfig", "type": "address" }
+        ],
+        "internalType": "struct StratFeeManagerInitializable.CommonAddresses",
+        "name": "_commonAddresses",
+        "type": "tuple"
+      }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "keeper",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lastHarvest",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lockedProfit",
+    "outputs": [
+      { "internalType": "uint256", "name": "locked0", "type": "uint256" },
+      { "internalType": "uint256", "name": "locked1", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lpToken0",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lpToken0ToNative",
+    "outputs": [{ "internalType": "address[]", "name": "", "type": "address[]" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lpToken0ToNativePath",
+    "outputs": [{ "internalType": "bytes", "name": "", "type": "bytes" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lpToken1",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lpToken1ToNative",
+    "outputs": [{ "internalType": "address[]", "name": "", "type": "address[]" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lpToken1ToNativePath",
+    "outputs": [{ "internalType": "bytes", "name": "", "type": "bytes" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxTickDeviation",
+    "outputs": [{ "internalType": "int56", "name": "", "type": "int56" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "native",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_minAmount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "_minAmount1", "type": "uint256" }
+    ],
+    "name": "panic",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paused",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "pool",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "positionAlt",
+    "outputs": [
+      { "internalType": "int24", "name": "tickLower", "type": "int24" },
+      { "internalType": "int24", "name": "tickUpper", "type": "int24" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "positionMain",
+    "outputs": [
+      { "internalType": "int24", "name": "tickLower", "type": "int24" },
+      { "internalType": "int24", "name": "tickUpper", "type": "int24" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "positionWidth",
+    "outputs": [{ "internalType": "int24", "name": "", "type": "int24" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "price",
+    "outputs": [{ "internalType": "uint256", "name": "_price", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "range",
+    "outputs": [
+      { "internalType": "uint256", "name": "lowerPrice", "type": "uint256" },
+      { "internalType": "uint256", "name": "upperPrice", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  {
+    "inputs": [{ "internalType": "address", "name": "_beefyFeeConfig", "type": "address" }],
+    "name": "setBeefyFeeConfig",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "_beefyFeeRecipient", "type": "address" }],
+    "name": "setBeefyFeeRecipient",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "int56", "name": "_maxDeviation", "type": "int56" }],
+    "name": "setDeviation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "_keeper", "type": "address" }],
+    "name": "setKeeper",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes", "name": "_path", "type": "bytes" }],
+    "name": "setLpToken0ToNativePath",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes", "name": "_path", "type": "bytes" }],
+    "name": "setLpToken1ToNativePath",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "int24", "name": "_width", "type": "int24" }],
+    "name": "setPositionWidth",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "uint256", "name": "_feeId", "type": "uint256" }],
+    "name": "setStratFeeId",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "_strategist", "type": "address" }],
+    "name": "setStrategist",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "int32", "name": "_interval", "type": "int32" }],
+    "name": "setTwapInterval",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "_unirouter", "type": "address" }],
+    "name": "setUnirouter",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "sqrtPrice",
+    "outputs": [{ "internalType": "uint160", "name": "sqrtPriceX96", "type": "uint160" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "strategist",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalLocked0",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalLocked1",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "newOwner", "type": "address" }],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "twap",
+    "outputs": [{ "internalType": "int56", "name": "twapTick", "type": "int56" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "twapInterval",
+    "outputs": [{ "internalType": "int32", "name": "", "type": "int32" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "unirouter",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "amount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "amount1", "type": "uint256" },
+      { "internalType": "bytes", "name": "", "type": "bytes" }
+    ],
+    "name": "uniswapV3MintCallback",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  { "inputs": [], "name": "unpause", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  {
+    "inputs": [],
+    "name": "vault",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_amount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "_amount1", "type": "uint256" }
+    ],
+    "name": "withdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "withdrawFee",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
   }
 ]

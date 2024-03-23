@@ -2,8 +2,8 @@
   "network": "optimism",
 
   "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
-  "vaultFactoryAddress": "0xf0C7eD247e22Bb0BaACA1F7975C8F02D79954198",
-  "vaultFactoryStartBlock": 117428248,
+  "vaultFactoryAddress": "0x63C381013fa310ea4715E0f435dea56B19dc1aa7",
+  "vaultFactoryStartBlock": 117800956,
   "clockTickBlocks": 750,
 
   "wrappedNativeAddress": "0x4200000000000000000000000000000000000006",

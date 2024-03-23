@@ -2,8 +2,8 @@
   "network": "arbitrum-one",
 
   "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
-  "vaultFactoryAddress": "0xef79A90A93084e1d2a2b4ecD1F783e937C80Ef4C",
-  "vaultFactoryStartBlock": 190612486,
+  "vaultFactoryAddress": "0xAad99bCdcf5aD316da55fDF7E5d23613407A8748",
+  "vaultFactoryStartBlock": 193388971,
   "clockTickBlocks": 3600,
 
   "wrappedNativeAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
