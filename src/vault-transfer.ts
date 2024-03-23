@@ -8,7 +8,7 @@ import { getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./enti
 import { getTransaction } from "./entity/transaction"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestor, getInvestorSnapshot, isNewInvestor } from "./entity/investor"
-import { ZERO_BD, ZERO_BI, tokenAmountToDecimal } from "./utils/decimal"
+import { ONE_BD, ZERO_BD, ZERO_BI, tokenAmountToDecimal } from "./utils/decimal"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "./../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getToken } from "./entity/token"
@@ -179,11 +179,29 @@ function updateUserPosition(
   position.underlyingBalance1USD = position.underlyingBalance1.times(token1PriceInUSD)
   position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)
   const sharesBalanceDelta = position.sharesBalance.minus(previousSharesBalance)
+  const shareBalancePercentChange = previousSharesBalance.gt(ZERO_BD)
+    ? sharesBalanceDelta.div(previousSharesBalance)
+    : ZERO_BD
   const underlyingBalance0Delta = position.underlyingBalance0.minus(previousUnderlyingBalance0)
   const underlyingBalance1Delta = position.underlyingBalance1.minus(previousUnderlyingBalance1)
   const underlyingBalance0DeltaUSD = position.underlyingBalance0USD.minus(previousUnderlyingBalance0USD)
   const underlyingBalance1DeltaUSD = position.underlyingBalance1USD.minus(previousUnderlyingBalance1USD)
   const positionValueUSDDelta = position.positionValueUSD.minus(previousPositionValueUSD)
+  if (isNewPosition) {
+    position.initialUnderlyingBalance0 = position.underlyingBalance0
+    position.initialUnderlyingBalance1 = position.underlyingBalance0
+    position.initialUnderlyingBalance0USD = position.underlyingBalance0
+    position.initialUnderlyingBalance1USD = position.underlyingBalance0
+    position.initialPositionValueUSD = position.underlyingBalance0
+  } else {
+    // apply the share balance percent change to the initial position value
+    const mult = shareBalancePercentChange.plus(ONE_BD)
+    position.initialUnderlyingBalance0 = position.initialUnderlyingBalance0.times(mult)
+    position.initialUnderlyingBalance1 = position.initialUnderlyingBalance1.times(mult)
+    position.initialUnderlyingBalance0USD = position.initialUnderlyingBalance0USD.times(mult)
+    position.initialUnderlyingBalance1USD = position.initialUnderlyingBalance1USD.times(mult)
+    position.initialPositionValueUSD = position.initialPositionValueUSD.times(mult)
+  }
   position.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("updateUserPosition: updating investor position snapshot of investor {} for vault {} and period {}", [

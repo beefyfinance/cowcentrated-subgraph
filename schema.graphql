@@ -656,6 +656,17 @@ type InvestorPosition @entity {
   "The amount of shares the investor holds"
   sharesBalance: BigDecimal!
 
+  "Initial amount of token0 the investor deposited. This includes for new deposits and withdrawals."
+  initialUnderlyingBalance0: BigDecimal!
+  "Initial amount of token1 the investor deposited. This includes for new deposits and withdrawals."
+  initialUnderlyingBalance1: BigDecimal!
+  "Initial amount of token0 the investor deposited in USD. This includes for new deposits and withdrawals."
+  initialUnderlyingBalance0USD: BigDecimal!
+  "Initial amount of token1 the investor deposited in USD. This includes for new deposits and withdrawals."
+  initialUnderlyingBalance1USD: BigDecimal!
+  "Initial position value in USD. This includes for new deposits and withdrawals."
+  initialPositionValueUSD: BigDecimal!
+
   "The amount of first underlying tokens the investor is entitled to"
   underlyingBalance0: BigDecimal!
   "The amount of second underlying tokens the investor is entitled to"
