@@ -24,7 +24,7 @@ export function handleVaultDeposit(event: DepositEvent): void {
 export function handleVaultWithdraw(event: WithdrawEvent): void {
   updateUserPosition(event, event.params.user, false, false)
 }
-export function handleTransfer(event: TransferEvent): void {
+export function handleVaultTransfer(event: TransferEvent): void {
   updateUserPosition(event, event.params.to, true, true)
   updateUserPosition(event, event.params.from, false, true)
 }
