@@ -110,6 +110,7 @@ export function handleNew15Minutes(tick: ClockTick): void {
     // update latest vault usd values
     log.debug("handleNew15Minutes: updating vault usd values for vault {}", [vault.id.toHexString()])
     vault.currentPriceOfToken0InToken1 = currentPriceInToken1
+    vault.currentPriceOfToken0InUSD = token0PriceInUSD
     vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
     vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
     vault.underlyingAmount0 = vaultBalanceUnderlying0
@@ -245,6 +246,7 @@ export function handleNewDay(tick: ClockTick): void {
     // update vault usd values
     log.debug("handleNewDay: updating vault usd values for vault {}", [vault.id.toHexString()])
     vault.currentPriceOfToken0InToken1 = currentPriceInToken1
+    vault.currentPriceOfToken0InUSD = token0PriceInUSD
     vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
     vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
     vault.underlyingAmount0 = vaultBalanceUnderlying0
@@ -261,6 +263,7 @@ export function handleNewDay(tick: ClockTick): void {
     ])
     const vaultSnapshot = getBeefyCLVaultSnapshot(vault, tick.timestamp, period)
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
+    vaultSnapshot.currentPriceOfToken0InUSD = vault.currentPriceOfToken0InUSD
     vaultSnapshot.priceRangeMinUSD = vault.priceRangeMinUSD
     vaultSnapshot.priceRangeMaxUSD = vault.priceRangeMaxUSD
     vaultSnapshot.underlyingAmount0 = vault.underlyingAmount0

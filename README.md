@@ -108,3 +108,6 @@ yarn test:lint # run prettier linter
 - feat: add APR
 - feat: add P&L
 - feat: handle boosts
+- feat: handle zap?
+- feat: fetch vault fees %?
+-

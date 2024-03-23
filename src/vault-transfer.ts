@@ -197,6 +197,7 @@ function updateUserPosition(
   // update vault entities
   log.debug("updateUserPosition: updating vault entities for vault {}", [vault.id.toHexString()])
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
+  vault.currentPriceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
   vault.priceRangeMin1 = rangeToken1Price.min
   vault.priceRangeMax1 = rangeToken1Price.max
   vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
@@ -216,6 +217,7 @@ function updateUserPosition(
     ])
     const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
+    vaultSnapshot.currentPriceOfToken0InUSD = vault.currentPriceOfToken0InUSD
     vaultSnapshot.priceRangeMin1 = vault.priceRangeMin1
     vaultSnapshot.priceRangeMax1 = vault.priceRangeMax1
     vaultSnapshot.priceRangeMinUSD = vault.priceRangeMinUSD

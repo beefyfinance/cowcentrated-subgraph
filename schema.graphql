@@ -252,6 +252,10 @@ type BeefyCLVault @entity {
   For example, if the vault is a BTC/ETH vault, this is the price of 1 BTC in ETH
   """
   currentPriceOfToken0InToken1: BigDecimal!
+  """
+  Current price of the token zero in USD
+  """
+  currentPriceOfToken0InUSD: BigDecimal!
 
   "Price range start this vault is currently configured to operate in, in token 1"
   priceRangeMin1: BigDecimal!
@@ -351,6 +355,11 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   For example, if the vault is a BTC/ETH vault, this is the price of 1 BTC in ETH
   """
   currentPriceOfToken0InToken1: BigDecimal!
+
+  """
+  Current price of the token zero in USD
+  """
+  currentPriceOfToken0InUSD: BigDecimal!
 
   "Price range start this vault is currently configured to operate in, in token 1"
   priceRangeMin1: BigDecimal!
