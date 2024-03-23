@@ -108,7 +108,3 @@ yarn test:lint # run prettier linter
 - feat: add APR
 - feat: add P&L
 - feat: handle boosts
-- feat: handle moo token transfers (avoid duplication with deposit/withdraw events)
-- feat: use arrays for token amounts instead of token0, token1?
-  - might be more resilient to changes in the future
-  - might also be more annoying to work with

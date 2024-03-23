@@ -110,8 +110,8 @@ templates:
         - event: Withdraw(indexed address,uint256,uint256,uint256)
           handler: handleWithdraw
           receipt: true
-        #- event: Transfer(indexed address,indexed address,uint256)
-        #  handler: handleTransfer
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
 
   - name: BeefyCLStrategy
     kind: ethereum/contract

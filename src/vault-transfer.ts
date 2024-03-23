@@ -1,7 +1,8 @@
-import { Address, BigDecimal, BigInt, ethereum, log } from "@graphprotocol/graph-ts"
+import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts"
 import {
   Deposit as DepositEvent,
   Withdraw as WithdrawEvent,
+  Transfer as TransferEvent,
 } from "./../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
 import { getTransaction } from "./entity/transaction"
@@ -18,23 +19,22 @@ import { InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 
 export function handleVaultDeposit(event: DepositEvent): void {
-  updateUserPosition(event, event.params.user, true)
+  updateUserPosition(event, event.params.user, true, false)
 }
-
 export function handleVaultWithdraw(event: WithdrawEvent): void {
-  updateUserPosition(event, event.params.user, false)
+  updateUserPosition(event, event.params.user, false, false)
 }
-// export function handleTransfer(event: Transfer): void {
-// let sharesDelta = event.params.value
-// let underlyingDelta0 = BigInt.fromI32(0)
-// let underlyingDelta1 = BigInt.fromI32(0)
-//
-// TODO: this will fetch accounts and vaults twice
-// updateUserPosition(event, event.params.to, sharesDelta, underlyingDelta0, underlyingDelta1)
-// updateUserPosition(event, event.params.from, sharesDelta.neg(), underlyingDelta0.neg(), underlyingDelta1.neg())
-// }
+export function handleTransfer(event: TransferEvent): void {
+  updateUserPosition(event, event.params.to, true, true)
+  updateUserPosition(event, event.params.from, false, true)
+}
 
-function updateUserPosition(event: ethereum.Event, investorAddress: Address, isDeposit: boolean): void {
+function updateUserPosition(
+  event: ethereum.Event,
+  investorAddress: Address,
+  isDeposit: boolean,
+  isTransfer: boolean,
+): void {
   let vault = getBeefyCLVault(event.address)
   if (!isVaultRunning(vault)) {
     log.error("updateUserPosition: vault {} not active at block {}: {}", [
@@ -135,9 +135,7 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   if (ADDRESS_ZERO.equals(position.createdWith)) {
     position.createdWith = tx.id
   }
-  if (isNewPosition) {
-    position.positionOpenAtTimestamp = event.block.timestamp
-  }
+  if (isNewPosition) position.positionOpenAtTimestamp = event.block.timestamp
   if (isClosingPosition) {
     position.closedPositionDuration = position.closedPositionDuration.plus(
       event.block.timestamp.minus(position.positionOpenAtTimestamp),
@@ -178,7 +176,9 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   positionInteraction.investorPosition = position.id
   positionInteraction.createdWith = tx.id
   positionInteraction.timestamp = event.block.timestamp
-  positionInteraction.type = isDeposit ? "DEPOSIT" : "WITHDRAW"
+  if (isTransfer) positionInteraction.type = "TRANSFER"
+  if (!isTransfer && isDeposit) positionInteraction.type = "DEPOSIT"
+  if (!isTransfer && !isDeposit) positionInteraction.type = "WITHDRAW"
   positionInteraction.sharesBalance = position.sharesBalance
   positionInteraction.underlyingBalance0 = position.underlyingBalance0
   positionInteraction.underlyingBalance1 = position.underlyingBalance1
@@ -206,11 +206,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
   vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
   vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(positionValueUSDDelta)
-  if (isDeposit) {
-    vault.cumulativeDepositCount += 1
-  } else {
-    vault.cumulativeWithdrawCount += 1
-  }
+  if (!isTransfer && isDeposit) vault.cumulativeDepositCount += 1
+  if (!isTransfer && !isDeposit) vault.cumulativeWithdrawCount += 1
   vault.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("updateUserPosition: updating vault snapshot for vault {} and period {}", [
@@ -228,11 +225,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     vaultSnapshot.underlyingAmount0USD = vault.underlyingAmount0USD
     vaultSnapshot.underlyingAmount1USD = vault.underlyingAmount1USD
     vaultSnapshot.totalValueLockedUSD = vault.totalValueLockedUSD
-    if (isDeposit) {
-      vaultSnapshot.depositCount += 1
-    } else {
-      vaultSnapshot.withdrawCount += 1
-    }
+    if (!isTransfer && isDeposit) vaultSnapshot.depositCount += 1
+    if (!isTransfer && !isDeposit) vaultSnapshot.withdrawCount += 1
     vaultSnapshot.save()
   }
 
@@ -240,12 +234,10 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   // update protocol entities
   log.debug("updateUserPosition: updating protocol entities for vault {}", [vault.id.toHexString()])
   const protocol = getBeefyCLProtocol()
-  protocol.cumulativeTransactionCount += 1
-  protocol.cumulativeInvestorInteractionsCount += 1
+  if (!isTransfer || isDeposit) protocol.cumulativeTransactionCount += 1
+  if (!isTransfer || isDeposit) protocol.cumulativeInvestorInteractionsCount += 1
   protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(positionValueUSDDelta)
-  if (isNewPosition) {
-    protocol.activeInvestorCount += 1
-  }
+  if (isNewPosition) protocol.activeInvestorCount += 1
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("updateUserPosition: updating protocol snapshot for vault {} and period {}", [
@@ -254,14 +246,11 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     ])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
     protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
-    if (newInvestor) {
-      protocolSnapshot.newInvestorCount += 1
-    }
-    if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp)) {
+    if (newInvestor) protocolSnapshot.newInvestorCount += 1
+    if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))
       protocolSnapshot.uniqueActiveInvestorCount += 1
-    }
-    protocolSnapshot.transactionCount += 1
-    protocolSnapshot.investorInteractionsCount += 1
+    if (!isTransfer || isDeposit) protocolSnapshot.transactionCount += 1
+    if (!isTransfer || isDeposit) protocolSnapshot.investorInteractionsCount += 1
     protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
     protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
     protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
@@ -272,16 +261,10 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   ///////
   // update investor entities
   log.debug("updateUserPosition: updating investor entities for investor {}", [investor.id.toHexString()])
-  if (isNewPosition) {
-    investor.activePositionCount += 1
-  }
-  if (isClosingPosition) {
-    investor.activePositionCount -= 1
-  }
+  if (isNewPosition) investor.activePositionCount += 1
+  if (isClosingPosition) investor.activePositionCount -= 1
   const isEnteringTheProtocol = newInvestor || (isNewPosition && investor.activePositionCount === 1)
-  if (isEnteringTheProtocol) {
-    investor.currentInvestmentOpenAtTimestamp = event.block.timestamp
-  }
+  if (isEnteringTheProtocol) investor.currentInvestmentOpenAtTimestamp = event.block.timestamp
   const isExitingTheProtocol = investor.activePositionCount > 0
   if (!isExitingTheProtocol) {
     investor.closedInvestmentDuration = investor.closedInvestmentDuration.plus(
@@ -292,11 +275,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
   investor.lastInteractionAt = event.block.timestamp
   investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionValueUSDDelta)
   investor.cumulativeInteractionsCount += 1
-  if (isDeposit) {
-    investor.cumulativeDepositCount += 1
-  } else {
-    investor.cumulativeWithdrawCount += 1
-  }
+  if (!isTransfer && isDeposit) investor.cumulativeDepositCount += 1
+  if (!isTransfer && !isDeposit) investor.cumulativeWithdrawCount += 1
   investor.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("updateUserPosition: updating investor snapshot for investor {} and period {}", [
@@ -306,11 +286,8 @@ function updateUserPosition(event: ethereum.Event, investorAddress: Address, isD
     const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, periods[i])
     investorSnapshot.totalPositionValueUSD = investor.totalPositionValueUSD
     investorSnapshot.interactionsCount += 1
-    if (isDeposit) {
-      investorSnapshot.depositCount += 1
-    } else {
-      investorSnapshot.withdrawCount += 1
-    }
+    if (!isTransfer && isDeposit) investorSnapshot.depositCount += 1
+    if (!isTransfer && !isDeposit) investorSnapshot.withdrawCount += 1
     investorSnapshot.save()
   }
 }
