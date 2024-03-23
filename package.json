@@ -16,6 +16,7 @@
     "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "prepare:arbitrum": "mustache config/arbitrum.json subgraph.template.yaml > subgraph.yaml && mustache config/arbitrum.json src/config.template.ts > src/config.ts ",
     "prepare:optimism": "mustache config/optimism.json subgraph.template.yaml > subgraph.yaml && mustache config/optimism.json src/config.template.ts > src/config.ts ",
+    "deploy:all": "yarn --silent deploy:all:0xgraph && yarn --silent deploy:all:goldsky",
     "deploy:all:0xgraph": "yarn --silent deploy:arbitrum:0xgraph && yarn --silent deploy:optimism:0xgraph",
     "deploy:arbitrum:0xgraph": "yarn --silent prepare:arbitrum && yarn --silent publish:arbitrum:0xgraph",
     "deploy:optimism:0xgraph": "yarn --silent prepare:optimism && yarn --silent publish:optimism:0xgraph",
