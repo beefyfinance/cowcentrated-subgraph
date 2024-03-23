@@ -12,6 +12,7 @@ export function handleSetLpToken0ToNativePath(event: SetLpToken0ToNativePathEven
   let vault = getBeefyCLVault(strategy.vault)
 
   vault.lpToken0ToNativePath = event.params.path
+  vault.save()
 }
 
 export function handleSetLpToken1ToNativePath(event: SetLpToken1ToNativePathEvent): void {
@@ -21,4 +22,5 @@ export function handleSetLpToken1ToNativePath(event: SetLpToken1ToNativePathEven
   let vault = getBeefyCLVault(strategy.vault)
 
   vault.lpToken1ToNativePath = event.params.path
+  vault.save()
 }
