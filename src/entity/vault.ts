@@ -23,6 +23,8 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
     vault.owner = ADDRESS_ZERO
     vault.sharesToken = ADDRESS_ZERO
     vault.strategy = ADDRESS_ZERO
+    vault.lpToken0ToNativePath = Bytes.fromI32(0)
+    vault.lpToken1ToNativePath = Bytes.fromI32(0)
     vault.isInitialized = false
     vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_INITIALIZING
     vault.underlyingToken0 = ADDRESS_ZERO

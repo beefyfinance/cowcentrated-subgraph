@@ -235,6 +235,10 @@ type BeefyCLVault @entity {
   sharesToken: Token!
   "The strategy of the vault. The strategy is responsible for managing the vault's assets."
   strategy: BeefyCLStrategy!
+  "Uniswap v3 path to convert the first token to the native token"
+  lpToken0ToNativePath: Bytes!
+  "Uniswap v3 path to convert the second token to the native token"
+  lpToken1ToNativePath: Bytes!
 
   "Technical field to remember if the vault was already initialized"
   isInitialized: Boolean!

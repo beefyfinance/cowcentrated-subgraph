@@ -1,7 +1,7 @@
 import { Address, BigDecimal, BigInt, Bytes, log } from "@graphprotocol/graph-ts"
 import { BeefyCLVault, Token } from "../../generated/schema"
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
-import { ONE_BD, ZERO_BD, exponentToBigInt, tokenAmountToDecimal } from "../utils/decimal"
+import { ONE_BD, ZERO_BD, exponentToBigInt, tokenAmountToDecimal } from "./decimal"
 import { UniswapQuoterV2 } from "../../generated/templates/BeefyCLStrategy/UniswapQuoterV2"
 import { ChainLinkPriceFeed } from "../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed"
 import {
@@ -16,22 +16,8 @@ const nativePriceFeed = ChainLinkPriceFeed.bind(CHAINLINK_NATIVE_PRICE_FEED_ADDR
 
 export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token): VaultPrices {
   log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])
-  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(vault.strategy))
-
-  // get the quoter paths for the vault
-  // TODO: store these and handle the path updates
-  const token0PathRes = strategyContract.try_lpToken0ToNativePath()
-  if (token0PathRes.reverted) {
-    log.error("updateUserPosition: lpToken0ToNativePath() reverted for strategy {}", [vault.strategy.toHexString()])
-    throw Error("updateUserPosition: lpToken0ToNativePath() reverted")
-  }
-  const token1PathRes = strategyContract.try_lpToken1ToNativePath()
-  if (token1PathRes.reverted) {
-    log.error("updateUserPosition: lpToken1ToNativePath() reverted for strategy {}", [vault.strategy.toHexString()])
-    throw Error("updateUserPosition: lpToken1ToNativePath() reverted")
-  }
-  const token0Path = token0PathRes.value
-  const token1Path = token1PathRes.value
+  const token0Path = vault.lpToken0ToNativePath
+  const token1Path = vault.lpToken1ToNativePath
 
   // fetch the token prices to native
   let token0PriceInNative = ONE_BD
