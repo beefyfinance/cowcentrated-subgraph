@@ -11,7 +11,7 @@ import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestorPositionSnapshot } from "./entity/position"
 import { getInvestor, getInvestorSnapshot } from "./entity/investor"
-import { getCurrentPriceInToken1, getVaultPriceRangeInToken1, getVaultPrices } from "./utils/price"
+import { fetchCurrentPriceInToken1, fetchVaultPriceRangeInToken1, fetchVaultPrices } from "./utils/price"
 
 export function handleStrategyHarvest(event: HarvestEvent): void {
   let strategy = getBeefyCLStrategy(event.address)
@@ -43,8 +43,8 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   const strategyAddress = Address.fromBytes(vault.strategy)
 
   // current prices
-  const currentPriceInToken1 = getCurrentPriceInToken1(strategyAddress, true)
-  const rangeToken1Price = getVaultPriceRangeInToken1(strategyAddress, true)
+  const currentPriceInToken1 = fetchCurrentPriceInToken1(strategyAddress, true)
+  const rangeToken1Price = fetchVaultPriceRangeInToken1(strategyAddress, true)
 
   // balances of the vault
   const vaultBalancesRes = vaultContract.try_balances()
@@ -78,7 +78,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   let shareTokenToUnderlying0Rate = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   let shareTokenToUnderlying1Rate = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
 
-  const prices = getVaultPrices(vault, token0, token1)
+  const prices = fetchVaultPrices(vault, token0, token1)
   const token0PriceInNative = prices.token0ToNative
   const token1PriceInNative = prices.token1ToNative
   const nativePriceUSD = prices.nativeToUsd

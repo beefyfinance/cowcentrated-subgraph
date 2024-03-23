@@ -14,7 +14,7 @@ import {
 const quoter = UniswapQuoterV2.bind(UNISWAP_V3_QUOTER_V2_ADDRESS)
 const nativePriceFeed = ChainLinkPriceFeed.bind(CHAINLINK_NATIVE_PRICE_FEED_ADDRESS)
 
-export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token): VaultPrices {
+export function fetchVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token): VaultPrices {
   log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])
   const token0Path = vault.lpToken0ToNativePath
   const token1Path = vault.lpToken1ToNativePath
@@ -53,7 +53,7 @@ export function getVaultPrices(vault: BeefyCLVault, token0: Token, token1: Token
   return new VaultPrices(token0PriceInNative, token1PriceInNative, nativePriceUSD)
 }
 
-export function getCurrentPriceInToken1(strategyAddress: Bytes, throwOnError: boolean): BigDecimal {
+export function fetchCurrentPriceInToken1(strategyAddress: Bytes, throwOnError: boolean): BigDecimal {
   log.debug("fetching current price for strategy {}", [strategyAddress.toHexString()])
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(strategyAddress))
   const priceRes = strategyContract.try_price()
@@ -70,7 +70,7 @@ export function getCurrentPriceInToken1(strategyAddress: Bytes, throwOnError: bo
   return tokenAmountToDecimal(priceRes.value, encodingDecimals)
 }
 
-export function getVaultPriceRangeInToken1(strategyAddress: Bytes, throwOnError: boolean): PriceRange {
+export function fetchVaultPriceRangeInToken1(strategyAddress: Bytes, throwOnError: boolean): PriceRange {
   log.debug("fetching current price range for strategy {}", [strategyAddress.toHexString()])
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(strategyAddress))
   const rangeRes = strategyContract.try_range()
@@ -88,7 +88,7 @@ export function getVaultPriceRangeInToken1(strategyAddress: Bytes, throwOnError:
   return new PriceRange(rangeMinToken1Price, rangeMaxToken1Price)
 }
 
-export function getNativePriceUSD(): BigDecimal {
+export function fetchNativePriceUSD(): BigDecimal {
   const nativePriceUSDRes = nativePriceFeed.try_latestRoundData()
   if (nativePriceUSDRes.reverted) {
     log.error("updateUserPosition: latestRoundData() reverted for native token", [])

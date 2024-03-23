@@ -14,7 +14,7 @@ import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getToken } from "./entity/token"
 import { getInvestorPosition, getInvestorPositionSnapshot, isNewInvestorPosition } from "./entity/position"
 import { ADDRESS_ZERO } from "./utils/address"
-import { getCurrentPriceInToken1, getVaultPriceRangeInToken1, getVaultPrices } from "./utils/price"
+import { fetchCurrentPriceInToken1, fetchVaultPriceRangeInToken1, fetchVaultPrices } from "./utils/price"
 import { InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { SHARE_TOKEN_MINT_ADDRESS } from "./config"
@@ -99,8 +99,8 @@ function updateUserPosition(
   const strategyAddress = Address.fromBytes(vault.strategy)
 
   // current prices
-  const currentPriceInToken1 = getCurrentPriceInToken1(strategyAddress, true)
-  const rangeToken1Price = getVaultPriceRangeInToken1(strategyAddress, true)
+  const currentPriceInToken1 = fetchCurrentPriceInToken1(strategyAddress, true)
+  const rangeToken1Price = fetchVaultPriceRangeInToken1(strategyAddress, true)
 
   // balances of the vault
   const vaultBalancesRes = vaultContract.try_balances()
@@ -135,7 +135,7 @@ function updateUserPosition(
   let investorBalanceUnderlying0 = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   let investorBalanceUnderlying1 = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
 
-  const prices = getVaultPrices(vault, token0, token1)
+  const prices = fetchVaultPrices(vault, token0, token1)
   const token0PriceInNative = prices.token0ToNative
   const token1PriceInNative = prices.token1ToNative
   const nativePriceUSD = prices.nativeToUsd

@@ -8,7 +8,7 @@ import { getToken } from "./entity/token"
 import { getTransaction } from "./entity/transaction"
 import { getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { weiToBigDecimal } from "./utils/decimal"
-import { getNativePriceUSD } from "./utils/price"
+import { fetchNativePriceUSD } from "./utils/price"
 
 export function handleChargedFees(event: ChargedFees): void {
   let strategy = getBeefyCLStrategy(event.address)
@@ -40,7 +40,7 @@ export function handleChargedFees(event: ChargedFees): void {
     Address.fromBytes(Address.fromHexString(vault.strategy.toHexString())),
   )
 
-  const nativePriceUSD = getNativePriceUSD()
+  const nativePriceUSD = fetchNativePriceUSD()
 
   ///////
   // compute derived values
