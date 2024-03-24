@@ -53,8 +53,10 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
     vault.cumulativeHarvesterFeeCollectedUSD = ZERO_BD
     vault.cumulativeProtocolFeeCollectedUSD = ZERO_BD
     vault.cumulativeStrategistFeeCollectedUSD = ZERO_BD
-    vault.lastCollectedFeeTimestamp = BigInt.fromI32(0)
-    vault.annualPercentageRateFromLastCollection = ZERO_BD
+    vault.aprState = new Array<BigDecimal>()
+    vault.apr1D = ZERO_BD
+    vault.apr7D = ZERO_BD
+    vault.apr30D = ZERO_BD
   }
   return vault
 }
@@ -108,7 +110,9 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
     snapshot.harvesterFeeCollectedUSD = ZERO_BD
     snapshot.protocolFeeCollectedUSD = ZERO_BD
     snapshot.strategistFeeCollectedUSD = ZERO_BD
-    snapshot.annualPercentageRateFromLastCollection = ZERO_BD
+    snapshot.apr1D = ZERO_BD
+    snapshot.apr7D = ZERO_BD
+    snapshot.apr30D = ZERO_BD
   }
 
   // copy non-reseting values from the previous snapshot to the new snapshot

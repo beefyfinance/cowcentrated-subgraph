@@ -10,11 +10,12 @@ import { BeefyCLVaultHarvestEvent, BeefyCLVaultUnderlyingFeesCollectedEvent } fr
 import { getEventIdentifier } from "./utils/event"
 import { getToken } from "./entity/token"
 import { ONE_BD, ZERO_BD, tokenAmountToDecimal, decimalToTokenAmount, ZERO_BI } from "./utils/decimal"
-import { SNAPSHOT_PERIODS, YEAR } from "./utils/time"
+import { DAY, SNAPSHOT_PERIODS, WEEK, YEAR } from "./utils/time"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestorPositionSnapshot } from "./entity/position"
 import { getInvestor, getInvestorSnapshot } from "./entity/investor"
 import { fetchCurrentPriceInToken1, fetchVaultPriceRangeInToken1, fetchVaultPrices } from "./utils/price"
+import { AprCalc, AprState } from "./utils/apr"
 
 export function handleStrategyHarvest(event: HarvestEvent): void {
   let strategy = getBeefyCLStrategy(event.address)
@@ -339,16 +340,12 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
   vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
   vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(vault.underlyingAmount1USD)
-  const feesEarnedSinceLastCollection = collect.collectedValueUSD
-  const feesEarnedOverSeconds = event.block.timestamp.minus(vault.lastCollectedFeeTimestamp)
-  const feesPerSecond = feesEarnedOverSeconds.equals(ZERO_BI)
-    ? ZERO_BD
-    : feesEarnedSinceLastCollection.div(feesEarnedOverSeconds.toBigDecimal())
-  const feesPerYear = feesPerSecond.times(YEAR.toBigDecimal())
-  vault.annualPercentageRateFromLastCollection = vault.totalValueLockedUSD.equals(ZERO_BD)
-    ? ZERO_BD
-    : feesPerYear.div(vault.totalValueLockedUSD)
-  vault.lastCollectedFeeTimestamp = event.block.timestamp
+  let aprState = AprState.deserialize(vault.aprState)
+  aprState.addTransaction(collectedAmount0, event.block.timestamp, vault.underlyingAmount0USD)
+  vault.apr1D = AprCalc.calculateLastApr(DAY, aprState, event.block.timestamp)
+  vault.apr7D = AprCalc.calculateLastApr(DAY.times(BigInt.fromU32(7)), aprState, event.block.timestamp)
+  vault.apr30D = AprCalc.calculateLastApr(DAY.times(BigInt.fromU32(30)), aprState, event.block.timestamp)
+  vault.aprState = AprCalc.evictOldEntries(DAY.times(BigInt.fromU32(30)), aprState, event.block.timestamp).serialize()
   vault.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("handleStrategyChargedFees: updating vault snapshot for vault {} and period {}", [
@@ -367,7 +364,9 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
     vaultSnapshot.underlyingAmount0USD = vault.underlyingAmount0USD
     vaultSnapshot.underlyingAmount1USD = vault.underlyingAmount1USD
     vaultSnapshot.totalValueLockedUSD = vault.totalValueLockedUSD
-    vaultSnapshot.annualPercentageRateFromLastCollection = vault.annualPercentageRateFromLastCollection
+    vaultSnapshot.apr1D = vault.apr1D
+    vaultSnapshot.apr7D = vault.apr7D
+    vaultSnapshot.apr30D = vault.apr30D
     vaultSnapshot.save()
   }
 

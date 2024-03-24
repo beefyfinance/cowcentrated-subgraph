@@ -311,15 +311,14 @@ type BeefyCLVault @entity {
   "Amount of native token charged as strategist fee incentive in USD"
   cumulativeStrategistFeeCollectedUSD: BigDecimal!
 
-  "The last time the fees were collected. Used to calculate the vault APR."
-  lastCollectedFeeTimestamp: BigInt!
-  """
-  The current APR of the vault.
-  This is calculated as the amound of fees collected since the last fee collection event
-  divided by the TVL in the vault at the time of the fee collection event, and
-  annualized by the time since the last fee collection event.
-  """
-  annualPercentageRateFromLastCollection: BigDecimal!
+  "Internal state to calculate the vault APR"
+  aprState: [BigDecimal!]!
+  "The current APR of the vault given all yield in the last 24 hours"
+  apr1D: BigDecimal!
+  "The current APR of the vault given all yield in the last 7 days"
+  apr7D: BigDecimal!
+  "The current APR of the vault given all yield in the last 30 days"
+  apr30D: BigDecimal!
 
   "All investors positions in the vault"
   positions: [InvestorPosition!]! @derivedFrom(field: "vault")
@@ -430,13 +429,12 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   "Amount of native token charged as strategist fee incentive in USD"
   strategistFeeCollectedUSD: BigDecimal!
 
-  """
-  The current APR of the vault.
-  This is calculated as the amound of fees collected since the last fee collection event
-  divided by the TVL in the vault at the time of the fee collection event, and
-  annualized by the time since the last fee collection event.
-  """
-  annualPercentageRateFromLastCollection: BigDecimal!
+  "The current APR of the vault given all yield in the last 24 hours"
+  apr1D: BigDecimal!
+  "The current APR of the vault given all yield in the last 7 days"
+  apr7D: BigDecimal!
+  "The current APR of the vault given all yield in the last 30 days"
+  apr30D: BigDecimal!
 }
 
 """

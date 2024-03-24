@@ -34,23 +34,6 @@ export class AprState {
     }
     return new AprState(collects)
   }
-}
-
-export class AprCalc {
-  public static from(period: BigInt, state: Array<BigDecimal>): AprCalc {
-    const aprState = state.length === 0 ? new AprState([]) : AprState.deserialize(state)
-    return new AprCalc(period, aprState)
-  }
-
-  private constructor(
-    public period: BigInt,
-    public state: AprState,
-  ) {
-    if (period.lt(ZERO_BI) || period.equals(ZERO_BI)) {
-      log.error("AprCalc: period cannot be negative or zero, got {}", [period.toString()])
-      throw new Error("AprCalc: period cannot be negative or zero")
-    }
-  }
 
   public addTransaction(collectedAmountUSD: BigDecimal, collectTimestamp: BigInt, totalValueLocked: BigDecimal): void {
     if (collectedAmountUSD.equals(ZERO_BD)) {
@@ -60,9 +43,7 @@ export class AprCalc {
 
     // check if the entry is in the right strict order
     const lastTimestamp =
-      this.state.collects.length === 0
-        ? BigInt.fromI32(-1)
-        : this.state.collects[this.state.collects.length - 1].collectTimestamp
+      this.collects.length === 0 ? BigInt.fromI32(-1) : this.collects[this.collects.length - 1].collectTimestamp
     if (!entry.collectTimestamp.gt(lastTimestamp)) {
       log.error("AprCalc: collectTimestamp is not in order, trying to insert {}, when last ts is {}", [
         entry.collectTimestamp.toString(),
@@ -72,36 +53,42 @@ export class AprCalc {
     }
 
     // latest entry is the last one
-    this.state.collects.push(entry)
+    this.collects.push(entry)
   }
+}
 
-  public calculateLastApr(): BigDecimal {
-    // we need at lea
-    if (this.state.collects.length === 0) {
+export class AprCalc {
+  public static calculateLastApr(period: BigInt, state: AprState, now: BigInt): BigDecimal {
+    if (period.lt(ZERO_BI) || period.equals(ZERO_BI)) {
+      log.error("AprCalc: period cannot be negative or zero, got {}", [period.toString()])
+      throw new Error("AprCalc: period cannot be negative or zero")
+    }
+    // we need at least 1 entry to compute the apr
+    if (state.collects.length === 0) {
       return ZERO_BD
     }
 
     // we place ourselves at the last collect timestamp
-    const now = this.state.collects[this.state.collects.length - 1].collectTimestamp
-    const periodStart = now.minus(this.period)
+    //const now = this.state.collects[this.state.collects.length - 1].collectTimestamp
+    const periodStart = now.minus(period)
 
     // first, eliminate the entries that are not in the period anymore
-    this.evictOldEntries(now)
+    state = AprCalc.evictOldEntries(period, state, now)
 
     // special cases for 1 or 2 entries after eviction
-    if (this.state.collects.length === 0) {
+    if (state.collects.length === 0) {
       return ZERO_BD
     }
-    if (this.state.collects.length === 1) {
-      const entry = this.state.collects[0]
+    if (state.collects.length === 1) {
+      const entry = state.collects[0]
       return entry.collectedAmount.div(entry.totalValueLocked)
     }
 
     // for each time slice, get the time weighted tvl and time weighted collected amount
     let weightedYieldRate = ZERO_BD
-    for (let idx = 1; idx < this.state.collects.length; idx++) {
-      const prev = this.state.collects[idx - 1]
-      const curr = this.state.collects[idx]
+    for (let idx = 1; idx < state.collects.length; idx++) {
+      const prev = state.collects[idx - 1]
+      const curr = state.collects[idx]
 
       const sliceStart = bigIntMax(periodStart, prev.collectTimestamp)
       const sliceEnd = curr.collectTimestamp
@@ -116,7 +103,7 @@ export class AprCalc {
         weightedYieldRate = weightedYieldRate.plus(sliceCollectedUSD.div(curr.totalValueLocked).times(sliceSize))
       }
     }
-    const elapsedPeriod = bigIntMin(now.minus(this.state.collects[0].collectTimestamp), this.period)
+    const elapsedPeriod = bigIntMin(now.minus(state.collects[0].collectTimestamp), period)
     const yieldRate = weightedYieldRate.div(elapsedPeriod.toBigDecimal())
     const periodsInYear = YEAR.div(elapsedPeriod)
     const annualized = yieldRate.times(periodsInYear.toBigDecimal())
@@ -126,18 +113,18 @@ export class AprCalc {
   /**
    * Evict entries that do not belong to the period anymore
    */
-  public evictOldEntries(now: BigInt): void {
+  public static evictOldEntries(period: BigInt, state: AprState, now: BigInt): AprState {
     // we need at least 2 entries to evict
     // since we keep an old one to compute the apr
-    if (this.state.collects.length < 2) {
-      return
+    if (state.collects.length < 2) {
+      return state
     }
 
     // find the first entry that is in the period
     let firstEntryIdx = 0
-    const periodStart = now.minus(this.period)
-    while (firstEntryIdx < this.state.collects.length) {
-      const entry = this.state.collects[firstEntryIdx]
+    const periodStart = now.minus(period)
+    while (firstEntryIdx < state.collects.length) {
+      const entry = state.collects[firstEntryIdx]
       if (entry.collectTimestamp.gt(periodStart)) {
         break
       }
@@ -146,6 +133,6 @@ export class AprCalc {
 
     // evict all entries but one before that
     firstEntryIdx = firstEntryIdx === 0 ? 0 : firstEntryIdx - 1
-    this.state.collects = this.state.collects.slice(firstEntryIdx)
+    return new AprState(state.collects.slice(firstEntryIdx))
   }
 }
