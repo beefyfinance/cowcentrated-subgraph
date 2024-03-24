@@ -100,6 +100,24 @@ function safeDiv(amount0: BigDecimal, amount1: BigDecimal): BigDecimal {
 
 
 @inline
-export function bigMin(a: BigDecimal, b: BigDecimal): BigDecimal {
+export function bigDecMin(a: BigDecimal, b: BigDecimal): BigDecimal {
+  return a.lt(b) ? a : b
+}
+
+
+@inline
+export function bigDecMax(a: BigDecimal, b: BigDecimal): BigDecimal {
+  return a.gt(b) ? a : b
+}
+
+
+@inline
+export function bigIntMax(a: BigInt, b: BigInt): BigInt {
+  return a.gt(b) ? a : b
+}
+
+
+@inline
+export function bigIntMin(a: BigInt, b: BigInt): BigInt {
   return a.lt(b) ? a : b
 }

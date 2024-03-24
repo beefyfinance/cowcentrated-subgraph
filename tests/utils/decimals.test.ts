@@ -1,6 +1,14 @@
 import { assert, clearStore, test, describe, afterAll } from "matchstick-as/assembly/index"
 import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
-import { bigMin, decimalToTokenAmount, exponentToBigDecimal, tokenAmountToDecimal } from "../../src/utils/decimal"
+import {
+  bigDecMax,
+  bigIntMax,
+  bigDecMin,
+  bigIntMin,
+  decimalToTokenAmount,
+  exponentToBigDecimal,
+  tokenAmountToDecimal,
+} from "../../src/utils/decimal"
 
 describe("decimals.tokenAmountToDecimal", () => {
   afterAll(() => {
@@ -110,11 +118,30 @@ describe("decimals.exponentToBigInt", () => {
   })
 })
 
-describe("decimals.bigMin", () => {
+describe("decimals min max", () => {
   test("Can return the minimum of two big decimals", () => {
     const a = BigDecimal.fromString("1")
     const b = BigDecimal.fromString("2")
-    const res = bigMin(a, b)
+    const res = bigDecMin(a, b)
     assert.stringEquals(res.toString(), "1", "Minimum value should match")
+  })
+  test("Can return the max of two big decimals", () => {
+    const a = BigDecimal.fromString("1")
+    const b = BigDecimal.fromString("2")
+    const res = bigDecMax(a, b)
+    assert.stringEquals(res.toString(), "2", "Minimum value should match")
+  })
+
+  test("Can return the minimum of two big ints", () => {
+    const a = BigInt.fromI32(1)
+    const b = BigInt.fromI32(2)
+    const res = bigIntMin(a, b)
+    assert.stringEquals(res.toString(), "1", "Minimum value should match")
+  })
+  test("Can return the max of two big ints", () => {
+    const a = BigInt.fromI32(1)
+    const b = BigInt.fromI32(2)
+    const res = bigIntMax(a, b)
+    assert.stringEquals(res.toString(), "2", "Minimum value should match")
   })
 })

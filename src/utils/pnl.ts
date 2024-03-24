@@ -1,5 +1,5 @@
 import { BigDecimal } from "@graphprotocol/graph-ts"
-import { ZERO_BD, bigMin } from "./decimal"
+import { ZERO_BD, bigDecMin } from "./decimal"
 
 class PnLStateEntry {
   constructor(
@@ -71,7 +71,7 @@ export class PnLCalc {
         continue
       }
 
-      const sharesToSell = bigMin(remainingSharesToSell, entry.remainingShares)
+      const sharesToSell = bigDecMin(remainingSharesToSell, entry.remainingShares)
       const priceDiff = trxPrice.minus(entry.entryPrice)
       trxPnl = trxPnl.plus(sharesToSell.times(priceDiff))
       remainingSharesToSell = remainingSharesToSell.minus(sharesToSell)
