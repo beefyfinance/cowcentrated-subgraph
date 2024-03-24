@@ -79,7 +79,7 @@ describe("AprCalc", () => {
     const res = AprCalc.calculateLastApr(DAY, aprState, now)
     log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("56.862268518"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("96.85503685503685"), BigDecimal.fromString("0.0001"))
   })
 
   test("should evict old entries", () => {
@@ -141,7 +141,7 @@ describe("AprCalc", () => {
     const res = AprCalc.calculateLastApr(DAY, aprState, now)
     log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("10.527546"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("18.25"), BigDecimal.fromString("0.0001"))
   })
 
   test("should compute apr when total value locked changes", () => {
@@ -154,7 +154,7 @@ describe("AprCalc", () => {
     const res = AprCalc.calculateLastApr(DAY, aprState, now)
     log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("20.362268518"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("38.74201474201474"), BigDecimal.fromString("0.0001"))
   })
 
   test("should compute apr when yield and total value locked changes", () => {
@@ -167,7 +167,7 @@ describe("AprCalc", () => {
     const res = AprCalc.calculateLastApr(DAY, aprState, now)
     log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("56.86226"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("96.8550368"), BigDecimal.fromString("0.0001"))
   })
 
   test("should compute apr when the day is not over yet", () => {
@@ -196,8 +196,8 @@ describe("AprCalc", () => {
     assertIsCloseTo(res, BigDecimal.fromString("87.60"), BigDecimal.fromString("0.0001"))
 
     // 3: deposit of $100 at 12:00, claiming 10$ => +10% for 11h (because tvl was $100 for the whole period)
-    // => Avg % per hour is (10% * 11 + 1% * 1) / 12 => +9.25% on average over for 12h
-    // => APR_24h is 9.25% * 2 * 365 : 6752.5%
+    // => +$11 over 12h for a tvl of $100 => +11% over 12h
+    // => APR_24h is 11% * 2 * 365 : 8030%
     now = BigInt.fromI32(12 * 60 * 60)
     log.debug("\n\n======= now: {}\n", [now.toString()])
     aprState.addTransaction(one.times(BigDecimal.fromString("10")), now, one.times(BigDecimal.fromString("200")))
@@ -205,7 +205,70 @@ describe("AprCalc", () => {
     res = AprCalc.calculateLastApr(DAY, aprState, now)
     log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("67.525"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("80.30"), BigDecimal.fromString("0.0001"))
+  })
+
+  test("Should properly compute mooBeefy APR", () => {
+    let aprState = AprState.deserialize(new Array<BigDecimal>())
+
+    // these ones should be ignored
+    aprState.addTransaction(
+      BigDecimal.fromString("0"),
+      BigInt.fromString("1711201231"),
+      BigDecimal.fromString("507.5882781815525135710848872656791"),
+    )
+    aprState.addTransaction(
+      BigDecimal.fromString("0.004065784550081421262762731034373881"),
+      BigInt.fromString("1711204513"),
+      BigDecimal.fromString("516.1787253846584915657179517695577"),
+    )
+
+    // these ones should be used
+    aprState.addTransaction(
+      BigDecimal.fromString("0.02430711381950250190531710544653613"),
+      BigInt.fromString("1711226113"),
+      BigDecimal.fromString("513.4946880572305829489501989140695"),
+    )
+    aprState.addTransaction(
+      BigDecimal.fromString("0.006869940091541016837589566381232779"),
+      BigInt.fromString("1711247715"),
+      BigDecimal.fromString("506.0724423742907934604618462166345"),
+    )
+    aprState.addTransaction(
+      BigDecimal.fromString("0.01310706635829128889638"),
+      BigInt.fromString("1711269313"),
+      BigDecimal.fromString("508.1091471133737574196901844200933"),
+    )
+    aprState.addTransaction(
+      BigDecimal.fromString("0.001774573046281402321668824352704134"),
+      BigInt.fromString("1711290913"),
+      BigDecimal.fromString("516.3820906223624723194813255682192"),
+    )
+    aprState.addTransaction(
+      BigDecimal.fromString("0.00012315380232791303052005"),
+      BigInt.fromString("1711312513"),
+      BigDecimal.fromString("518.5576704920643326430271310797996"),
+    )
+
+    // 0.006869940091 + 0.013107066358 + 0.001774573046 + 0.000123153802
+    // => 0.021874733297
+    //
+    // 1711312513 - 1711226113
+    // => 86400
+    //
+    // TVL = 518.557670492
+    //
+    // 0.021874733297 / 518.557670492
+    // => 0.0000421838004560 / day
+    //
+    // (0.021874733297 / 518.557670492) * 365
+    // => 0.015397087166466233
+    // => 1.5397087166466233% APR
+    const now = BigInt.fromString("1711312513")
+    const res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
+
+    assertIsCloseTo(res, BigDecimal.fromString("0.015624358078677"), BigDecimal.fromString("0.0001"))
   })
 })
 

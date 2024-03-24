@@ -85,30 +85,34 @@ export class AprCalc {
     }
 
     // for each time slice, get the time weighted tvl and time weighted collected amount
-    let agg = ZERO_BD
+    let timeWeightedTvlAgg = ZERO_BD
+    let totalYield = ZERO_BD
+    //let agg = ZERO_BD
     for (let idx = 1; idx < state.collects.length; idx++) {
       const prev = state.collects[idx - 1]
       const curr = state.collects[idx]
 
       const sliceStart = bigIntMax(periodStart, prev.collectTimestamp)
       const sliceEnd = curr.collectTimestamp
+      // account for slices beginning before the period start
       const slicePercentSpan = sliceEnd
         .minus(sliceStart)
         .toBigDecimal()
         .div(curr.collectTimestamp.minus(prev.collectTimestamp).toBigDecimal())
       const sliceCollectedUSD = curr.collectedAmount.times(slicePercentSpan)
+
+      // consider the previous TVL as it's updated on the same block as the collected amount
       const sliceTvl = prev.totalValueLocked
       const sliceSize = curr.collectTimestamp.minus(sliceStart).toBigDecimal()
 
       if (!sliceTvl.equals(ZERO_BD)) {
-        // compute how much each $ is contributing to the yield for this slice
-        const sliceAgg = sliceCollectedUSD.div(sliceTvl).times(sliceSize)
-        agg = agg.plus(sliceAgg)
+        timeWeightedTvlAgg = timeWeightedTvlAgg.plus(sliceTvl.times(sliceSize))
       }
+      totalYield = totalYield.plus(sliceCollectedUSD)
     }
-
     const elapsedPeriod = bigIntMin(now.minus(state.collects[0].collectTimestamp), period)
-    const yieldRate = agg.div(elapsedPeriod.toBigDecimal())
+    const timeWeightedTvl = timeWeightedTvlAgg.div(elapsedPeriod.toBigDecimal())
+    const yieldRate = totalYield.div(timeWeightedTvl)
     const periodsInYear = YEAR.div(elapsedPeriod)
     const annualized = yieldRate.times(periodsInYear.toBigDecimal())
     return annualized
