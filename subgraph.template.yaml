@@ -32,6 +32,7 @@ dataSources:
         - event: ProxyCreated(address)
           handler: handleVaultCreated
           receipt: true
+          
   - kind: ethereum/contract
     name: ChainlinkClock
     network: {{network}}
@@ -72,6 +73,33 @@ dataSources:
           filter:
             kind: polling
             every: {{clockTickBlocks}}
+  
+  - kind: ethereum/contract
+    name: BeefyBoostFactory
+    network: {{network}}
+    source:
+      address: "{{boostFactoryAddress}}"
+      abi: BeefyBoostFactory
+      startBlock: {{boostFactoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/mapping/boost.ts
+      entities:
+        - Investor
+        - Transaction
+        - BeefyVaultIncentive
+        - Protocol
+        - ProtocolSnapshot
+      abis:
+        - name: BeefyBoostFactory
+          file: ./abis/beefy/concliq/BeefyBoostFactory.json
+      eventHandlers:
+        - event: BoostDeployed(indexed address)
+          handler: handleBoostCreated
+          receipt: true
+
 templates:
   - name: BeefyCLVault
     kind: ethereum/contract
@@ -93,6 +121,8 @@ templates:
       abis:
         - name: BeefyVaultConcLiq
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
+        - name: BeefyBoost
+          file: ./abis/beefy/concliq/BeefyBoost.json
         - name: StrategyPassiveManagerUniswap
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
         - name: UniswapQuoterV2
@@ -135,6 +165,8 @@ templates:
       abis:
         - name: BeefyVaultConcLiq
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
+        - name: BeefyBoost
+          file: ./abis/beefy/concliq/BeefyBoost.json
         - name: StrategyPassiveManagerUniswap
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
         - name: UniswapQuoterV2
@@ -165,3 +197,37 @@ templates:
           handler: handleSetLpToken0ToNativePath
         - event: SetLpToken1ToNativePath(bytes)
           handler: handleSetLpToken1ToNativePath
+
+  
+  - name: BeefyBoost
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: BeefyBoost
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/mapping/boost.ts
+      entities:
+        - Investor
+        - Transaction
+        - BeefyBoost
+        - Protocol
+        - ProtocolSnapshot
+      abis:
+        - name: BeefyVaultConcLiq
+          file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
+        - name: BeefyBoost
+          file: ./abis/beefy/concliq/BeefyBoost.json
+        - name: StrategyPassiveManagerUniswap
+          file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+        - name: UniswapQuoterV2
+          file: ./abis/uniswap/QuoterV2.json
+        - name: ChainLinkPriceFeed
+          file: ./abis/chainlink/AggregatorV3Interface.json
+        - name: IERC20
+          file: ./abis/IERC20/IERC20.json
+      eventHandlers:
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred

@@ -572,22 +572,23 @@ type BeefyVaultIncentive @entity {
   "The inventive contract address"
   id: Bytes!
 
-  "The vault the incentive is for"
-  vault: BeefyCLVault!
-
   "The transaction that created the vault incentive"
   createdWith: Transaction!
+  "The vault the incentive is for"
+  vault: BeefyCLVault!
+  "Current owner of the boost. The owner has additional permissions to manage the boost."
+  owner: Bytes!
 
   "The token used for the incentive"
-  incentiveRewardedIn: Token!
+  rewardedIn: Token!
 
   "Amount of incentive tokens left to be distributed"
   incentiveAmount: BigDecimal!
 
   "The amount of incentive tokens distributed so far"
-  claimedAmount: BigDecimal!
+  cumulativeClaimedAmount: BigDecimal!
   "Amount of incentive tokens distributed so far in USD"
-  claimedAmountUSD: BigDecimal!
+  cumulativeClaimedAmountUSD: BigDecimal!
 
   "All claims of the vault incentive"
   claims: [BeefyVaultIncentiveClaimEvent!]! @derivedFrom(field: "vaultIncentive")

@@ -1,8 +1,6 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts"
 import { BeefyCLVault } from "../generated/schema"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
-import { IERC20 as IERC20Contract } from "../generated/templates/BeefyCLVault/IERC20"
-import { getToken } from "./entity/token"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { SNAPSHOT_PERIODS } from "./utils/time"
 import { BEEFY_CL_VAULT_LIFECYCLE_PAUSED, BEEFY_CL_VAULT_LIFECYCLE_RUNNING } from "./entity/vault"
@@ -20,6 +18,7 @@ import {
 import { ProxyCreated as VaultCreatedEvent } from "../generated/BeefyCLVaultFactory/BeefyVaultConcLiqFactory"
 import { BeefyCLVault as BeefyCLVaultTemplate } from "../generated/templates"
 import { getTransaction } from "./entity/transaction"
+import { fetchAndSaveTokenData } from "./utils/token"
 
 export function handleVaultCreated(event: VaultCreatedEvent): void {
   const tx = getTransaction(event.block, event.transaction, event.receipt)
@@ -127,38 +126,9 @@ function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLV
   const underlyingToken0Address = wants.value0
   const underlyingToken1Address = wants.value1
 
-  const shareTokenContract = IERC20Contract.bind(vaultAddress)
-  const shareTokenSymbol = shareTokenContract.symbol()
-  const shareTokenName = shareTokenContract.name()
-  const shareTokenDecimals = shareTokenContract.decimals()
-
-  const underlyingToken0Contract = IERC20Contract.bind(underlyingToken0Address)
-  const underlyingToken0Decimals = underlyingToken0Contract.decimals()
-  const underlyingToken0Name = underlyingToken0Contract.name()
-  const underlyingToken0Symbol = underlyingToken0Contract.symbol()
-
-  const underlyingToken1Contract = IERC20Contract.bind(underlyingToken1Address)
-  const underlyingToken1Decimals = underlyingToken1Contract.decimals()
-  const underlyingToken1Name = underlyingToken1Contract.name()
-  const underlyingToken1Symbol = underlyingToken1Contract.symbol()
-
-  const sharesToken = getToken(vaultAddress)
-  sharesToken.name = shareTokenName
-  sharesToken.symbol = shareTokenSymbol
-  sharesToken.decimals = BigInt.fromI32(shareTokenDecimals)
-  sharesToken.save()
-
-  const underlyingToken0 = getToken(underlyingToken0Address)
-  underlyingToken0.name = underlyingToken0Name
-  underlyingToken0.symbol = underlyingToken0Symbol
-  underlyingToken0.decimals = BigInt.fromI32(underlyingToken0Decimals)
-  underlyingToken0.save()
-
-  const underlyingToken1 = getToken(underlyingToken1Address)
-  underlyingToken1.name = underlyingToken1Name
-  underlyingToken1.symbol = underlyingToken1Symbol
-  underlyingToken1.decimals = BigInt.fromI32(underlyingToken1Decimals)
-  underlyingToken1.save()
+  const sharesToken = fetchAndSaveTokenData(vaultAddress)
+  const underlyingToken0 = fetchAndSaveTokenData(underlyingToken0Address)
+  const underlyingToken1 = fetchAndSaveTokenData(underlyingToken1Address)
 
   const protocol = getBeefyCLProtocol()
   protocol.activeVaultCount += 1

@@ -14,6 +14,10 @@ export function isVaultRunning(vault: BeefyCLVault): boolean {
   return vault.lifecycle == BEEFY_CL_VAULT_LIFECYCLE_RUNNING
 }
 
+export function isNewVault(vault: BeefyCLVault): boolean {
+  return vault.sharesToken.equals(ADDRESS_ZERO)
+}
+
 export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
   let vault = BeefyCLVault.load(vaultAddress)
   if (!vault) {

@@ -4,6 +4,8 @@
   "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
   "vaultFactoryAddress": "0xAad99bCdcf5aD316da55fDF7E5d23613407A8748",
   "vaultFactoryStartBlock": 193388971,
+  "boostFactoryAddress": "0x2951c806a75b19954ce0bed477676a54f3c1c200",
+  "boostFactoryStartBlock": 193388971,
   "clockTickBlocks": 3600,
 
   "wrappedNativeAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
