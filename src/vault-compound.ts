@@ -9,7 +9,7 @@ import { getTransaction } from "./entity/transaction"
 import { BeefyCLVaultHarvestEvent, BeefyCLVaultUnderlyingFeesCollectedEvent } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { getToken } from "./entity/token"
-import { ONE_BD, ZERO_BD, tokenAmountToDecimal, decimalToTokenAmount } from "./utils/decimal"
+import { ONE_BD, ZERO_BD, tokenAmountToDecimal, decimalToTokenAmount, ZERO_BI } from "./utils/decimal"
 import { SNAPSHOT_PERIODS, YEAR } from "./utils/time"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestorPositionSnapshot } from "./entity/position"
@@ -341,9 +341,13 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(vault.underlyingAmount1USD)
   const feesEarnedSinceLastCollection = collect.collectedValueUSD
   const feesEarnedOverSeconds = event.block.timestamp.minus(vault.lastCollectedFeeTimestamp)
-  const feesPerSecond = feesEarnedSinceLastCollection.div(feesEarnedOverSeconds.toBigDecimal())
+  const feesPerSecond = feesEarnedOverSeconds.equals(ZERO_BI)
+    ? ZERO_BD
+    : feesEarnedSinceLastCollection.div(feesEarnedOverSeconds.toBigDecimal())
   const feesPerYear = feesPerSecond.times(YEAR.toBigDecimal())
-  vault.annualPercentageRateFromLastCollection = feesPerYear.div(vault.totalValueLockedUSD)
+  vault.annualPercentageRateFromLastCollection = vault.totalValueLockedUSD.equals(ZERO_BD)
+    ? ZERO_BD
+    : feesPerYear.div(vault.totalValueLockedUSD)
   vault.lastCollectedFeeTimestamp = event.block.timestamp
   vault.save()
   for (let i = 0; i < periods.length; i++) {
