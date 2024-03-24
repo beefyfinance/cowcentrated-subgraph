@@ -345,6 +345,7 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   vault.apr1D = AprCalc.calculateLastApr(DAY, aprState, event.block.timestamp)
   vault.apr7D = AprCalc.calculateLastApr(DAY.times(BigInt.fromU32(7)), aprState, event.block.timestamp)
   vault.apr30D = AprCalc.calculateLastApr(DAY.times(BigInt.fromU32(30)), aprState, event.block.timestamp)
+  // keep the longest period in the state, AprCalc will ignore older entries if they don't fit the period
   vault.aprState = AprCalc.evictOldEntries(DAY.times(BigInt.fromU32(30)), aprState, event.block.timestamp).serialize()
   vault.save()
   for (let i = 0; i < periods.length; i++) {
