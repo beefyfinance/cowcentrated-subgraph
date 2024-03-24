@@ -95,6 +95,14 @@ dataSources:
       abis:
         - name: BeefyBoostFactory
           file: ./abis/beefy/concliq/BeefyBoostFactory.json
+        - name: BeefyBoost
+          file: ./abis/beefy/concliq/BeefyBoost.json
+        - name: UniswapQuoterV2
+          file: ./abis/uniswap/QuoterV2.json
+        - name: ChainLinkPriceFeed
+          file: ./abis/chainlink/AggregatorV3Interface.json
+        - name: IERC20
+          file: ./abis/IERC20/IERC20.json
       eventHandlers:
         - event: BoostDeployed(indexed address)
           handler: handleBoostCreated
