@@ -341,7 +341,7 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
   vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(vault.underlyingAmount1USD)
   let aprState = AprState.deserialize(vault.aprState)
-  aprState.addTransaction(collectedAmount0, event.block.timestamp, vault.underlyingAmount0USD)
+  aprState.addTransaction(collect.collectedValueUSD, event.block.timestamp, collect.totalValueLockedUSD)
   vault.apr1D = AprCalc.calculateLastApr(DAY, aprState, event.block.timestamp)
   vault.apr7D = AprCalc.calculateLastApr(DAY.times(BigInt.fromU32(7)), aprState, event.block.timestamp)
   vault.apr30D = AprCalc.calculateLastApr(DAY.times(BigInt.fromU32(30)), aprState, event.block.timestamp)
