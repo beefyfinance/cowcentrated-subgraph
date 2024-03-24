@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { BigDecimal, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import { BeefyCLStrategy, BeefyCLVault, BeefyCLVaultSnapshot } from "../../generated/schema"
 import { ADDRESS_ZERO } from "../utils/address"
 import { ZERO_BD } from "../utils/decimal"
@@ -53,6 +53,8 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
     vault.cumulativeHarvesterFeeCollectedUSD = ZERO_BD
     vault.cumulativeProtocolFeeCollectedUSD = ZERO_BD
     vault.cumulativeStrategistFeeCollectedUSD = ZERO_BD
+    vault.lastCollectedFeeTimestamp = BigInt.fromI32(0)
+    vault.annualPercentageRateFromLastCollection = ZERO_BD
   }
   return vault
 }
@@ -106,6 +108,7 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
     snapshot.harvesterFeeCollectedUSD = ZERO_BD
     snapshot.protocolFeeCollectedUSD = ZERO_BD
     snapshot.strategistFeeCollectedUSD = ZERO_BD
+    snapshot.annualPercentageRateFromLastCollection = ZERO_BD
   }
 
   // copy non-reseting values from the previous snapshot to the new snapshot

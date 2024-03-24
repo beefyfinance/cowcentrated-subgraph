@@ -311,6 +311,16 @@ type BeefyCLVault @entity {
   "Amount of native token charged as strategist fee incentive in USD"
   cumulativeStrategistFeeCollectedUSD: BigDecimal!
 
+  "The last time the fees were collected. Used to calculate the vault APR."
+  lastCollectedFeeTimestamp: BigInt!
+  """
+  The current APR of the vault.
+  This is calculated as the amound of fees collected since the last fee collection event
+  divided by the TVL in the vault at the time of the fee collection event, and
+  annualized by the time since the last fee collection event.
+  """
+  annualPercentageRateFromLastCollection: BigDecimal!
+
   "All investors positions in the vault"
   positions: [InvestorPosition!]! @derivedFrom(field: "vault")
 
@@ -419,6 +429,14 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   protocolFeeCollectedUSD: BigDecimal!
   "Amount of native token charged as strategist fee incentive in USD"
   strategistFeeCollectedUSD: BigDecimal!
+
+  """
+  The current APR of the vault.
+  This is calculated as the amound of fees collected since the last fee collection event
+  divided by the TVL in the vault at the time of the fee collection event, and
+  annualized by the time since the last fee collection event.
+  """
+  annualPercentageRateFromLastCollection: BigDecimal!
 }
 
 """
