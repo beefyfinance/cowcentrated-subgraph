@@ -1,8 +1,8 @@
 import { assert, test, describe } from "matchstick-as/assembly/index"
-import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
+import { BigDecimal, BigInt } from "@graphprotocol/graph-ts"
 import { AprCalc, AprState } from "../../src/utils/apr"
 import { ZERO_BD } from "../../src/utils/decimal"
-import { DAY } from "../../src/utils/time"
+import { DAY, WEEK } from "../../src/utils/time"
 
 describe("AprState", () => {
   test("Can serialize and deserialize apr state with no entries", () => {
@@ -88,6 +88,17 @@ describe("AprCalc", () => {
     assertIsCloseTo(res, BigDecimal.fromString("3.65"), BigDecimal.fromString("0.0001"))
   })
 
+  test("should compute apr in the simplest case when the full period has not elapsed", () => {
+    let apr24h = AprCalc.from(WEEK, new Array<BigDecimal>())
+
+    // we earn 1% over 1 day, so the APR is 365%
+    apr24h.addTransaction(BigDecimal.fromString("10"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
+    apr24h.addTransaction(BigDecimal.fromString("10"), DAY, BigDecimal.fromString("1000"))
+    let res = apr24h.calculateLastApr()
+
+    assertIsCloseTo(res, BigDecimal.fromString("3.65"), BigDecimal.fromString("0.0001"))
+  })
+
   test("should compute apr when yield changes", () => {
     let apr24h = AprCalc.from(DAY, new Array<BigDecimal>())
 
@@ -102,34 +113,34 @@ describe("AprCalc", () => {
   test("should compute apr when total value locked changes", () => {
     let apr24h = AprCalc.from(DAY, new Array<BigDecimal>())
 
-    apr24h.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(100), BigDecimal.fromString("1000"))
+    apr24h.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
     apr24h.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(10000), BigDecimal.fromString("2000"))
     apr24h.addTransaction(BigDecimal.fromString("100"), DAY, BigDecimal.fromString("3000"))
     let res = apr24h.calculateLastApr()
 
-    assertIsCloseTo(res, BigDecimal.fromString("12.849633487654"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("12.870756172"), BigDecimal.fromString("0.0001"))
   })
 
   test("should compute apr when yield and total value locked changes", () => {
     let apr24h = AprCalc.from(DAY, new Array<BigDecimal>())
 
-    apr24h.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(100), BigDecimal.fromString("1000"))
+    apr24h.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
     apr24h.addTransaction(BigDecimal.fromString("200"), BigInt.fromI32(10000), BigDecimal.fromString("2000"))
     apr24h.addTransaction(BigDecimal.fromString("300"), DAY, BigDecimal.fromString("3000"))
     let res = apr24h.calculateLastApr()
 
-    assertIsCloseTo(res, BigDecimal.fromString("36.45775462962962962"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("36.5"), BigDecimal.fromString("0.0001"))
   })
 
   test("do not crash when TVL is zero now", () => {
     let apr24h = AprCalc.from(DAY, new Array<BigDecimal>())
 
-    apr24h.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(100), BigDecimal.fromString("1000"))
+    apr24h.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
     apr24h.addTransaction(BigDecimal.fromString("200"), BigInt.fromI32(10000), BigDecimal.fromString("2000"))
     apr24h.addTransaction(BigDecimal.fromString("300"), DAY, BigDecimal.fromString("0"))
     let res = apr24h.calculateLastApr()
 
-    assertIsCloseTo(res, BigDecimal.fromString("4.1822916"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("4.2245370"), BigDecimal.fromString("0.0001"))
   })
 
   test("should evict old entries", () => {

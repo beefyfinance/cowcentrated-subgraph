@@ -1,5 +1,5 @@
 import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
-import { ZERO_BD, ZERO_BI, bigIntMax } from "./decimal"
+import { ZERO_BD, ZERO_BI, bigIntMax, bigIntMin } from "./decimal"
 import { YEAR } from "./time"
 
 class AprStateEntry {
@@ -116,9 +116,9 @@ export class AprCalc {
         weightedYieldRate = weightedYieldRate.plus(sliceCollectedUSD.div(curr.totalValueLocked).times(sliceSize))
       }
     }
-
-    const yieldRate = weightedYieldRate.div(this.period.toBigDecimal())
-    const periodsInYear = YEAR.div(this.period)
+    const elapsedPeriod = bigIntMin(now.minus(this.state.collects[0].collectTimestamp), this.period)
+    const yieldRate = weightedYieldRate.div(elapsedPeriod.toBigDecimal())
+    const periodsInYear = YEAR.div(elapsedPeriod)
     const annualized = yieldRate.times(periodsInYear.toBigDecimal())
     return annualized
   }
