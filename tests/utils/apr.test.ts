@@ -195,9 +195,9 @@ describe("AprCalc", () => {
     log.debug("res: {}", [res.toString()])
     assertIsCloseTo(res, BigDecimal.fromString("87.60"), BigDecimal.fromString("0.0001"))
 
-    // 3: deposit of $100 at 12:00, claiming 10$ => +10%  for 11h
+    // 3: deposit of $100 at 12:00, claiming 10$ => +10% for 11h (because tvl was $100 for the whole period)
     // => Avg % per hour is (10% * 11 + 1% * 1) / 12 => +9.25% on average over for 12h
-    // => APR_24h is 9.25% * 2 * 365 : 67.525%
+    // => APR_24h is 9.25% * 2 * 365 : 6752.5%
     now = BigInt.fromI32(12 * 60 * 60)
     log.debug("\n\n======= now: {}\n", [now.toString()])
     aprState.addTransaction(one.times(BigDecimal.fromString("10")), now, one.times(BigDecimal.fromString("200")))
