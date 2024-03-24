@@ -1,5 +1,5 @@
 import { assert, test, describe } from "matchstick-as/assembly/index"
-import { BigDecimal, BigInt } from "@graphprotocol/graph-ts"
+import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
 import { AprCalc, AprState } from "../../src/utils/apr"
 import { ZERO_BD } from "../../src/utils/decimal"
 import { DAY, WEEK } from "../../src/utils/time"
@@ -69,76 +69,6 @@ describe("AprCalc", () => {
     assert.assertTrue(res.equals(ZERO_BD))
   })
 
-  test("should compute apr properly with one entry", () => {
-    let aprState = AprState.deserialize(new Array<BigDecimal>())
-    const now = BigInt.fromI32(100)
-
-    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(100), BigDecimal.fromString("1000"))
-    const res = AprCalc.calculateLastApr(DAY, aprState, now)
-
-    assertIsCloseTo(res, BigDecimal.fromString("0.1"), BigDecimal.fromString("0.0001"))
-  })
-
-  test("should compute apr in the simplest case", () => {
-    let aprState = AprState.deserialize(new Array<BigDecimal>())
-    const now = DAY
-
-    // we earn 1% over 1 day, so the APR is 365%
-    aprState.addTransaction(BigDecimal.fromString("10"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
-    aprState.addTransaction(BigDecimal.fromString("10"), DAY, BigDecimal.fromString("1000"))
-    const res = AprCalc.calculateLastApr(DAY, aprState, now)
-
-    assertIsCloseTo(res, BigDecimal.fromString("3.65"), BigDecimal.fromString("0.0001"))
-  })
-
-  test("should compute apr in the simplest case when the full period has not elapsed", () => {
-    let aprState = AprState.deserialize(new Array<BigDecimal>())
-    const now = DAY
-
-    // we earn 1% over 1 day, so the APR is 365%
-    aprState.addTransaction(BigDecimal.fromString("10"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
-    aprState.addTransaction(BigDecimal.fromString("10"), DAY, BigDecimal.fromString("1000"))
-    const res = AprCalc.calculateLastApr(WEEK, aprState, now)
-
-    assertIsCloseTo(res, BigDecimal.fromString("3.65"), BigDecimal.fromString("0.0001"))
-  })
-
-  test("should compute apr when yield changes", () => {
-    let aprState = AprState.deserialize(new Array<BigDecimal>())
-    const now = DAY
-
-    aprState.addTransaction(BigDecimal.fromString("10"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
-    aprState.addTransaction(BigDecimal.fromString("20"), BigInt.fromI32(10000), BigDecimal.fromString("1000"))
-    aprState.addTransaction(BigDecimal.fromString("30"), DAY, BigDecimal.fromString("1000"))
-    const res = AprCalc.calculateLastApr(DAY, aprState, now)
-
-    assertIsCloseTo(res, BigDecimal.fromString("10.527546"), BigDecimal.fromString("0.0001"))
-  })
-
-  test("should compute apr when total value locked changes", () => {
-    let aprState = AprState.deserialize(new Array<BigDecimal>())
-    const now = DAY
-
-    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
-    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(10000), BigDecimal.fromString("2000"))
-    aprState.addTransaction(BigDecimal.fromString("100"), DAY, BigDecimal.fromString("3000"))
-    const res = AprCalc.calculateLastApr(DAY, aprState, now)
-
-    assertIsCloseTo(res, BigDecimal.fromString("12.870756172"), BigDecimal.fromString("0.0001"))
-  })
-
-  test("should compute apr when yield and total value locked changes", () => {
-    let aprState = AprState.deserialize(new Array<BigDecimal>())
-    const now = DAY
-
-    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
-    aprState.addTransaction(BigDecimal.fromString("200"), BigInt.fromI32(10000), BigDecimal.fromString("2000"))
-    aprState.addTransaction(BigDecimal.fromString("300"), DAY, BigDecimal.fromString("3000"))
-    const res = AprCalc.calculateLastApr(DAY, aprState, now)
-
-    assertIsCloseTo(res, BigDecimal.fromString("36.5"), BigDecimal.fromString("0.0001"))
-  })
-
   test("do not crash when TVL is zero now", () => {
     let aprState = AprState.deserialize(new Array<BigDecimal>())
     const now = DAY
@@ -147,8 +77,9 @@ describe("AprCalc", () => {
     aprState.addTransaction(BigDecimal.fromString("200"), BigInt.fromI32(10000), BigDecimal.fromString("2000"))
     aprState.addTransaction(BigDecimal.fromString("300"), DAY, BigDecimal.fromString("0"))
     const res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("4.2245370"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("56.862268518"), BigDecimal.fromString("0.0001"))
   })
 
   test("should evict old entries", () => {
@@ -161,6 +92,120 @@ describe("AprCalc", () => {
     aprState = AprCalc.evictOldEntries(DAY, aprState, BigInt.fromI32(69382400))
 
     assert.assertTrue(aprState.collects.length === 3)
+  })
+
+  test("should compute apr properly with one entry", () => {
+    let aprState = AprState.deserialize(new Array<BigDecimal>())
+    const now = BigInt.fromI32(100)
+
+    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(100), BigDecimal.fromString("1000"))
+    const res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
+
+    assertIsCloseTo(res, BigDecimal.fromString("0.1"), BigDecimal.fromString("0.0001"))
+  })
+
+  test("should compute apr in the simplest case", () => {
+    let aprState = AprState.deserialize(new Array<BigDecimal>())
+    const now = DAY
+
+    // we earn 1% over 1 day, so the APR is 365%
+    aprState.addTransaction(BigDecimal.fromString("10"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
+    aprState.addTransaction(BigDecimal.fromString("10"), DAY, BigDecimal.fromString("1000"))
+    const res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
+
+    assertIsCloseTo(res, BigDecimal.fromString("3.65"), BigDecimal.fromString("0.0001"))
+  })
+
+  test("should compute apr in the simplest case when the full period has not elapsed", () => {
+    let aprState = AprState.deserialize(new Array<BigDecimal>())
+    const now = DAY
+
+    // we earn 1% over 1 day, so the APR is 365%
+    aprState.addTransaction(BigDecimal.fromString("10"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
+    aprState.addTransaction(BigDecimal.fromString("10"), DAY, BigDecimal.fromString("1000"))
+    const res = AprCalc.calculateLastApr(WEEK, aprState, now)
+    log.debug("res: {}", [res.toString()])
+
+    assertIsCloseTo(res, BigDecimal.fromString("3.65"), BigDecimal.fromString("0.0001"))
+  })
+
+  test("should compute apr when yield changes", () => {
+    let aprState = AprState.deserialize(new Array<BigDecimal>())
+    const now = DAY
+
+    aprState.addTransaction(BigDecimal.fromString("10"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
+    aprState.addTransaction(BigDecimal.fromString("20"), BigInt.fromI32(10000), BigDecimal.fromString("1000"))
+    aprState.addTransaction(BigDecimal.fromString("30"), DAY, BigDecimal.fromString("1000"))
+    const res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
+
+    assertIsCloseTo(res, BigDecimal.fromString("10.527546"), BigDecimal.fromString("0.0001"))
+  })
+
+  test("should compute apr when total value locked changes", () => {
+    let aprState = AprState.deserialize(new Array<BigDecimal>())
+    const now = DAY
+
+    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
+    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(10000), BigDecimal.fromString("2000"))
+    aprState.addTransaction(BigDecimal.fromString("100"), DAY, BigDecimal.fromString("3000"))
+    const res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
+
+    assertIsCloseTo(res, BigDecimal.fromString("20.362268518"), BigDecimal.fromString("0.0001"))
+  })
+
+  test("should compute apr when yield and total value locked changes", () => {
+    let aprState = AprState.deserialize(new Array<BigDecimal>())
+    const now = DAY
+
+    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
+    aprState.addTransaction(BigDecimal.fromString("200"), BigInt.fromI32(10000), BigDecimal.fromString("2000"))
+    aprState.addTransaction(BigDecimal.fromString("300"), DAY, BigDecimal.fromString("3000"))
+    const res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
+
+    assertIsCloseTo(res, BigDecimal.fromString("56.86226"), BigDecimal.fromString("0.0001"))
+  })
+
+  test("should compute apr when the day is not over yet", () => {
+    let aprState = AprState.deserialize(new Array<BigDecimal>())
+    // using 6 decimals
+    const one = BigDecimal.fromString("1000000")
+
+    // whatever$ at 00:00, tvl of $100
+    // => 0% apr for the first hour
+    let now = BigInt.fromI32(0)
+    log.debug("\n\n======= now: {}\n", [now.toString()])
+    aprState.addTransaction(BigDecimal.fromString("0"), now, one.times(BigDecimal.fromString("100")))
+    assert.assertTrue(AprCalc.evictOldEntries(DAY, aprState, now).collects.length === 1)
+    let res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
+    assertIsCloseTo(res, ZERO_BD, BigDecimal.fromString("0.0001"))
+
+    // 2: 1$ at 01:00, tvl of $100 => +1% for the first hour
+    // => APR_24H is 1% * 24 * 365 => 8760%
+    now = BigInt.fromI32(60 * 60)
+    log.debug("\n\n======= now: {}\n", [now.toString()])
+    aprState.addTransaction(one, now, one.times(BigDecimal.fromString("100")))
+    assert.assertTrue(AprCalc.evictOldEntries(DAY, aprState, now).collects.length === 2)
+    res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
+    assertIsCloseTo(res, BigDecimal.fromString("87.60"), BigDecimal.fromString("0.0001"))
+
+    // 3: deposit of $100 at 12:00, claiming 10$ => +10%  for 11h
+    // => Avg % per hour is (10% * 11 + 1% * 1) / 12 => +9.25% on average over for 12h
+    // => APR_24h is 9.25% * 2 * 365 : 67.525%
+    now = BigInt.fromI32(12 * 60 * 60)
+    log.debug("\n\n======= now: {}\n", [now.toString()])
+    aprState.addTransaction(one.times(BigDecimal.fromString("10")), now, one.times(BigDecimal.fromString("200")))
+    assert.assertTrue(AprCalc.evictOldEntries(DAY, aprState, now).collects.length === 3)
+    res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
+
+    assertIsCloseTo(res, BigDecimal.fromString("67.525"), BigDecimal.fromString("0.0001"))
   })
 })
 

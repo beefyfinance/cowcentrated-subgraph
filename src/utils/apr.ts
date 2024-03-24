@@ -36,9 +36,6 @@ export class AprState {
   }
 
   public addTransaction(collectedAmountUSD: BigDecimal, collectTimestamp: BigInt, totalValueLocked: BigDecimal): void {
-    if (collectedAmountUSD.equals(ZERO_BD)) {
-      return
-    }
     const entry = new AprStateEntry(collectedAmountUSD, collectTimestamp, totalValueLocked)
 
     // check if the entry is in the right strict order
@@ -81,11 +78,14 @@ export class AprCalc {
     }
     if (state.collects.length === 1) {
       const entry = state.collects[0]
+      if (entry.totalValueLocked.equals(ZERO_BD)) {
+        return ZERO_BD
+      }
       return entry.collectedAmount.div(entry.totalValueLocked)
     }
 
     // for each time slice, get the time weighted tvl and time weighted collected amount
-    let weightedYieldRate = ZERO_BD
+    let agg = ZERO_BD
     for (let idx = 1; idx < state.collects.length; idx++) {
       const prev = state.collects[idx - 1]
       const curr = state.collects[idx]
@@ -97,14 +97,18 @@ export class AprCalc {
         .toBigDecimal()
         .div(curr.collectTimestamp.minus(prev.collectTimestamp).toBigDecimal())
       const sliceCollectedUSD = curr.collectedAmount.times(slicePercentSpan)
+      const sliceTvl = prev.totalValueLocked
       const sliceSize = curr.collectTimestamp.minus(sliceStart).toBigDecimal()
 
-      if (!curr.totalValueLocked.equals(ZERO_BD)) {
-        weightedYieldRate = weightedYieldRate.plus(sliceCollectedUSD.div(curr.totalValueLocked).times(sliceSize))
+      if (!sliceTvl.equals(ZERO_BD)) {
+        // compute how much each $ is contributing to the yield for this slice
+        const sliceAgg = sliceCollectedUSD.div(sliceTvl).times(sliceSize)
+        agg = agg.plus(sliceAgg)
       }
     }
+
     const elapsedPeriod = bigIntMin(now.minus(state.collects[0].collectTimestamp), period)
-    const yieldRate = weightedYieldRate.div(elapsedPeriod.toBigDecimal())
+    const yieldRate = agg.div(elapsedPeriod.toBigDecimal())
     const periodsInYear = YEAR.div(elapsedPeriod)
     const annualized = yieldRate.times(periodsInYear.toBigDecimal())
     return annualized
