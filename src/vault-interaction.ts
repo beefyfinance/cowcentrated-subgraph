@@ -8,7 +8,7 @@ import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRu
 import { getTransaction } from "./entity/transaction"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestor, getInvestorSnapshot, isNewInvestor } from "./entity/investor"
-import { ONE_BD, ZERO_BD, ZERO_BI, tokenAmountToDecimal } from "./utils/decimal"
+import { ONE_BD, ZERO_BD, ZERO_BI, bigDecMax, tokenAmountToDecimal } from "./utils/decimal"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getToken } from "./entity/token"
@@ -18,6 +18,7 @@ import { fetchCurrentPriceInToken1, fetchVaultPriceRangeInToken1, fetchVaultPric
 import { InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { SHARE_TOKEN_MINT_ADDRESS } from "./config"
+import { isBoostAddress } from "./entity/boost"
 
 export function handleVaultDeposit(event: DepositEvent): void {
   updateUserPosition(event, event.params.user, true, false)
@@ -47,6 +48,24 @@ export function handleVaultTransfer(event: TransferEvent): void {
     log.debug("handleVaultTransfer: skipping processing for vault {} at block {}", [
       event.address.toHexString(),
       event.block.number.toString(),
+    ])
+    return
+  }
+
+  // ignore transfers from/to boosts
+  if (isBoostAddress(event.params.from)) {
+    log.debug("handleVaultTransfer: skipping transfer processing for vault {} at block {}. Withdraw from boost {}", [
+      event.address.toHexString(),
+      event.block.number.toString(),
+      event.params.from.toHexString(),
+    ])
+    return
+  }
+  if (isBoostAddress(event.params.to)) {
+    log.debug("handleVaultTransfer: skipping transfer processing for vault {} at block {}. Deposit to boost {}", [
+      event.address.toHexString(),
+      event.block.number.toString(),
+      event.params.to.toHexString(),
     ])
     return
   }
@@ -255,7 +274,10 @@ function updateUserPosition(
   vault.underlyingAmount1 = vaultBalanceUnderlying1
   vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
   vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
-  vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(positionValueUSDDelta)
+  // due to price changes, the total value locked in USD plus a big % negative change in the position value
+  // can be negative, so we take the max with 0. This is OK as our clock will reset it to the right value
+  // on the next tick anyway.
+  vault.totalValueLockedUSD = bigDecMax(ZERO_BD, vault.underlyingAmount0USD.plus(positionValueUSDDelta))
   if (!isTransfer && isDeposit) vault.cumulativeDepositCount += 1
   if (!isTransfer && !isDeposit) vault.cumulativeWithdrawCount += 1
   vault.save()
