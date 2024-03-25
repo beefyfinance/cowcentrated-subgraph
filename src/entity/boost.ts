@@ -1,16 +1,16 @@
 import { Bytes } from "@graphprotocol/graph-ts"
-import { BeefyVaultIncentive } from "../../generated/schema"
+import { BeefyBoost } from "../../generated/schema"
 import { ADDRESS_ZERO } from "../utils/address"
 import { ZERO_BD } from "../utils/decimal"
 
 export function isBoostAddress(address: Bytes): boolean {
-  return BeefyVaultIncentive.load(address) !== null
+  return BeefyBoost.load(address) !== null
 }
 
-export function getBoost(boostAddress: Bytes): BeefyVaultIncentive {
-  let boost = BeefyVaultIncentive.load(boostAddress)
+export function getBoost(boostAddress: Bytes): BeefyBoost {
+  let boost = BeefyBoost.load(boostAddress)
   if (!boost) {
-    boost = new BeefyVaultIncentive(boostAddress)
+    boost = new BeefyBoost(boostAddress)
     boost.createdWith = ADDRESS_ZERO
     boost.vault = ADDRESS_ZERO
     boost.owner = ADDRESS_ZERO

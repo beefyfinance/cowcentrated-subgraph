@@ -16,6 +16,9 @@ type Token @entity(immutable: true) {
   name: String
   "The number of decimals the token uses"
   decimals: BigInt!
+
+  "All incentive programs rewarded in this token"
+  boosts: [BeefyBoost!]! @derivedFrom(field: "rewardedIn")
 }
 
 """
@@ -564,54 +567,57 @@ type BeefyCLVaultUnderlyingFeesCollectedEvent @entity(immutable: true) {
 #######################
 
 """
-A vault incentive is a reward given to the investors of a vault.
-The reward is given in a dedicated incentive token during a set period of time.
+A boost program rewards a token to the vault's investors.
+The reward is given in a dedicated boost token during a set period of time.
 This is most commonly referred to as a "boost".
 """
-type BeefyVaultIncentive @entity {
+type BeefyBoost @entity {
   "The inventive contract address"
   id: Bytes!
 
-  "The transaction that created the vault incentive"
+  "The transaction that created the boost contract"
   createdWith: Transaction!
-  "The vault the incentive is for"
+  "The vault the boost is for"
   vault: BeefyCLVault!
   "Current owner of the boost. The owner has additional permissions to manage the boost."
   owner: Bytes!
 
-  "The token used for the incentive"
+  "The token used for the boost"
   rewardedIn: Token!
 
-  "Amount of incentive tokens left to be distributed"
+  "Amount of boost tokens left to be distributed"
   incentiveAmount: BigDecimal!
 
-  "The amount of incentive tokens distributed so far"
+  "The amount of boost tokens distributed so far"
   cumulativeClaimedAmount: BigDecimal!
-  "Amount of incentive tokens distributed so far in USD"
+  "Amount of boost tokens distributed so far in USD"
   cumulativeClaimedAmountUSD: BigDecimal!
 
-  "All claims of the vault incentive"
-  claims: [BeefyVaultIncentiveClaimEvent!]! @derivedFrom(field: "vaultIncentive")
+  "All claims of the boost"
+  claims: [BeefyBoostClaimEvent!]! @derivedFrom(field: "boost")
 }
 
 """
-A vault incentive claim is a record of an investor claiming a vault incentive.
-As incentives are time-released, investors can claim their share of the incentive at any time.
+A boost claim is a record of an investor claiming a boost.
+As boost tokens are time-released, investors can claim their share of the incentive at any time.
 """
-type BeefyVaultIncentiveClaimEvent @entity(immutable: true) {
+type BeefyBoostClaimEvent @entity(immutable: true) {
   "transaction hash + log index"
   id: Bytes!
 
-  "The vault incentive the claim is for"
-  vaultIncentive: BeefyVaultIncentive!
-
-  "The investor that claimed the incentive"
+  "The boost that claim is for"
+  boost: BeefyBoost!
+  "The token used for the boost"
+  rewardedIn: Token!
+  "The investor that claimed the boost"
   investor: Investor!
 
-  "The transaction that created the vault incentive claim"
+  "The transaction that created the boost claim"
   createdWith: Transaction!
+  "The timestamp of the claim"
+  timestamp: BigInt!
 
-  "The amount of incentive tokens claimed"
+  "The amount of boost tokens claimed"
   claimedAmount: BigDecimal!
 }
 
@@ -662,6 +668,9 @@ type Investor @entity {
 
   "All investor interactions"
   interactions: [InvestorPositionInteraction!]! @derivedFrom(field: "investor")
+
+  "All investor claims of boost programs"
+  claims: [BeefyBoostClaimEvent!]! @derivedFrom(field: "investor")
 }
 
 """
@@ -836,6 +845,12 @@ enum InvestorPositionInteractionType {
   WITHDRAW
   "The investor transferred funds from one vault to another vault"
   TRANSFER
+  "Boosts are given to investors in the form of a dedicated incentive token"
+  BOOST_START
+  "The investor claimed a boost"
+  BOOST_CLAIM
+  "The investor's position was closed"
+  BOOST_STOP
 }
 
 type InvestorPositionInteraction @entity(immutable: true) {

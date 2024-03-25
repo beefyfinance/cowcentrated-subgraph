@@ -239,3 +239,12 @@ templates:
       eventHandlers:
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
+        - event: Staked(indexed address,uint256)
+          handler: handleStaked
+          receipt: true
+        - event: Withdrawn(indexed address,uint256)
+          handler: handleUnstaked
+          receipt: true
+        - event: RewardPaid(indexed address,uint256)
+          handler: handleRewardPaid
+          receipt: true

@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts"
+import { log } from "@graphprotocol/graph-ts"
 import { BoostDeployed as BoostDeployedEvent } from "../generated/BeefyBoostFactory/BeefyBoostFactory"
 import { BeefyBoost as BeefyBoostContract } from "../generated/templates/BeefyBoost/BeefyBoost"
 import { getBoost } from "./entity/boost"
