@@ -108,11 +108,21 @@ yarn test:lint # run prettier linter
 
 - TheGraph docs for [testing mappings](https://thegraph.com/docs/en/developing/unit-testing-framework/)
 
+### Deploy the subgraph
+
+```bash
+./bin/deploy.sh <network> goldsky
+./bin/deploy.sh <network> 0xgraph
+
+# or both
+./bin/deploy.sh <network> goldsky 0xgraph
+```
+
 # TODO list
 
-- feat: add APR
 - feat: add P&L
-- feat: handle boosts
 - feat: handle zap?
 - feat: fetch vault fees %?
-- feat: add protocol-level gas savings?
+- feat: interaction counts at the vault level?
+- improve: pyth oracles?
+- improve: add more tests
