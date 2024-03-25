@@ -16,6 +16,7 @@ import {
   Unpaused as UnpausedEvent,
 } from "../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
 import { ProxyCreated as VaultCreatedEvent } from "../generated/BeefyCLVaultFactory/BeefyVaultConcLiqFactory"
+import { GlobalPause as GlobalPauseEvent } from "../generated/BeefyCLStrategyFactory/BeefyStrategyFactory"
 import { BeefyCLVault as BeefyCLVaultTemplate } from "../generated/templates"
 import { getTransaction } from "./entity/transaction"
 import { fetchAndSaveTokenData } from "./utils/token"
@@ -154,16 +155,22 @@ function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLV
   return vault
 }
 
+export function handleGlobalStrategyPause(event: GlobalPauseEvent): void {
+  const protocol = getBeefyCLProtocol()
+  const vaults = protocol.vaults.load()
+  for (let i = 0; i < vaults.length; i++) {
+    const vault = vaults[i]
+    if (event.params.paused) vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_PAUSED
+    if (!event.params.paused) vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_RUNNING
+    vault.save()
+  }
+}
+
 export function handleStrategyPaused(event: PausedEvent): void {
   const strategy = getBeefyCLStrategy(event.address)
   const vault = getBeefyCLVault(strategy.vault)
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_PAUSED
   vault.save()
-
-  log.info("handleStrategyPaused: Strategy {} paused for vault {}.", [
-    strategy.id.toHexString(),
-    vault.id.toHexString(),
-  ])
 }
 
 export function handleStrategyUnpaused(event: UnpausedEvent): void {
@@ -171,9 +178,4 @@ export function handleStrategyUnpaused(event: UnpausedEvent): void {
   const vault = getBeefyCLVault(strategy.vault)
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_RUNNING
   vault.save()
-
-  log.info("handleStrategyUnpaused: Strategy {} unpaused for vault {}.", [
-    strategy.id.toHexString(),
-    vault.id.toHexString(),
-  ])
 }

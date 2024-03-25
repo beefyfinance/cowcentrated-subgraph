@@ -34,6 +34,33 @@ dataSources:
           receipt: true
           
   - kind: ethereum/contract
+    name: BeefyCLStrategyFactory
+    network: {{network}}
+    source:
+      address: "{{strategyFactoryAddress}}"
+      abi: BeefyStrategyFactory
+      startBlock: {{strategyFactoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/mapping/factory.ts
+      entities:
+        - Investor
+        - Transaction
+        - BeefyCLVault
+        - BeefyCLStrategy
+        - Protocol
+        - ProtocolSnapshot
+      abis:
+        - name: BeefyStrategyFactory
+          file: ./abis/beefy/concliq/BeefyStrategyFactory.json
+      eventHandlers:
+        - event: GlobalPause(bool)
+          handler: handleGlobalStrategyPause
+          receipt: true
+          
+  - kind: ethereum/contract
     name: ChainlinkClock
     network: {{network}}
     source:

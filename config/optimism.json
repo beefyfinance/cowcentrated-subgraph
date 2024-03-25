@@ -2,8 +2,11 @@
   "network": "optimism",
 
   "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
+
   "vaultFactoryAddress": "0x63C381013fa310ea4715E0f435dea56B19dc1aa7",
   "vaultFactoryStartBlock": 117800956,
+  "strategyFactoryAddress": "0xc9C937ea5399d4e86cAbE9Dc5662eb64a5a5A48d",
+  "strategyFactoryStartBlock": 117800962,
   "boostFactoryAddress": "0xf0a7626eccbee00af144bb1f77cd187af85bbf41",
   "boostFactoryStartBlock": 117800956,
   "clockTickBlocks": 750,

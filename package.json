@@ -15,6 +15,7 @@
     "deploy-local": "graph deploy beefyfinance/beefy-cl --node http://127.0.0.1:8020 --ipfs http://localhost:5001",
     "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "prepare:arbitrum": "./bin/prepare.sh arbitrum",
+    "prepare:base": "./bin/prepare.sh base",
     "prepare:optimism": "./bin/prepare.sh optimism"
   },
   "main": "./bin/index.js",

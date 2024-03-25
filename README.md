@@ -8,13 +8,15 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 
 ### GraphiQL Explorer
 
-- Arbitrum: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn)
-- Optimism: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn)
+- Arbitrum: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn)
+- Base: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn)
+- Optimism: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn)
 
 ### Api Endpoints
 
-- Arbitrum: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn)
-- Optimism: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn)
+- Arbitrum: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn)
+- Base: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn)
+- Optimism: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn)
 
 ## 0xgraph.xyz
 
@@ -74,6 +76,9 @@ yarn test:lint # run prettier linter
 ### How to add a new network
 
 1. Add the network configuration [config/<network>.json](config/).
+   - `clockTickBlocks` is the number of blocks between each clock tick, aim for a clock tick every 15 minutes.
+   - Find the uniswap v3, QuoterV2 contract address [on uniswap's documentation](https://docs.uniswap.org/contracts/v3/reference/deployments)
+   - Find the <native>/USD price feed [on chainlink's documentation](https://docs.chain.link/data-feeds/price-feeds/addresses#networks). Verify that it's a ChainLink `AggregatorV3Interface` with the `latestRoundData()` method.
 2. Add dev RPCs in graph-node config [docker/graph-node/config.toml](docker/graph-node/config.toml).
 3. Add a new `prepare:<network>` script in [package.json](package.json).
 4. Add a new `deploy:<network>:<provider>` script in [package.json](package.json).

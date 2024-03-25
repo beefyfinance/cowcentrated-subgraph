@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # config
-valid_chains=("arbitrum" "optimism")
+valid_chains=($(ls config | sed 's/\.json//g'))
 valid_providers=("goldsky" "0xgraph")
 
 function exit_help {

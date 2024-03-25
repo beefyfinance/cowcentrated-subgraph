@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CHAIN=$1
-valid_chains=("arbitrum" "optimism")
+valid_chains=($(ls config | sed 's/\.json//g'))
 
 if [ -z "$CHAIN" ]; then
     echo "Usage: $0 <chain>"
