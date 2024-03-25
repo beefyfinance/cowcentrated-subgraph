@@ -20,6 +20,9 @@ import { getEventIdentifier } from "./utils/event"
 import { getTransaction } from "./entity/transaction"
 import { ZERO_BD, tokenAmountToDecimal } from "./utils/decimal"
 import { getToken } from "./entity/token"
+import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
+import { SNAPSHOT_PERIODS } from "./utils/time"
+import { fetchNativePriceUSD } from "./utils/price"
 
 export function handleBoostStake(event: StakedEvent): void {
   log.debug("handleBoostStake: {}", [event.params.amount.toString()])
@@ -27,14 +30,54 @@ export function handleBoostStake(event: StakedEvent): void {
   const tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
 
+  const periods = SNAPSHOT_PERIODS
+  const protocol = getBeefyCLProtocol()
   const boost = getBoost(event.address)
   const vault = getBeefyCLVault(boost.vault)
   const investor = getInvestor(event.params.user)
   const position = getInvestorPosition(vault, investor)
 
+  ///////
+  // fetch native token price
+  const nativePriceUSD = fetchNativePriceUSD()
+
+  ///////
+  // compute derived values
+  log.debug("handleBoostWithdraw: computing derived values for vault {}", [vault.id.toHexString()])
+  const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
+
+  /////
+  // create the interaction
   let positionInteraction = getBoostInteraction(vault, investor, position, tx, event)
   positionInteraction.type = "BOOST_START"
   positionInteraction.save()
+
+  /////
+  // update innvestor
+  investor.lastInteractionAt = event.block.timestamp
+  investor.save()
+
+  /////
+  // update protocol stats
+  protocol.cumulativeTransactionCount += 1
+  protocol.cumulativeInvestorInteractionsCount += 1
+  protocol.save()
+  for (let i = 0; i < periods.length; i++) {
+    log.debug("updateUserPosition: updating protocol snapshot for vault {} and period {}", [
+      vault.id.toHexString(),
+      periods[i].toString(),
+    ])
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
+    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
+    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
+    protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
+    protocolSnapshot.investorGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
+    if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))
+      protocolSnapshot.uniqueActiveInvestorCount += 1
+    protocolSnapshot.transactionCount += 1
+    protocolSnapshot.investorInteractionsCount += 1
+    protocolSnapshot.save()
+  }
 }
 
 export function handleBoostWithdraw(event: WithdrawnEvent): void {
@@ -43,14 +86,54 @@ export function handleBoostWithdraw(event: WithdrawnEvent): void {
   const tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
 
+  const periods = SNAPSHOT_PERIODS
+  const protocol = getBeefyCLProtocol()
   const boost = getBoost(event.address)
   const vault = getBeefyCLVault(boost.vault)
   const investor = getInvestor(event.params.user)
   const position = getInvestorPosition(vault, investor)
 
+  ///////
+  // fetch native token price
+  const nativePriceUSD = fetchNativePriceUSD()
+
+  ///////
+  // compute derived values
+  log.debug("handleBoostWithdraw: computing derived values for vault {}", [vault.id.toHexString()])
+  const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
+
+  /////
+  // create the interaction
   let positionInteraction = getBoostInteraction(vault, investor, position, tx, event)
   positionInteraction.type = "BOOST_STOP"
   positionInteraction.save()
+
+  /////
+  // update innvestor
+  investor.lastInteractionAt = event.block.timestamp
+  investor.save()
+
+  /////
+  // update protocol stats
+  protocol.cumulativeTransactionCount += 1
+  protocol.cumulativeInvestorInteractionsCount += 1
+  protocol.save()
+  for (let i = 0; i < periods.length; i++) {
+    log.debug("updateUserPosition: updating protocol snapshot for vault {} and period {}", [
+      vault.id.toHexString(),
+      periods[i].toString(),
+    ])
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
+    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
+    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
+    protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
+    protocolSnapshot.investorGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
+    if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))
+      protocolSnapshot.uniqueActiveInvestorCount += 1
+    protocolSnapshot.transactionCount += 1
+    protocolSnapshot.investorInteractionsCount += 1
+    protocolSnapshot.save()
+  }
 }
 
 export function handleBoostReward(event: RewardPaidEvent): void {
@@ -59,15 +142,55 @@ export function handleBoostReward(event: RewardPaidEvent): void {
   const tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
 
+  const periods = SNAPSHOT_PERIODS
+  const protocol = getBeefyCLProtocol()
   const boost = getBoost(event.address)
   const vault = getBeefyCLVault(boost.vault)
   const investor = getInvestor(event.params.user)
   const position = getInvestorPosition(vault, investor)
   const rewardToken = getToken(boost.rewardedIn)
 
+  ///////
+  // fetch native token price
+  const nativePriceUSD = fetchNativePriceUSD()
+
+  ///////
+  // compute derived values
+  log.debug("handleBoostWithdraw: computing derived values for vault {}", [vault.id.toHexString()])
+  const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
+
+  /////
+  // create the interaction
   let positionInteraction = getBoostInteraction(vault, investor, position, tx, event)
   positionInteraction.type = "BOOST_CLAIM"
   positionInteraction.save()
+
+  /////
+  // update innvestor
+  investor.lastInteractionAt = event.block.timestamp
+  investor.save()
+
+  /////
+  // update protocol stats
+  protocol.cumulativeTransactionCount += 1
+  protocol.cumulativeInvestorInteractionsCount += 1
+  protocol.save()
+  for (let i = 0; i < periods.length; i++) {
+    log.debug("updateUserPosition: updating protocol snapshot for vault {} and period {}", [
+      vault.id.toHexString(),
+      periods[i].toString(),
+    ])
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
+    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
+    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
+    protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
+    protocolSnapshot.investorGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
+    if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))
+      protocolSnapshot.uniqueActiveInvestorCount += 1
+    protocolSnapshot.transactionCount += 1
+    protocolSnapshot.investorInteractionsCount += 1
+    protocolSnapshot.save()
+  }
 
   let boostClaimEvent = new BeefyBoostClaimEvent(getEventIdentifier(event))
   boostClaimEvent.boost = boost.id
