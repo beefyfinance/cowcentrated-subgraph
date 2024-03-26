@@ -209,10 +209,10 @@ function updateUserPosition(
   const positionValueUSDDelta = position.positionValueUSD.minus(previousPositionValueUSD)
   if (isNewPosition) {
     position.initialUnderlyingBalance0 = position.underlyingBalance0
-    position.initialUnderlyingBalance1 = position.underlyingBalance0
-    position.initialUnderlyingBalance0USD = position.underlyingBalance0
-    position.initialUnderlyingBalance1USD = position.underlyingBalance0
-    position.initialPositionValueUSD = position.underlyingBalance0
+    position.initialUnderlyingBalance1 = position.underlyingBalance1
+    position.initialUnderlyingBalance0USD = position.underlyingBalance0USD
+    position.initialUnderlyingBalance1USD = position.underlyingBalance1USD
+    position.initialPositionValueUSD = position.positionValueUSD
   } else {
     // apply the share balance percent change to the initial position value
     const mult = shareBalancePercentChange.plus(ONE_BD)
