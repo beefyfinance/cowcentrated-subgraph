@@ -44,13 +44,13 @@ export function getInvestorSnapshot(investor: Investor, timestamp: BigInt, perio
     snapshot.depositCount = 0
     snapshot.withdrawCount = 0
     snapshot.compoundedValueUSD = ZERO_BD
-  }
 
-  // copy non-reseting values from the previous snapshot to the new snapshot
-  const previousSnapshotId = investor.id.concat(getPreviousSnapshotIdSuffix(period, interval))
-  const previousSnapshot = InvestorSnapshot.load(previousSnapshotId)
-  if (previousSnapshot) {
-    snapshot.totalPositionValueUSD = previousSnapshot.totalPositionValueUSD
+    // copy non-reseting values from the previous snapshot to the new snapshot
+    const previousSnapshotId = investor.id.concat(getPreviousSnapshotIdSuffix(period, interval))
+    const previousSnapshot = InvestorSnapshot.load(previousSnapshotId)
+    if (previousSnapshot) {
+      snapshot.totalPositionValueUSD = previousSnapshot.totalPositionValueUSD
+    }
   }
 
   return snapshot

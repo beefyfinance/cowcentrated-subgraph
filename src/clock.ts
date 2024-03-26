@@ -14,8 +14,6 @@ import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/template
 export function handleClockTick(block: ethereum.Block): void {
   const timestamp = block.timestamp
 
-  log.debug("handleClockTick: new tick detected: {}", [timestamp.toString()])
-
   let tickRes15min = getClockTick(timestamp, MINUTES_15)
   if (!tickRes15min.isNew) {
     log.debug("handleClockTick: tick already exists for 15 minutes period", [])
@@ -30,7 +28,7 @@ export function handleClockTick(block: ethereum.Block): void {
 }
 
 function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
-  log.debug("updateDataOnClockTick: new day detected: {}", [tick.roundedTimestamp.toString()])
+  log.debug("updateDataOnClockTick: processing new tick: {}", [tick.roundedTimestamp.toString()])
 
   const periods = SNAPSHOT_PERIODS
   const protocol = getBeefyCLProtocol()

@@ -58,15 +58,15 @@ export function getBeefyCLProtocolSnapshot(timestamp: BigInt, period: BigInt): P
     snapshot.strategistFeesCollectedUSD = ZERO_BD
     snapshot.zapFeesCollectedNative = ZERO_BD
     snapshot.zapFeesCollectedUSD = ZERO_BD
-  }
 
-  // copy non-reseting values from the previous snapshot to the new snapshot
-  const previousInterval = getPreviousSnapshotIdSuffix(period, interval)
-  const previousSnapshotId = protocolId.concat(previousInterval)
-  const previousSnapshot = ProtocolSnapshot.load(previousSnapshotId)
-  if (previousSnapshot) {
-    snapshot.totalValueLockedUSD = previousSnapshot.totalValueLockedUSD
-    snapshot.activeVaultCount = previousSnapshot.activeVaultCount
+    // copy non-reseting values from the previous snapshot to the new snapshot
+    const previousInterval = getPreviousSnapshotIdSuffix(period, interval)
+    const previousSnapshotId = protocolId.concat(previousInterval)
+    const previousSnapshot = ProtocolSnapshot.load(previousSnapshotId)
+    if (previousSnapshot) {
+      snapshot.totalValueLockedUSD = previousSnapshot.totalValueLockedUSD
+      snapshot.activeVaultCount = previousSnapshot.activeVaultCount
+    }
   }
 
   return snapshot
