@@ -21,8 +21,11 @@ export function handleClockTick(block: ethereum.Block): void {
     log.debug("handleClockTick: tick already exists for 15 minutes period", [])
     return
   }
+  tickRes15min.tick.save()
 
   let tickResDay = getClockTick(timestamp, DAY)
+  tickResDay.tick.save()
+
   updateDataOnClockTick(tickRes15min.tick, tickResDay.isNew)
 }
 
