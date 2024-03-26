@@ -23,11 +23,13 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 ### GraphiQL Explorer
 
 - Arbitrum: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum/graphql](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum/graphql)
+- Base: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-base/graphql](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-base/graphql)
 - Optimism: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism/graphql](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism/graphql)
 
 ### Api Endpoints
 
 - Arbitrum: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum)
+- Base: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-base](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-base)
 - Optimism: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism)
 
 # Contributing
@@ -76,7 +78,7 @@ yarn test:lint # run prettier linter
 ### How to add a new network
 
 1. Add the network configuration [config/<network>.json](config/).
-   - `clockTickBlocks` is the number of blocks between each clock tick, aim for a clock tick every 15 minutes.
+   - `clockTickBlocks` is the number of blocks between each clock tick, aim for a clock tick every 5 minutes.
    - Find the uniswap v3, QuoterV2 contract address [on uniswap's documentation](https://docs.uniswap.org/contracts/v3/reference/deployments)
    - Find the <native>/USD price feed [on chainlink's documentation](https://docs.chain.link/data-feeds/price-feeds/addresses#networks). Verify that it's a ChainLink `AggregatorV3Interface` with the `latestRoundData()` method.
 2. Add dev RPCs in graph-node config [docker/graph-node/config.toml](docker/graph-node/config.toml).

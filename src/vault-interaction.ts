@@ -313,11 +313,12 @@ function updateUserPosition(
   if (isNewPosition) protocol.activeInvestorCount += 1
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
+    const period = periods[i]
     log.debug("updateUserPosition: updating protocol snapshot for vault {} and period {}", [
       vault.id.toHexString(),
-      periods[i].toString(),
+      period.toString(),
     ])
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     if (newInvestor) protocolSnapshot.newInvestorCount += 1
     if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))

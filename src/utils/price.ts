@@ -21,7 +21,7 @@ export function fetchVaultPrices(
   token0: Token,
   token1: Token,
 ): VaultPrices {
-  log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])
+  log.debug("fetchVaultPrices: fetching data for vault {}", [vault.id.toHexString()])
   const token0Path = strategy.lpToken0ToNativePath
   const token1Path = strategy.lpToken1ToNativePath
 
@@ -30,39 +30,39 @@ export function fetchVaultPrices(
   if (token0Path.length > 0 && token0.id.notEqual(WNATIVE_TOKEN_ADDRESS)) {
     const token0PriceInNativeRes = quoter.try_quoteExactInput(token0Path, exponentToBigInt(token0.decimals))
     if (token0PriceInNativeRes.reverted) {
-      log.error("updateUserPosition: quoteExactInput() of vault {} reverted for token {} (token0) with path {}", [
+      log.error("fetchVaultPrices: quoteExactInput() of vault {} reverted for token {} (token0) with path {}", [
         vault.id.toHexString(),
         token0.id.toHexString(),
         token0Path.toHexString(),
       ])
-      throw Error("updateUserPosition: quoteExactInput() reverted")
+      throw Error("fetchVaultPrices: quoteExactInput() reverted")
     }
     token0PriceInNative = tokenAmountToDecimal(token0PriceInNativeRes.value.getAmountOut(), WNATIVE_DECIMALS)
-    log.debug("updateUserPosition: token0PriceInNativeRes: {}", [token0PriceInNative.toString()])
+    log.debug("fetchVaultPrices: token0PriceInNativeRes: {}", [token0PriceInNative.toString()])
   }
   let token1PriceInNative = ONE_BD
   if (token1Path.length > 0 && token1.id.notEqual(WNATIVE_TOKEN_ADDRESS)) {
     const token1PriceInNativeRes = quoter.try_quoteExactInput(token1Path, exponentToBigInt(token1.decimals))
     if (token1PriceInNativeRes.reverted) {
-      log.error("updateUserPosition: quoteExactInput() of vault {} reverted for token {} (token1) with path {}", [
+      log.error("fetchVaultPrices: quoteExactInput() of vault {} reverted for token {} (token1) with path {}", [
         vault.id.toHexString(),
         token1.id.toHexString(),
         token1Path.toHexString(),
       ])
-      throw Error("updateUserPosition: quoteExactInput() reverted")
+      throw Error("fetchVaultPrices: quoteExactInput() reverted")
     }
     token1PriceInNative = tokenAmountToDecimal(token1PriceInNativeRes.value.getAmountOut(), WNATIVE_DECIMALS)
-    log.debug("updateUserPosition: token1PriceInNativeRes: {}", [token1PriceInNative.toString()])
+    log.debug("fetchVaultPrices: token1PriceInNativeRes: {}", [token1PriceInNative.toString()])
   }
 
   // fetch the native price in USD
   const nativePriceUSDRes = nativePriceFeed.try_latestRoundData()
   if (nativePriceUSDRes.reverted) {
-    log.error("updateUserPosition: latestRoundData() reverted for native token", [])
-    throw Error("updateUserPosition: latestRoundData() reverted")
+    log.error("fetchVaultPrices: latestRoundData() reverted for native token", [])
+    throw Error("fetchVaultPrices: latestRoundData() reverted")
   }
   const nativePriceUSD = tokenAmountToDecimal(nativePriceUSDRes.value.getAnswer(), PRICE_FEED_DECIMALS)
-  log.debug("updateUserPosition: nativePriceUSD: {}", [nativePriceUSD.toString()])
+  log.debug("fetchVaultPrices: nativePriceUSD: {}", [nativePriceUSD.toString()])
 
   return new VaultPrices(token0PriceInNative, token1PriceInNative, nativePriceUSD)
 }

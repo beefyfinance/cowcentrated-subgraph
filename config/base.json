@@ -9,7 +9,7 @@
   "strategyFactoryStartBlock": 12294025,
   "boostFactoryAddress": "0x1111111111111111111111111111111111111111",
   "boostFactoryStartBlock": 12294025,
-  "clockTickBlocks": 450,
+  "clockTickBlocks": 150,
 
   "wrappedNativeAddress": "0x4200000000000000000000000000000000000006",
   "wrappedNativeDecimals": 18,
