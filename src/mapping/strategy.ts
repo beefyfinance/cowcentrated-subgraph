@@ -9,7 +9,3 @@ export {
   handleStrategyClaimedFees as handleClaimedFees,
 } from "../vault-compound"
 export { handleStrategyChargedFees as handleChargedFees } from "../vault-fees"
-export {
-  handleStrategySetLpToken0ToNativePath as handleSetLpToken0ToNativePath,
-  handleStrategySetLpToken1ToNativePath as handleSetLpToken1ToNativePath,
-} from "../strategy-config"

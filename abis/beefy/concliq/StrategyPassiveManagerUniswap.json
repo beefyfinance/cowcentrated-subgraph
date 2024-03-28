@@ -25,6 +25,7 @@
     "name": "SafeERC20FailedOperation",
     "type": "error"
   },
+  { "inputs": [], "name": "StrategyPaused", "type": "error" },
   { "inputs": [], "name": "TooMuchSlippage", "type": "error" },
   {
     "anonymous": false,
@@ -88,26 +89,8 @@
   },
   {
     "anonymous": false,
-    "inputs": [{ "indexed": false, "internalType": "address", "name": "beefyFeeConfig", "type": "address" }],
-    "name": "SetBeefyFeeConfig",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [{ "indexed": false, "internalType": "address", "name": "beefyFeeRecipient", "type": "address" }],
-    "name": "SetBeefyFeeRecipient",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
     "inputs": [{ "indexed": false, "internalType": "int56", "name": "maxTickDeviation", "type": "int56" }],
     "name": "SetDeviation",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [{ "indexed": false, "internalType": "address", "name": "keeper", "type": "address" }],
-    "name": "SetKeeper",
     "type": "event"
   },
   {
@@ -129,6 +112,12 @@
       { "indexed": false, "internalType": "int24", "name": "width", "type": "int24" }
     ],
     "name": "SetPositionWidth",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": false, "internalType": "address", "name": "quoter", "type": "address" }],
+    "name": "SetQuoter",
     "type": "event"
   },
   {
@@ -251,6 +240,13 @@
   },
   {
     "inputs": [],
+    "name": "factory",
+    "outputs": [{ "internalType": "contract IStrategyFactory", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "fees0",
     "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
@@ -321,7 +317,7 @@
   {
     "inputs": [
       { "internalType": "address", "name": "_pool", "type": "address" },
-      { "internalType": "address", "name": "_native", "type": "address" },
+      { "internalType": "address", "name": "_quoter", "type": "address" },
       { "internalType": "int24", "name": "_positionWidth", "type": "int24" },
       { "internalType": "bytes", "name": "_lpToken0ToNativePath", "type": "bytes" },
       { "internalType": "bytes", "name": "_lpToken1ToNativePath", "type": "bytes" },
@@ -329,10 +325,8 @@
         "components": [
           { "internalType": "address", "name": "vault", "type": "address" },
           { "internalType": "address", "name": "unirouter", "type": "address" },
-          { "internalType": "address", "name": "keeper", "type": "address" },
           { "internalType": "address", "name": "strategist", "type": "address" },
-          { "internalType": "address", "name": "beefyFeeRecipient", "type": "address" },
-          { "internalType": "address", "name": "beefyFeeConfig", "type": "address" }
+          { "internalType": "address", "name": "factory", "type": "address" }
         ],
         "internalType": "struct StratFeeManagerInitializable.CommonAddresses",
         "name": "_commonAddresses",
@@ -391,6 +385,13 @@
   },
   {
     "inputs": [],
+    "name": "lpToken0ToNativePrice",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "lpToken1",
     "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
     "stateMutability": "view",
@@ -408,6 +409,13 @@
     "name": "lpToken1ToNativePath",
     "outputs": [{ "internalType": "bytes", "name": "", "type": "bytes" }],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lpToken1ToNativePrice",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -491,6 +499,13 @@
   },
   {
     "inputs": [],
+    "name": "quoter",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "range",
     "outputs": [
       { "internalType": "uint256", "name": "lowerPrice", "type": "uint256" },
@@ -501,29 +516,8 @@
   },
   { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
   {
-    "inputs": [{ "internalType": "address", "name": "_beefyFeeConfig", "type": "address" }],
-    "name": "setBeefyFeeConfig",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "address", "name": "_beefyFeeRecipient", "type": "address" }],
-    "name": "setBeefyFeeRecipient",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
     "inputs": [{ "internalType": "int56", "name": "_maxDeviation", "type": "int56" }],
     "name": "setDeviation",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "address", "name": "_keeper", "type": "address" }],
-    "name": "setKeeper",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

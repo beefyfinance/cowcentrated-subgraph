@@ -72,8 +72,6 @@ export function getBeefyCLStrategy(strategyAddress: Bytes): BeefyCLStrategy {
     strategy.vault = ADDRESS_ZERO
     strategy.owner = ADDRESS_ZERO
     strategy.isInitialized = false
-    strategy.lpToken0ToNativePath = Bytes.empty()
-    strategy.lpToken1ToNativePath = Bytes.empty()
   }
   return strategy
 }

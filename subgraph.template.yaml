@@ -86,8 +86,6 @@ dataSources:
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
         - name: StrategyPassiveManagerUniswap
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
-        - name: UniswapQuoterV2
-          file: ./abis/uniswap/QuoterV2.json
         - name: ChainLinkPriceFeed
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
@@ -124,8 +122,6 @@ dataSources:
           file: ./abis/beefy/concliq/BeefyBoostFactory.json
         - name: BeefyBoost
           file: ./abis/beefy/concliq/BeefyBoost.json
-        - name: UniswapQuoterV2
-          file: ./abis/uniswap/QuoterV2.json
         - name: ChainLinkPriceFeed
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
@@ -160,8 +156,6 @@ templates:
           file: ./abis/beefy/concliq/BeefyBoost.json
         - name: StrategyPassiveManagerUniswap
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
-        - name: UniswapQuoterV2
-          file: ./abis/uniswap/QuoterV2.json
         - name: ChainLinkPriceFeed
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
@@ -204,8 +198,6 @@ templates:
           file: ./abis/beefy/concliq/BeefyBoost.json
         - name: StrategyPassiveManagerUniswap
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
-        - name: UniswapQuoterV2
-          file: ./abis/uniswap/QuoterV2.json
         - name: ChainLinkPriceFeed
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
@@ -228,10 +220,6 @@ templates:
         - event: ClaimedFees(uint256,uint256,uint256,uint256)
           handler: handleClaimedFees
           receipt: true
-        - event: SetLpToken0ToNativePath(bytes)
-          handler: handleSetLpToken0ToNativePath
-        - event: SetLpToken1ToNativePath(bytes)
-          handler: handleSetLpToken1ToNativePath
 
   
   - name: BeefyBoost
@@ -257,8 +245,6 @@ templates:
           file: ./abis/beefy/concliq/BeefyBoost.json
         - name: StrategyPassiveManagerUniswap
           file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
-        - name: UniswapQuoterV2
-          file: ./abis/uniswap/QuoterV2.json
         - name: ChainLinkPriceFeed
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20

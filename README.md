@@ -120,6 +120,41 @@ yarn test:lint # run prettier linter
 ./bin/deploy.sh <network> goldsky 0xgraph
 ```
 
+# Dependecies on the underlying contracts
+
+```text
+- boostFactory: BoostDeployed(indexed address)
+- boost.stakedToken()
+- boost.rewardToken()
+
+- vaultFactory: ProxyCreated(address)
+- vault.balances()
+- vault.totalSupply()
+- vault.previewWithdraw()
+- vault.balanceOf()
+- vault.strategy()
+- vault: Initialized(uint8)
+- vault: OwnershipTransferred(indexed address,indexed address)
+- vault: Deposit(indexed address,uint256,uint256,uint256)
+- vault: Withdraw(indexed address,uint256,uint256,uint256)
+- vault: Transfer(indexed address,indexed address,uint256)
+
+- strategyFactory: GlobalPause(bool)
+- strategy.pool()
+- strategy.vault()
+- strategy.price()
+- strategy.range()
+- strategy.lpToken1ToNativePrice()
+- strategy.lpToken0ToNativePrice()
+- strategy: Initialized(uint8)
+- strategy: OwnershipTransferred(indexed address,indexed address)
+- strategy: Paused(address)
+- strategy: Unpaused(address)
+- strategy: Harvest(uint256,uint256)
+- strategy: ChargedFees(uint256,uint256,uint256)
+- strategy: ClaimedFees(uint256,uint256,uint256,uint256)
+```
+
 # TODO list
 
 - feat: add P&L

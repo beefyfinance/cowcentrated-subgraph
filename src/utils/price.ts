@@ -1,18 +1,10 @@
 import { Address, BigDecimal, BigInt, Bytes, log } from "@graphprotocol/graph-ts"
 import { BeefyCLStrategy, BeefyCLVault, Token } from "../../generated/schema"
 import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
-import { ONE_BD, ZERO_BD, exponentToBigInt, tokenAmountToDecimal } from "./decimal"
-import { UniswapQuoterV2 } from "../../generated/templates/BeefyCLStrategy/UniswapQuoterV2"
+import { ZERO_BD, tokenAmountToDecimal } from "./decimal"
 import { ChainLinkPriceFeed } from "../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed"
-import {
-  CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
-  PRICE_FEED_DECIMALS,
-  UNISWAP_V3_QUOTER_V2_ADDRESS,
-  WNATIVE_DECIMALS,
-  WNATIVE_TOKEN_ADDRESS,
-} from "../config"
+import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, WNATIVE_DECIMALS } from "../config"
 
-const quoter = UniswapQuoterV2.bind(UNISWAP_V3_QUOTER_V2_ADDRESS)
 const nativePriceFeed = ChainLinkPriceFeed.bind(CHAINLINK_NATIVE_PRICE_FEED_ADDRESS)
 
 export function fetchVaultPrices(
@@ -22,38 +14,31 @@ export function fetchVaultPrices(
   token1: Token,
 ): VaultPrices {
   log.debug("fetchVaultPrices: fetching data for vault {}", [vault.id.toHexString()])
-  const token0Path = strategy.lpToken0ToNativePath
-  const token1Path = strategy.lpToken1ToNativePath
+  const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(strategy.id))
 
-  // fetch the token prices to native
-  let token0PriceInNative = ONE_BD
-  if (token0Path.length > 0 && token0.id.notEqual(WNATIVE_TOKEN_ADDRESS)) {
-    const token0PriceInNativeRes = quoter.try_quoteExactInput(token0Path, exponentToBigInt(token0.decimals))
-    if (token0PriceInNativeRes.reverted) {
-      log.error("fetchVaultPrices: quoteExactInput() of vault {} reverted for token {} (token0) with path {}", [
-        vault.id.toHexString(),
-        token0.id.toHexString(),
-        token0Path.toHexString(),
-      ])
-      throw Error("fetchVaultPrices: quoteExactInput() reverted")
-    }
-    token0PriceInNative = tokenAmountToDecimal(token0PriceInNativeRes.value.getAmountOut(), WNATIVE_DECIMALS)
-    log.debug("fetchVaultPrices: token0PriceInNativeRes: {}", [token0PriceInNative.toString()])
+  const token0PriceInNativeRes = strategyContract.try_lpToken0ToNativePrice()
+  if (token0PriceInNativeRes.reverted) {
+    log.error("fetchVaultPrices: lpToken0ToNativePrice() of vault {} and strat {} reverted for token {} (token0)", [
+      vault.id.toHexString(),
+      strategy.id.toHexString(),
+      token0.id.toHexString(),
+    ])
+    throw Error("fetchVaultPrices: lpToken0ToNativePrice() reverted")
   }
-  let token1PriceInNative = ONE_BD
-  if (token1Path.length > 0 && token1.id.notEqual(WNATIVE_TOKEN_ADDRESS)) {
-    const token1PriceInNativeRes = quoter.try_quoteExactInput(token1Path, exponentToBigInt(token1.decimals))
-    if (token1PriceInNativeRes.reverted) {
-      log.error("fetchVaultPrices: quoteExactInput() of vault {} reverted for token {} (token1) with path {}", [
-        vault.id.toHexString(),
-        token1.id.toHexString(),
-        token1Path.toHexString(),
-      ])
-      throw Error("fetchVaultPrices: quoteExactInput() reverted")
-    }
-    token1PriceInNative = tokenAmountToDecimal(token1PriceInNativeRes.value.getAmountOut(), WNATIVE_DECIMALS)
-    log.debug("fetchVaultPrices: token1PriceInNativeRes: {}", [token1PriceInNative.toString()])
+  const token0PriceInNative = tokenAmountToDecimal(token0PriceInNativeRes.value, WNATIVE_DECIMALS)
+  log.debug("fetchVaultPrices: token0PriceInNative: {}", [token0PriceInNative.toString()])
+
+  const token1PriceInNativeRes = strategyContract.try_lpToken1ToNativePrice()
+  if (token1PriceInNativeRes.reverted) {
+    log.error("fetchVaultPrices: lpToken1ToNativePrice() of vault {} and strat {} reverted for token {} (token1)", [
+      vault.id.toHexString(),
+      strategy.id.toHexString(),
+      token1.id.toHexString(),
+    ])
+    throw Error("fetchVaultPrices: lpToken1ToNativePrice() reverted")
   }
+  const token1PriceInNative = tokenAmountToDecimal(token1PriceInNativeRes.value, WNATIVE_DECIMALS)
+  log.debug("fetchVaultPrices: token1PriceInNative: {}", [token1PriceInNative.toString()])
 
   // fetch the native price in USD
   const nativePriceUSDRes = nativePriceFeed.try_latestRoundData()
