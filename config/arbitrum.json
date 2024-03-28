@@ -3,17 +3,16 @@
 
   "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
 
-  "vaultFactoryAddress": "0xAad99bCdcf5aD316da55fDF7E5d23613407A8748",
-  "vaultFactoryStartBlock": 193388971,
-  "strategyFactoryAddress": "0x914fde9Db709eFC500e2fFA210305992c2352B71",
-  "strategyFactoryStartBlock": 193389019,
+  "vaultFactoryAddress": "0x4fE817A4bb959d9926c54Fa7C5ac095195443C11",
+  "vaultFactoryStartBlock": 195168548,
+  "strategyFactoryAddress": "0xb51192fC9EfE49eF061cd731C8fa54B75Ae8b4fD",
+  "strategyFactoryStartBlock": 195168595,
   "boostFactoryAddress": "0x2951c806a75b19954ce0bed477676a54f3c1c200",
   "boostFactoryStartBlock": 193388971,
   "clockTickBlocks": 1300,
 
   "wrappedNativeAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
   "wrappedNativeDecimals": 18,
-  "uniswapV3QuoterV2Address": "0x61ffe014ba17989e743c5f6cb21bf9697530b21e",
   "chainlinkNativePriceFeedAddress": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
   "chainlinkNativePriceFeedDecimals": 8
 }
