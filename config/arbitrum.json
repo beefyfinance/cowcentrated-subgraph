@@ -8,7 +8,7 @@
   "strategyFactoryAddress": "0xb51192fC9EfE49eF061cd731C8fa54B75Ae8b4fD",
   "strategyFactoryStartBlock": 195168595,
   "boostFactoryAddress": "0x2951c806a75b19954ce0bed477676a54f3c1c200",
-  "boostFactoryStartBlock": 193388971,
+  "boostFactoryStartBlock": 195168595,
   "clockTickBlocks": 1300,
 
   "wrappedNativeAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",

@@ -31,6 +31,7 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
     vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_INITIALIZING
     vault.underlyingToken0 = ADDRESS_ZERO
     vault.underlyingToken1 = ADDRESS_ZERO
+    vault.earnedToken = ADDRESS_ZERO
     vault.currentPriceOfToken0InToken1 = ZERO_BD
     vault.currentPriceOfToken0InUSD = ZERO_BD
     vault.priceRangeMin1 = ZERO_BD
