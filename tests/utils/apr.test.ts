@@ -170,6 +170,20 @@ describe("AprCalc", () => {
     assertIsCloseTo(res, BigDecimal.fromString("96.8550368"), BigDecimal.fromString("0.0001"))
   })
 
+  test("should allow multiple changes in the same timestamp/block (multicall)", () => {
+    let aprState = AprState.deserialize(new Array<BigDecimal>())
+    const now = DAY
+
+    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(0), BigDecimal.fromString("1000"))
+    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(10000), BigDecimal.fromString("2000"))
+    aprState.addTransaction(BigDecimal.fromString("100"), BigInt.fromI32(10000), BigDecimal.fromString("2000"))
+    aprState.addTransaction(BigDecimal.fromString("300"), DAY, BigDecimal.fromString("3000"))
+    const res = AprCalc.calculateLastApr(DAY, aprState, now)
+    log.debug("res: {}", [res.toString()])
+
+    assertIsCloseTo(res, BigDecimal.fromString("96.8550368"), BigDecimal.fromString("0.0001"))
+  })
+
   test("should compute apr when the day is not over yet", () => {
     let aprState = AprState.deserialize(new Array<BigDecimal>())
     // using 6 decimals

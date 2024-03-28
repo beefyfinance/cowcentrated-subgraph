@@ -38,19 +38,28 @@ export class AprState {
   public addTransaction(collectedAmountUSD: BigDecimal, collectTimestamp: BigInt, totalValueLocked: BigDecimal): void {
     const entry = new AprStateEntry(collectedAmountUSD, collectTimestamp, totalValueLocked)
 
-    // check if the entry is in the right strict order
-    const lastTimestamp =
-      this.collects.length === 0 ? BigInt.fromI32(-1) : this.collects[this.collects.length - 1].collectTimestamp
-    if (!entry.collectTimestamp.gt(lastTimestamp)) {
-      log.error("AprCalc: collectTimestamp is not in order, trying to insert {}, when last ts is {}", [
-        entry.collectTimestamp.toString(),
-        lastTimestamp.toString(),
-      ])
-      throw new Error("AprCalc: collectTimestamp is not in order")
+    if (this.collects.length === 0) {
+      this.collects.push(entry)
+      return
     }
 
-    // latest entry is the last one
-    this.collects.push(entry)
+    // check if the entry is in the right strict order
+    const lastEntry = this.collects[this.collects.length - 1]
+
+    // merge entries with the same timestamp
+    if (entry.collectTimestamp.equals(lastEntry.collectTimestamp)) {
+      lastEntry.collectedAmount = lastEntry.collectedAmount.plus(entry.collectedAmount)
+      lastEntry.totalValueLocked = entry.totalValueLocked
+    } else if (!entry.collectTimestamp.gt(lastEntry.collectTimestamp)) {
+      log.error("AprCalc: collectTimestamp is not in order, trying to insert {}, when last ts is {}", [
+        entry.collectTimestamp.toString(),
+        lastEntry.collectTimestamp.toString(),
+      ])
+      throw new Error("AprCalc: collectTimestamp is not in order")
+    } else {
+      // latest entry is the last one
+      this.collects.push(entry)
+    }
   }
 }
 
