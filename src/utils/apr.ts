@@ -96,6 +96,9 @@ export class AprCalc {
     // for each time slice, get the time weighted tvl and time weighted collected amount
     let timeWeightedTvlAgg = ZERO_BD
     let totalYield = ZERO_BD
+
+    const APRs: Array<BigDecimal> = [];
+    const Durations: Array<BigDecimal> = [];
     //let agg = ZERO_BD
     for (let idx = 1; idx < state.collects.length; idx++) {
       const prev = state.collects[idx - 1]
@@ -118,7 +121,16 @@ export class AprCalc {
         timeWeightedTvlAgg = timeWeightedTvlAgg.plus(sliceTvl.times(sliceSize))
       }
       totalYield = totalYield.plus(sliceCollectedUSD)
+
+      //Alternative
+      Durations.push(sliceSize);
+      const rewardRate = sliceCollectedUSD.div(sliceTvl).div(sliceSize);
+      APRs.push(rewardRate.times(YEAR.toBigDecimal()));
+
     }
+
+    const averagedApr = APRs.reduce((accum, curr, index) => accum.plus(curr.plus(Durations[index])), ZERO_BD).div(Durations.reduce((accum, curr) => accum.plus(curr), ZERO_BD));
+
     const elapsedPeriod = bigIntMin(now.minus(state.collects[0].collectTimestamp), period)
     const timeWeightedTvl = timeWeightedTvlAgg.div(elapsedPeriod.toBigDecimal())
     const yieldRate = totalYield.div(timeWeightedTvl)
