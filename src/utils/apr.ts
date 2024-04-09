@@ -97,8 +97,8 @@ export class AprCalc {
     let timeWeightedTvlAgg = ZERO_BD
     let totalYield = ZERO_BD
 
-    const APRs: Array<BigDecimal> = [];
-    const Durations: Array<BigDecimal> = [];
+    const APRs = new Array<BigDecimal>();
+    const Durations = new Array<BigDecimal>();
     //let agg = ZERO_BD
     for (let idx = 1; idx < state.collects.length; idx++) {
       const prev = state.collects[idx - 1]
