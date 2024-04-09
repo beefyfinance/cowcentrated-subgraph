@@ -93,19 +93,17 @@ export class AprCalc {
       return entry.collectedAmount.div(entry.totalValueLocked)
     }
 
-    // for each time slice, get the time weighted tvl and time weighted collected amount
-    let timeWeightedTvlAgg = ZERO_BD
-    let totalYield = ZERO_BD
+    // for each time slice, we get the APR and duration for it
+    const APRs = new Array<BigDecimal>()
+    const durations = new Array<BigDecimal>()
 
-    const APRs = new Array<BigDecimal>();
-    const Durations = new Array<BigDecimal>();
-    //let agg = ZERO_BD
     for (let idx = 1; idx < state.collects.length; idx++) {
       const prev = state.collects[idx - 1]
       const curr = state.collects[idx]
 
       const sliceStart = bigIntMax(periodStart, prev.collectTimestamp)
       const sliceEnd = curr.collectTimestamp
+
       // account for slices beginning before the period start
       const slicePercentSpan = sliceEnd
         .minus(sliceStart)
@@ -115,28 +113,28 @@ export class AprCalc {
 
       // consider the previous TVL as it's updated on the same block as the collected amount
       const sliceTvl = prev.totalValueLocked
-      const sliceSize = curr.collectTimestamp.minus(sliceStart).toBigDecimal()
+      const sliceDuration = curr.collectTimestamp.minus(sliceStart).toBigDecimal()
 
+      // if the slice has no TVL, we skip it since it doesn't contribute to the APR
       if (!sliceTvl.equals(ZERO_BD)) {
-        timeWeightedTvlAgg = timeWeightedTvlAgg.plus(sliceTvl.times(sliceSize))
+        durations.push(sliceDuration)
+
+        // we compute the reward rate for the slice per unit of tvl
+        const rewardRate = sliceCollectedUSD.div(sliceTvl).div(sliceDuration)
+        // We normalize the APR to a yearly rate
+        APRs.push(rewardRate.times(YEAR.toBigDecimal()))
       }
-      totalYield = totalYield.plus(sliceCollectedUSD)
-
-      //Alternative
-      Durations.push(sliceSize);
-      const rewardRate = sliceCollectedUSD.div(sliceTvl).div(sliceSize);
-      APRs.push(rewardRate.times(YEAR.toBigDecimal()));
-
     }
 
-    const averagedApr = APRs.reduce((accum, curr, index) => accum.plus(curr.plus(Durations[index])), ZERO_BD).div(Durations.reduce((accum, curr) => accum.plus(curr), ZERO_BD));
+    let durationSum = ZERO_BD
+    let weighedAPRSum = ZERO_BD
 
-    const elapsedPeriod = bigIntMin(now.minus(state.collects[0].collectTimestamp), period)
-    const timeWeightedTvl = timeWeightedTvlAgg.div(elapsedPeriod.toBigDecimal())
-    const yieldRate = totalYield.div(timeWeightedTvl)
-    const periodsInYear = YEAR.div(elapsedPeriod)
-    const annualized = yieldRate.times(periodsInYear.toBigDecimal())
-    return annualized
+    for (let i = 0; i < APRs.length; i++) {
+      durationSum = durationSum.plus(durations[i])
+      weighedAPRSum = weighedAPRSum.plus(APRs[i].times(durations[i]))
+    }
+
+    return weighedAPRSum.div(durationSum)
   }
 
   /**
