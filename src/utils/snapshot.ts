@@ -1,4 +1,5 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { YEAR, getPreviousIntervalFromTimestamp } from "./time"
 
 
 @inline
@@ -8,8 +9,12 @@ export function getSnapshotIdSuffix(period: BigInt, interval: BigInt): Bytes {
 
 
 @inline
-export function getPreviousSnapshotIdSuffix(period: BigInt, interval: BigInt): Bytes {
+export function getPreviousSnapshotIdSuffix(period: BigInt, timestamp: BigInt): Bytes {
+  // just a test to prevent developer mistakes
+  if (timestamp.lt(YEAR)) {
+    throw new Error("This function, unlike getSnapshotIdSuffix, expects the timestamp instead of the interval")
+  }
   return Bytes.fromByteArray(Bytes.fromBigInt(period)).concat(
-    Bytes.fromByteArray(Bytes.fromBigInt(interval.minus(period))),
+    Bytes.fromByteArray(Bytes.fromBigInt(getPreviousIntervalFromTimestamp(timestamp, period))),
   )
 }

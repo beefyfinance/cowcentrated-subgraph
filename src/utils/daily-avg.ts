@@ -75,7 +75,7 @@ export class DailyAvgCalc {
   public static evictOldEntries(entriesToUse: BigInt, state: DailyAvgState): DailyAvgState {
     if (entriesToUse.lt(ZERO_BI) || entriesToUse.equals(ZERO_BI)) {
       log.error("DailyAvgCalc: entriesToUse cannot be negative or zero, got {}", [entriesToUse.toString()])
-      throw new Error("DailyAvgCalc: entriesToUse cannot be negative or zero")
+      throw Error("DailyAvgCalc: entriesToUse cannot be negative or zero")
     }
 
     let lastEntryIdx = state.closedValues.length - 1
