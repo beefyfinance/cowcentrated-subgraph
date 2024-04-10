@@ -7,8 +7,8 @@ valid_chains=($(ls config | sed 's/\.json//g'))
 valid_providers=("goldsky" "0xgraph")
 
 function exit_help {
-    echo "Usage: $0 <version> <chain> <provider>"
-    echo "   Example: $0 0.1.4 polygon goldsky"
+    echo "Usage: $0 <version> <chain> <provider> <deploy_key>"
+    echo "   Example: $0 0.1.4 polygon goldsky ABCDEA123"
     echo "   chains: " ${valid_chains[@]}
     echo "   providers: " ${valid_providers[@]}
     exit 1
