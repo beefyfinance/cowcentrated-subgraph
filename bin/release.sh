@@ -23,13 +23,15 @@ function prepare {
 function publish_0xgraph {
     SUBGRAPH=$1
     VERSION=$2
+    DEPLOY_KEY=$3
     echo "publishing $SUBGRAPH to 0xgraph"
-    yarn run graph deploy $SUBGRAPH --node https://api.0xgraph.xyz/deploy --ipfs https://api.0xgraph.xyz/ipfs --version-label="v$VERSION"
+    yarn run graph deploy $SUBGRAPH --node https://api.0xgraph.xyz/deploy --ipfs https://api.0xgraph.xyz/ipfs --version-label="v$VERSION" --deploy-key=$DEPLOY_KEY
 }
 
 function publish_goldsky {
     SUBGRAPH=$1
     VERSION=$2
+    DEPLOY_KEY=$3
     echo "publishing $SUBGRAPH to goldsky"
     goldsky subgraph deploy $SUBGRAPH/$VERSION --path .
 }
@@ -38,13 +40,14 @@ function publish {
     VERSION=$1
     CHAIN=$2
     PROVIDER=$3
+    DEPLOY_KEY=$4
     SUBGRAPH=beefyfinance/clm-$CHAIN
     case $PROVIDER in
         "0xgraph")
-            publish_0xgraph $SUBGRAPH $VERSION
+            publish_0xgraph $SUBGRAPH $VERSION $DEPLOY_KEY
             ;;
         "goldsky")
-            publish_goldsky $SUBGRAPH $VERSION
+            publish_goldsky $SUBGRAPH $VERSION $DEPLOY_KEY
             ;;
     esac
 }
@@ -81,6 +84,11 @@ if [[ ! " ${valid_providers[@]} " =~ " ${provider} " ]]; then
     exit_help
 fi
 
-SUBGRAPH=beefyfinance/clm-$chain
-prepare $chain;
-publish $version $chain $provider 
+deploy_key=$4
+if [ -z "$deploy_key" ]; then
+    echo "deploy key is required"
+    exit_help
+fi
+
+prepare $chain
+publish $version $chain $provider $deploy_key

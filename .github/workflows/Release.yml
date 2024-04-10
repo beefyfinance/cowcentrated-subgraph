@@ -40,8 +40,5 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Authenticate with 0xgraph
-        run: yarn run graph auth https://api.0xgraph.xyz/deploy ${{ secrets.OXGRAPH_TOKEN }}
-
       - name: Deploy to 0xgraph
-        run: ./bin/release.sh ${{ github.ref_name }} ${{ matrix.chain }} 0xgraph
+        run: ./bin/release.sh ${{ github.ref_name }} ${{ matrix.chain }} 0xgraph ${{ secrets.OXGRAPH_TOKEN }}

@@ -77,7 +77,6 @@ for provider in $providers; do
 done
 
 
-SUBGRAPH=beefyfinance/clm-$chain
 prepare $chain
 for provider in $providers; do
     publish $chain $provider
