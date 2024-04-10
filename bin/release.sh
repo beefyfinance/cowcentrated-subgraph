@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # config
 valid_chains=($(ls config | sed 's/\.json//g'))
 valid_providers=("goldsky" "0xgraph")
