@@ -52,30 +52,6 @@ function publish {
     esac
 }
 
-function validate_options {
-    chain=$1
-    if [ -z "$chain" ]; then
-        echo "chain is required"
-        exit_help
-    fi
-    if [[ ! " ${valid_chains[@]} " =~ " ${chain} " ]]; then
-        echo "invalid chain"
-        exit_help
-    fi
-
-    shift
-    providers=$@
-    if [ -z "$providers" ]; then
-        echo "providers are required"
-        exit_help
-    fi
-    for provider in $providers; do
-        if [[ ! " ${valid_providers[@]} " =~ " ${provider} " ]]; then
-            echo "invalid provider $provider"
-            exit_help
-        fi
-    done
-}
 
 chain=$1
 if [ -z "$chain" ]; then
