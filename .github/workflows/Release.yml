@@ -4,7 +4,7 @@ on:
   push:
     # Sequence of patterns matched against refs/tags
     tags:
-      - '*.*.*' # Push events to matching x.x.x tags, e.g. 1.0.0, 1.4.5, etc
+      - "*.*.*" # Push events to matching x.x.x tags, e.g. 1.0.0, 1.4.5, etc
 
 jobs:
   test:
@@ -42,6 +42,6 @@ jobs:
 
       - name: Authenticate with 0xgraph
         run: yarn run graph auth https://api.0xgraph.xyz/deploy ${{ secrets.OXGRAPH_TOKEN }}
-    
+
       - name: Deploy to 0xgraph
         run: ./bin/release.sh ${{ github.event.release.tag_name }} ${{ matrix.chain }} 0xgraph
