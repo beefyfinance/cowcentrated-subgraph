@@ -46,15 +46,6 @@ export class DailyAvgState {
     this.pendingValue = value
     this.pendingValueTimestamp = timestamp
   }
-
-  public resetPendingValue(): void {
-    this.pendingValue = ZERO_BD
-    this.pendingValueTimestamp = ZERO_BI
-  }
-
-  public updatePendingValueTimestamp(timestamp: BigInt): void {
-    this.pendingValueTimestamp = timestamp
-  }
 }
 
 export class DailyAvgCalc {

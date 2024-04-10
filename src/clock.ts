@@ -147,10 +147,8 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
       let state = DailyAvgState.deserialize(position.averageDailyPositionValueUSDState)
       if (isNewDay) {
         state.addValue(position.positionValueUSD)
-        state.resetPendingValue()
-      } else {
-        state.updatePendingValueTimestamp(tick.timestamp)
       }
+      state.setPendingValue(position.positionValueUSD, tick.timestamp)
       position.averageDailyPositionValueUSD30D = DailyAvgCalc.avg(DAY.times(BigInt.fromU32(30)), state)
       position.averageDailyPositionValueUSDState = state.serialize()
       position.save()
@@ -204,12 +202,10 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
     let state = DailyAvgState.deserialize(investor.averageDailyTotalPositionValueUSDState)
     if (isNewDay) {
       state.addValue(tvl)
-      state.resetPendingValue()
-    } else {
-      state.updatePendingValueTimestamp(tick.timestamp)
     }
+    state.setPendingValue(tvl, tick.timestamp)
     investor.averageDailyTotalPositionValueUSD30D = DailyAvgCalc.avg(DAY.times(BigInt.fromU32(30)), state)
-    investor.averageDailyTotalPositionValueUSDState = state.serialize()
+    investor.averageDailyTotalPositionValueUSDState = DailyAvgCalc.evictOldEntries(BigInt.fromU32(30), state).serialize()
     investor.save()
     for (let j = 0; j < periods.length; j++) {
       const period = periods[j]

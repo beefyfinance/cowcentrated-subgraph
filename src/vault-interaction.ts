@@ -227,7 +227,7 @@ function updateUserPosition(
   let dailyAvgState = DailyAvgState.deserialize(position.averageDailyPositionValueUSDState)
   dailyAvgState.setPendingValue(position.positionValueUSD, event.block.timestamp)
   position.averageDailyPositionValueUSD30D = DailyAvgCalc.avg(BigInt.fromI32(30), dailyAvgState)
-  position.averageDailyPositionValueUSDState = dailyAvgState.serialize()
+  position.averageDailyPositionValueUSDState = DailyAvgCalc.evictOldEntries(BigInt.fromU32(30), dailyAvgState).serialize()
   position.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("updateUserPosition: updating investor position snapshot of investor {} for vault {} and period {}", [
@@ -360,7 +360,7 @@ function updateUserPosition(
   dailyAvgState = DailyAvgState.deserialize(investor.averageDailyTotalPositionValueUSDState)
   dailyAvgState.setPendingValue(investor.totalPositionValueUSD, event.block.timestamp)
   investor.averageDailyTotalPositionValueUSD30D = DailyAvgCalc.avg(BigInt.fromI32(30), dailyAvgState)
-  investor.averageDailyTotalPositionValueUSDState = dailyAvgState.serialize()
+  investor.averageDailyTotalPositionValueUSDState = DailyAvgCalc.evictOldEntries(BigInt.fromU32(30), dailyAvgState).serialize()
   investor.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("updateUserPosition: updating investor snapshot for investor {} and period {}", [
