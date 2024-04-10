@@ -55,7 +55,7 @@ export class AprState {
         entry.collectTimestamp.toString(),
         lastEntry.collectTimestamp.toString(),
       ])
-      throw new Error("AprCalc: collectTimestamp is not in order")
+      throw Error("AprCalc: collectTimestamp is not in order")
     } else {
       // latest entry is the last one
       this.collects.push(entry)
@@ -67,7 +67,7 @@ export class AprCalc {
   public static calculateLastApr(period: BigInt, state: AprState, now: BigInt): BigDecimal {
     if (period.lt(ZERO_BI) || period.equals(ZERO_BI)) {
       log.error("AprCalc: period cannot be negative or zero, got {}", [period.toString()])
-      throw new Error("AprCalc: period cannot be negative or zero")
+      throw Error("AprCalc: period cannot be negative or zero")
     }
     // we need at least 1 entry to compute the apr
     if (state.collects.length === 0) {
