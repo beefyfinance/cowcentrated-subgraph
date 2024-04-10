@@ -23,6 +23,7 @@ function prepare {
 function publish_0xgraph {
     SUBGRAPH=$1
     VERSION=$2
+    echo "publishing $SUBGRAPH to 0xgraph"
     yarn run graph deploy $SUBGRAPH --node https://api.0xgraph.xyz/deploy --ipfs https://api.0xgraph.xyz/ipfs --version-label="v$VERSION"
 }
 
@@ -34,9 +35,9 @@ function publish_goldsky {
 }
 
 function publish {
-    CHAIN=$1
-    PROVIDER=$2
-    VERSION=$3
+    VERSION=$1
+    CHAIN=$2
+    PROVIDER=$3
     SUBGRAPH=beefyfinance/clm-$CHAIN
     case $PROVIDER in
         "0xgraph")
@@ -81,5 +82,5 @@ if [[ ! " ${valid_providers[@]} " =~ " ${provider} " ]]; then
 fi
 
 SUBGRAPH=beefyfinance/clm-$chain
-prepare $chain
+prepare $chain;
 publish $version $chain $provider 
