@@ -327,6 +327,9 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   collect.priceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
   collect.save()
 
+  const collectedAmountInToken1 = (collectedAmount0.times(currentPriceInToken1)).plus(collectedAmount1);
+  const vaultBalanceInToken1 = (vaultBalanceUnderlying0.times(currentPriceInToken1)).plus(vaultBalanceUnderlying1);
+
   ///////
   // update vault entities
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
@@ -340,8 +343,8 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
   vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
   vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(vault.underlyingAmount1USD)
-  let aprState = AprState.deserialize(vault.aprState)
-  aprState.addTransaction(collect.collectedValueUSD, event.block.timestamp, collect.totalValueLockedUSD)
+  const aprState = AprState.deserialize(vault.aprState)
+  aprState.addTransaction(collectedAmountInToken1, event.block.timestamp, vaultBalanceInToken1)
   vault.apr1D = AprCalc.calculateLastApr(DAY, aprState, event.block.timestamp)
   vault.apr7D = AprCalc.calculateLastApr(DAY.times(BigInt.fromU32(7)), aprState, event.block.timestamp)
   vault.apr30D = AprCalc.calculateLastApr(DAY.times(BigInt.fromU32(30)), aprState, event.block.timestamp)
