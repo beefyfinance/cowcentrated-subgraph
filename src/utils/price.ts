@@ -1,9 +1,10 @@
 import { Address, BigDecimal, BigInt, Bytes, log } from "@graphprotocol/graph-ts"
 import { BeefyCLStrategy, BeefyCLVault, Token } from "../../generated/schema"
-import { StrategyPassiveManagerUniswap as BeefyCLStrategyContract } from "../../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
+import { BeefyStrategy as BeefyCLStrategyContract } from "../../generated/templates/BeefyCLStrategy/BeefyStrategy"
 import { ZERO_BD, tokenAmountToDecimal } from "./decimal"
 import { ChainLinkPriceFeed } from "../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed"
 import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, WNATIVE_DECIMALS } from "../config"
+import { isNullToken } from "../entity/token"
 
 const nativePriceFeed = ChainLinkPriceFeed.bind(CHAINLINK_NATIVE_PRICE_FEED_ADDRESS)
 
@@ -12,6 +13,7 @@ export function fetchVaultPrices(
   strategy: BeefyCLStrategy,
   token0: Token,
   token1: Token,
+  earnedToken: Token,
 ): VaultPrices {
   log.debug("fetchVaultPrices: fetching data for vault {}", [vault.id.toHexString()])
   const strategyContract = BeefyCLStrategyContract.bind(Address.fromBytes(strategy.id))
@@ -40,6 +42,22 @@ export function fetchVaultPrices(
   const token1PriceInNative = tokenAmountToDecimal(token1PriceInNativeRes.value, WNATIVE_DECIMALS)
   log.debug("fetchVaultPrices: token1PriceInNative: {}", [token1PriceInNative.toString()])
 
+  // some vaults have an additional token that is not part of the LP
+  let earnedTokenPriceInNative = ZERO_BD
+  if (!isNullToken(earnedToken)) {
+    const earnedTokenPriceInNativeRes = strategyContract.try_ouptutToNativePrice()
+    if (earnedTokenPriceInNativeRes.reverted) {
+      log.error("fetchVaultPrices: ouptutToNativePrice() of vault {} and strat {} reverted for token {} (earned)", [
+        vault.id.toHexString(),
+        strategy.id.toHexString(),
+        earnedToken.id.toHexString(),
+      ])
+      throw Error("fetchVaultPrices: ouptutToNativePrice() reverted")
+    }
+    earnedTokenPriceInNative = tokenAmountToDecimal(earnedTokenPriceInNativeRes.value, WNATIVE_DECIMALS)
+    log.debug("fetchVaultPrices: earnedTokenPriceInNative: {}", [earnedTokenPriceInNative.toString()])
+  }
+
   // fetch the native price in USD
   const nativePriceUSDRes = nativePriceFeed.try_latestRoundData()
   if (nativePriceUSDRes.reverted) {
@@ -49,7 +67,7 @@ export function fetchVaultPrices(
   const nativePriceUSD = tokenAmountToDecimal(nativePriceUSDRes.value.getAnswer(), PRICE_FEED_DECIMALS)
   log.debug("fetchVaultPrices: nativePriceUSD: {}", [nativePriceUSD.toString()])
 
-  return new VaultPrices(token0PriceInNative, token1PriceInNative, nativePriceUSD)
+  return new VaultPrices(token0PriceInNative, token1PriceInNative, earnedTokenPriceInNative, nativePriceUSD)
 }
 
 export function fetchCurrentPriceInToken1(strategyAddress: Bytes, throwOnError: boolean): BigDecimal {
@@ -107,6 +125,7 @@ class VaultPrices {
   constructor(
     public token0ToNative: BigDecimal,
     public token1ToNative: BigDecimal,
+    public earnedToNative: BigDecimal,
     public nativeToUsd: BigDecimal,
   ) {}
 }

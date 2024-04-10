@@ -84,8 +84,8 @@ dataSources:
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: BeefyVaultConcLiq
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
-        - name: StrategyPassiveManagerUniswap
-          file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+        - name: BeefyStrategy
+          file: ./abis/beefy/concliq/BeefyStrategy.json
         - name: ChainLinkPriceFeed
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
@@ -154,8 +154,8 @@ templates:
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
         - name: BeefyBoost
           file: ./abis/beefy/concliq/BeefyBoost.json
-        - name: StrategyPassiveManagerUniswap
-          file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+        - name: BeefyStrategy
+          file: ./abis/beefy/concliq/BeefyStrategy.json
         - name: ChainLinkPriceFeed
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
@@ -178,7 +178,7 @@ templates:
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: StrategyPassiveManagerUniswap
+      abi: BeefyStrategy
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
@@ -196,8 +196,8 @@ templates:
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
         - name: BeefyBoost
           file: ./abis/beefy/concliq/BeefyBoost.json
-        - name: StrategyPassiveManagerUniswap
-          file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+        - name: BeefyStrategy
+          file: ./abis/beefy/concliq/BeefyStrategy.json
         - name: ChainLinkPriceFeed
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
@@ -219,6 +219,9 @@ templates:
           receipt: true
         - event: ClaimedFees(uint256,uint256,uint256,uint256)
           handler: handleClaimedFees
+          receipt: true
+        - event: ClaimedOutput(uint256)
+          handler: handleClaimedOutput
           receipt: true
 
   
@@ -243,8 +246,8 @@ templates:
           file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
         - name: BeefyBoost
           file: ./abis/beefy/concliq/BeefyBoost.json
-        - name: StrategyPassiveManagerUniswap
-          file: ./abis/beefy/concliq/StrategyPassiveManagerUniswap.json
+        - name: BeefyStrategy
+          file: ./abis/beefy/concliq/BeefyStrategy.json
         - name: ChainLinkPriceFeed
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20

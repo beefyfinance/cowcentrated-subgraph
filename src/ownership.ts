@@ -1,4 +1,4 @@
-import { OwnershipTransferred as StrategyOwnershipTransferred } from "../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
+import { OwnershipTransferred as StrategyOwnershipTransferred } from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
 import { OwnershipTransferred as VaultOwnershipTransferred } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { getBeefyCLStrategy, getBeefyCLVault } from "./entity/vault"
 import { OwnershipTransferred as BoostOwnershipTransferred } from "../generated/templates/BeefyBoost/BeefyBoost"

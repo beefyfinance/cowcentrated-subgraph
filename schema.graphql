@@ -249,6 +249,8 @@ type BeefyCLVault @entity {
   underlyingToken0: Token!
   "The underlying tokens contained in the vault. This is the second token."
   underlyingToken1: Token!
+  "The token the vault is earning."
+  earnedToken: Token!
 
   """
   The current price of the token zero expressed as a token1 value.
@@ -544,10 +546,14 @@ type BeefyCLVaultUnderlyingFeesCollectedEvent @entity(immutable: true) {
   collectedAmount0: BigDecimal!
   "Amount of collected fees in the second token"
   collectedAmount1: BigDecimal!
+  "Amount collected in earned token"
+  collectedAmountEarned: BigDecimal!
   "Amount of collected fees in the first token in USD"
   collectedAmount0USD: BigDecimal!
   "Amount of collected fees in the second token in USD"
   collectedAmount1USD: BigDecimal!
+  "Amount collected in earned token in USD"
+  collectedAmountEarnedUSD: BigDecimal!
   "Total usd value of the collected fees"
   collectedValueUSD: BigDecimal!
 
@@ -555,6 +561,10 @@ type BeefyCLVaultUnderlyingFeesCollectedEvent @entity(immutable: true) {
   priceOfToken0InToken1: BigDecimal!
   "Price of the first token in USD at the time of the collect"
   priceOfToken0InUSD: BigDecimal!
+  "Price of the second token in USD at the time of the collect"
+  priceOfToken1InUSD: BigDecimal!
+  "Price of the earned token in USD at the time of the collect"
+  priceOfEarnedTokenInUSD: BigDecimal!
 }
 
 #######################

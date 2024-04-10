@@ -104,6 +104,7 @@ function updateUserPosition(
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
+  const earnedToken = getToken(vault.earnedToken)
 
   let tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
@@ -155,7 +156,7 @@ function updateUserPosition(
   let investorBalanceUnderlying0 = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   let investorBalanceUnderlying1 = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
 
-  const prices = fetchVaultPrices(vault, strategy, token0, token1)
+  const prices = fetchVaultPrices(vault, strategy, token0, token1, earnedToken)
   const token0PriceInNative = prices.token0ToNative
   const token1PriceInNative = prices.token1ToNative
   const nativePriceUSD = prices.nativeToUsd

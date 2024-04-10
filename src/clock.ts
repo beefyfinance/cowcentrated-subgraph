@@ -52,6 +52,7 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
     const positions = vault.positions.load()
     const token0 = getToken(vault.underlyingToken0)
     const token1 = getToken(vault.underlyingToken1)
+    const earnedToken = getToken(vault.earnedToken)
 
     ///////
     // fetch data on chain
@@ -65,7 +66,7 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
     const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
     const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
     const currentPriceInToken1 = fetchCurrentPriceInToken1(vault.strategy, false)
-    const prices = fetchVaultPrices(vault, strategy, token0, token1)
+    const prices = fetchVaultPrices(vault, strategy, token0, token1, earnedToken)
     const token0PriceInNative = prices.token0ToNative
     const token1PriceInNative = prices.token1ToNative
     const nativePriceUSD = prices.nativeToUsd

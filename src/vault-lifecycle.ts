@@ -11,15 +11,16 @@ import { BeefyCLStrategy as BeefyCLStrategyTemplate } from "../generated/templat
 import { ADDRESS_ZERO } from "./utils/address"
 import {
   Initialized as StrategyInitializedEvent,
-  StrategyPassiveManagerUniswap as BeefyCLStrategyContract,
+  BeefyStrategy as BeefyCLStrategyContract,
   Paused as PausedEvent,
   Unpaused as UnpausedEvent,
-} from "../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
+} from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
 import { ProxyCreated as VaultCreatedEvent } from "../generated/BeefyCLVaultFactory/BeefyVaultConcLiqFactory"
 import { GlobalPause as GlobalPauseEvent } from "../generated/BeefyCLStrategyFactory/BeefyStrategyFactory"
 import { BeefyCLVault as BeefyCLVaultTemplate } from "../generated/templates"
 import { getTransaction } from "./entity/transaction"
 import { fetchAndSaveTokenData } from "./utils/token"
+import { getNullToken } from "./entity/token"
 
 export function handleVaultCreated(event: VaultCreatedEvent): void {
   const tx = getTransaction(event.block, event.transaction, event.receipt)
@@ -123,13 +124,31 @@ export function handleStrategyInitialized(event: StrategyInitializedEvent): void
 function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLVault {
   const vaultAddress = Address.fromBytes(vault.id)
   const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
-  const wants = vaultContract.wants()
+  const strategyAddress = Address.fromBytes(vault.strategy)
+  const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
+
+  const wantsRes = vaultContract.try_wants()
+  if (wantsRes.reverted) {
+    log.error("fetchInitialVaultData: wants() reverted for vault {}.", [vaultAddress.toHexString()])
+    throw Error("fetchInitialVaultData: wants() reverted")
+  }
+  const wants = wantsRes.value
   const underlyingToken0Address = wants.value0
   const underlyingToken1Address = wants.value1
 
   const sharesToken = fetchAndSaveTokenData(vaultAddress)
   const underlyingToken0 = fetchAndSaveTokenData(underlyingToken0Address)
   const underlyingToken1 = fetchAndSaveTokenData(underlyingToken1Address)
+
+  // some strategies have an output token
+  const outputTokenRes = strategyContract.try_output()
+  if (!outputTokenRes.reverted) {
+    const outputToken = fetchAndSaveTokenData(outputTokenRes.value)
+    vault.earnedToken = outputToken.id
+  } else {
+    const nullToken = getNullToken()
+    vault.earnedToken = nullToken.id
+  }
 
   const protocol = getBeefyCLProtocol()
   protocol.activeVaultCount += 1
