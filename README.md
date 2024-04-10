@@ -133,6 +133,7 @@ yarn test:lint # run prettier linter
 - vault.previewWithdraw()
 - vault.balanceOf()
 - vault.strategy()
+- vault.wants()
 - vault: Initialized(uint8)
 - vault: OwnershipTransferred(indexed address,indexed address)
 - vault: Deposit(indexed address,uint256,uint256,uint256)
@@ -142,10 +143,12 @@ yarn test:lint # run prettier linter
 - strategyFactory: GlobalPause(bool)
 - strategy.pool()
 - strategy.vault()
+- strategy.output()
 - strategy.price()
 - strategy.range()
 - strategy.lpToken1ToNativePrice()
 - strategy.lpToken0ToNativePrice()
+- strategy.ouptutToNativePrice()
 - strategy: Initialized(uint8)
 - strategy: OwnershipTransferred(indexed address,indexed address)
 - strategy: Paused(address)
@@ -153,6 +156,7 @@ yarn test:lint # run prettier linter
 - strategy: Harvest(uint256,uint256)
 - strategy: ChargedFees(uint256,uint256,uint256)
 - strategy: ClaimedFees(uint256,uint256,uint256,uint256)
+- strategy: ClaimedOutput(uint256)
 ```
 
 # TODO list

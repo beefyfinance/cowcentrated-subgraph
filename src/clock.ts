@@ -1,4 +1,4 @@
-import { Address, BigDecimal, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
+import { Address, BigDecimal, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
 import { ClockTick, Investor } from "../generated/schema"
 import { DAY, MINUTES_15, SNAPSHOT_PERIODS } from "./utils/time"
 import { getClockTick } from "./entity/clock"
@@ -10,6 +10,7 @@ import { getBeefyCLStrategy, getBeefyCLVaultSnapshot, isVaultRunning } from "./e
 import { getInvestorPositionSnapshot } from "./entity/position"
 import { getInvestorSnapshot } from "./entity/investor"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
+import { DailyAvgCalc, DailyAvgState } from "./utils/daily-avg"
 
 export function handleClockTick(block: ethereum.Block): void {
   const timestamp = block.timestamp
@@ -52,6 +53,7 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
     const positions = vault.positions.load()
     const token0 = getToken(vault.underlyingToken0)
     const token1 = getToken(vault.underlyingToken1)
+    const earnedToken = getToken(vault.earnedToken)
 
     ///////
     // fetch data on chain
@@ -65,7 +67,7 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
     const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
     const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
     const currentPriceInToken1 = fetchCurrentPriceInToken1(vault.strategy, false)
-    const prices = fetchVaultPrices(vault, strategy, token0, token1)
+    const prices = fetchVaultPrices(vault, strategy, token0, token1, earnedToken)
     const token0PriceInNative = prices.token0ToNative
     const token1PriceInNative = prices.token1ToNative
     const nativePriceUSD = prices.nativeToUsd
@@ -142,17 +144,13 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
       position.underlyingBalance0USD = position.underlyingBalance0.times(token0PriceInUSD)
       position.underlyingBalance1USD = position.underlyingBalance1.times(token1PriceInUSD)
       position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)
+      let state = DailyAvgState.deserialize(position.averageDailyPositionValueUSDState)
       if (isNewDay) {
-        let last30DailyPositionValuesUSD = position.last30DailyPositionValuesUSD // required by thegraph
-        last30DailyPositionValuesUSD.push(position.positionValueUSD) // most recent value last
-        while (last30DailyPositionValuesUSD.length > 30) {
-          last30DailyPositionValuesUSD.shift() // remove oldest value
-        }
-        position.last30DailyPositionValuesUSD = last30DailyPositionValuesUSD
-        position.averageDailyPositionValueUSD30D = last30DailyPositionValuesUSD
-          .reduce<BigDecimal>((acc, val) => acc.plus(val), ZERO_BD)
-          .div(BigDecimal.fromString(last30DailyPositionValuesUSD.length.toString()))
+        state.addValue(position.positionValueUSD)
       }
+      state.setPendingValue(position.positionValueUSD, tick.timestamp)
+      position.averageDailyPositionValueUSD30D = DailyAvgCalc.avg(DAY.times(BigInt.fromU32(30)), state)
+      position.averageDailyPositionValueUSDState = state.serialize()
       position.save()
       // update position snapshot
       for (let k = 0; k < periods.length; k++) {
@@ -200,17 +198,17 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
     // @ts-ignore
     const tvl: BigDecimal = investorTVL.get(investorIdStr)
     investor.totalPositionValueUSD = tvl
+
+    let state = DailyAvgState.deserialize(investor.averageDailyTotalPositionValueUSDState)
     if (isNewDay) {
-      let last30DailyTotalPositionValuesUSD = investor.last30DailyTotalPositionValuesUSD
-      last30DailyTotalPositionValuesUSD.push(tvl) // most recent value last
-      while (last30DailyTotalPositionValuesUSD.length > 30) {
-        last30DailyTotalPositionValuesUSD.shift() // remove oldest value
-      }
-      investor.last30DailyTotalPositionValuesUSD = last30DailyTotalPositionValuesUSD
-      investor.averageDailyTotalPositionValueUSD30D = last30DailyTotalPositionValuesUSD
-        .reduce<BigDecimal>((acc, val) => acc.plus(val), ZERO_BD)
-        .div(BigDecimal.fromString(last30DailyTotalPositionValuesUSD.length.toString()))
+      state.addValue(tvl)
     }
+    state.setPendingValue(tvl, tick.timestamp)
+    investor.averageDailyTotalPositionValueUSD30D = DailyAvgCalc.avg(DAY.times(BigInt.fromU32(30)), state)
+    investor.averageDailyTotalPositionValueUSDState = DailyAvgCalc.evictOldEntries(
+      BigInt.fromU32(30),
+      state,
+    ).serialize()
     investor.save()
     for (let j = 0; j < periods.length; j++) {
       const period = periods[j]

@@ -32,7 +32,7 @@ export function getInvestorPosition(vault: BeefyCLVault, investor: Investor): In
     position.underlyingBalance1USD = ZERO_BD
     position.positionValueUSD = ZERO_BD
     position.averageDailyPositionValueUSD30D = ZERO_BD
-    position.last30DailyPositionValuesUSD = new Array<BigDecimal>()
+    position.averageDailyPositionValueUSDState = new Array<BigDecimal>()
     position.cumulativeCompoundedAmount0 = ZERO_BD
     position.cumulativeCompoundedAmount1 = ZERO_BD
     position.cumulativeCompoundedAmount0USD = ZERO_BD

@@ -1,8 +1,9 @@
-import { Address, BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
+import { Address, BigDecimal, BigInt, log, ethereum } from "@graphprotocol/graph-ts"
 import {
   ClaimedFees as ClaimedFeesEvent,
   Harvest as HarvestEvent,
-} from "../generated/templates/BeefyCLStrategy/StrategyPassiveManagerUniswap"
+  ClaimedOutput as ClaimedOutputEvent,
+} from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
 import { getTransaction } from "./entity/transaction"
@@ -10,7 +11,7 @@ import { BeefyCLVaultHarvestEvent, BeefyCLVaultUnderlyingFeesCollectedEvent } fr
 import { getEventIdentifier } from "./utils/event"
 import { getToken } from "./entity/token"
 import { ONE_BD, ZERO_BD, tokenAmountToDecimal, decimalToTokenAmount, ZERO_BI } from "./utils/decimal"
-import { DAY, SNAPSHOT_PERIODS, WEEK, YEAR } from "./utils/time"
+import { DAY, SNAPSHOT_PERIODS } from "./utils/time"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestorPositionSnapshot } from "./entity/position"
 import { getInvestor, getInvestorSnapshot } from "./entity/investor"
@@ -35,6 +36,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
+  const earnedToken = getToken(vault.earnedToken)
 
   let tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
@@ -48,7 +50,6 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
 
   // current prices
   const currentPriceInToken1 = fetchCurrentPriceInToken1(strategyAddress, true)
-  const rangeToken1Price = fetchVaultPriceRangeInToken1(strategyAddress, true)
 
   // balances of the vault
   const vaultBalancesRes = vaultContract.try_balances()
@@ -67,22 +68,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   }
   const sharesTotalSupply = tokenAmountToDecimal(sharesTotalSupplyRes.value, sharesToken.decimals)
 
-  // preview withdraw of 1 share token
-  let previewWithdraw0Raw = BigInt.fromI32(0)
-  let previewWithdraw1Raw = BigInt.fromI32(0)
-  if (vaultBalanceUnderlying0.gt(ZERO_BD) || vaultBalanceUnderlying1.gt(ZERO_BD)) {
-    const previewWithdrawRes = vaultContract.try_previewWithdraw(decimalToTokenAmount(ONE_BD, sharesToken.decimals))
-    if (previewWithdrawRes.reverted) {
-      log.error("handleStrategyHarvest: previewWithdraw() reverted for vault {}", [vault.id.toHexString()])
-      throw Error("handleStrategyHarvest: previewWithdraw() reverted")
-    }
-    previewWithdraw0Raw = previewWithdrawRes.value.value0
-    previewWithdraw1Raw = previewWithdrawRes.value.value1
-  }
-  let shareTokenToUnderlying0Rate = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
-  let shareTokenToUnderlying1Rate = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
-
-  const prices = fetchVaultPrices(vault, strategy, token0, token1)
+  const prices = fetchVaultPrices(vault, strategy, token0, token1, earnedToken)
   const token0PriceInNative = prices.token0ToNative
   const token1PriceInNative = prices.token1ToNative
   const nativePriceUSD = prices.nativeToUsd
@@ -234,10 +220,27 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
 }
 
 export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
+  handleStrategyFees(
+    event,
+    event.params.feeAlt0.plus(event.params.feeMain0),
+    event.params.feeAlt1.plus(event.params.feeMain1),
+    ZERO_BI,
+  )
+}
+export function handleStrategyClaimedOutput(event: ClaimedOutputEvent): void {
+  handleStrategyFees(event, ZERO_BI, ZERO_BI, event.params.fees)
+}
+
+function handleStrategyFees(
+  event: ethereum.Event,
+  rawCollectedAmount0: BigInt,
+  rawCollectedAmount1: BigInt,
+  rawCollectedEarned: BigInt,
+): void {
   let strategy = getBeefyCLStrategy(event.address)
   let vault = getBeefyCLVault(strategy.vault)
   if (!isVaultRunning(vault)) {
-    log.error("handleStrategyClaimedFees: vault {} not active at block {}: {}", [
+    log.error("handleStrategyFees: vault {} not active at block {}: {}", [
       vault.id.toHexString(),
       event.block.number.toString(),
       vault.lifecycle,
@@ -245,12 +248,13 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
     return
   }
 
-  log.debug("handleStrategyChargedFees: processing chaimed fees for vault {}", [vault.id.toHexString()])
+  log.debug("handleStrategyFees: processing chaimed fees for vault {}", [vault.id.toHexString()])
 
   const periods = SNAPSHOT_PERIODS
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
+  const earnedToken = getToken(vault.earnedToken)
 
   let tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
@@ -258,7 +262,7 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   ///////
   // fetch data on chain
   // TODO: use multicall3 to fetch all data in one call
-  log.debug("handleStrategyChargedFees: fetching data for vault {}", [vault.id.toHexString()])
+  log.debug("handleStrategyFees: fetching data for vault {}", [vault.id.toHexString()])
   const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
   const strategyAddress = Address.fromBytes(vault.strategy)
 
@@ -269,8 +273,8 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   // balances of the vault
   const vaultBalancesRes = vaultContract.try_balances()
   if (vaultBalancesRes.reverted) {
-    log.error("handleStrategyChargedFees: balances() reverted for strategy {}", [vault.strategy.toHexString()])
-    throw Error("handleStrategyChargedFees: balances() reverted")
+    log.error("handleStrategyFees: balances() reverted for strategy {}", [vault.strategy.toHexString()])
+    throw Error("handleStrategyFees: balances() reverted")
   }
   const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
   const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
@@ -281,8 +285,8 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   if (vaultBalanceUnderlying0.gt(ZERO_BD) || vaultBalanceUnderlying1.gt(ZERO_BD)) {
     const previewWithdrawRes = vaultContract.try_previewWithdraw(decimalToTokenAmount(ONE_BD, sharesToken.decimals))
     if (previewWithdrawRes.reverted) {
-      log.error("handleStrategyChargedFees: previewWithdraw() reverted for vault {}", [vault.id.toHexString()])
-      throw Error("handleStrategyChargedFees: previewWithdraw() reverted")
+      log.error("handleStrategyFees: previewWithdraw() reverted for vault {}", [vault.id.toHexString()])
+      throw Error("handleStrategyFees: previewWithdraw() reverted")
     }
     previewWithdraw0Raw = previewWithdrawRes.value.value0
     previewWithdraw1Raw = previewWithdrawRes.value.value1
@@ -290,22 +294,25 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   let shareTokenToUnderlying0Rate = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   let shareTokenToUnderlying1Rate = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
 
-  const prices = fetchVaultPrices(vault, strategy, token0, token1)
+  const prices = fetchVaultPrices(vault, strategy, token0, token1, earnedToken)
   const token0PriceInNative = prices.token0ToNative
   const token1PriceInNative = prices.token1ToNative
+  const earnedTokenPriceInNative = prices.earnedToNative
   const nativePriceUSD = prices.nativeToUsd
 
   ///////
   // compute derived values
-  log.debug("handleStrategyChargedFees: computing derived values for vault {}", [vault.id.toHexString()])
+  log.debug("handleStrategyFees: computing derived values for vault {}", [vault.id.toHexString()])
   const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
   const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
-  const collectedAmount0 = tokenAmountToDecimal(event.params.feeAlt0.plus(event.params.feeMain0), token0.decimals)
-  const collectedAmount1 = tokenAmountToDecimal(event.params.feeAlt1.plus(event.params.feeMain1), token1.decimals)
+  const earnedTokenPriceInUSD = earnedTokenPriceInNative.times(nativePriceUSD)
+  const collectedAmount0 = tokenAmountToDecimal(rawCollectedAmount0, token0.decimals)
+  const collectedAmount1 = tokenAmountToDecimal(rawCollectedAmount1, token1.decimals)
+  const collectedEarned = !earnedToken ? ZERO_BD : tokenAmountToDecimal(rawCollectedEarned, earnedToken.decimals)
 
   ///////
   // store the raw collect event
-  log.debug("handleStrategyChargedFees: updating vault entities for vault {}", [vault.id.toHexString()])
+  log.debug("handleStrategyFees: updating vault entities for vault {}", [vault.id.toHexString()])
   let collect = new BeefyCLVaultUnderlyingFeesCollectedEvent(getEventIdentifier(event))
   collect.vault = vault.id
   collect.strategy = strategy.id
@@ -320,11 +327,17 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
     .plus(vaultBalanceUnderlying1.times(token1PriceInUSD))
   collect.collectedAmount0 = collectedAmount0
   collect.collectedAmount1 = collectedAmount1
+  collect.collectedAmountEarned = collectedEarned
   collect.collectedAmount0USD = collectedAmount0.times(token0PriceInUSD)
   collect.collectedAmount1USD = collectedAmount1.times(token1PriceInUSD)
-  collect.collectedValueUSD = collect.collectedAmount0USD.plus(collect.collectedAmount1USD)
+  collect.collectedAmountEarnedUSD = collectedEarned.times(earnedTokenPriceInUSD)
+  collect.collectedValueUSD = collect.collectedAmount0USD
+    .plus(collect.collectedAmount1USD)
+    .plus(collect.collectedAmountEarnedUSD)
   collect.priceOfToken0InToken1 = currentPriceInToken1
-  collect.priceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
+  collect.priceOfToken0InUSD = token0PriceInUSD
+  collect.priceOfToken1InUSD = token1PriceInUSD
+  collect.priceOfEarnedTokenInUSD = earnedTokenPriceInUSD
   collect.save()
 
   const collectedAmountInToken1 = collectedAmount0.times(currentPriceInToken1).plus(collectedAmount1)
@@ -352,7 +365,7 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   vault.aprState = AprCalc.evictOldEntries(DAY.times(BigInt.fromU32(30)), aprState, event.block.timestamp).serialize()
   vault.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug("handleStrategyChargedFees: updating vault snapshot for vault {} and period {}", [
+    log.debug("handleStrategyFees: updating vault snapshot for vault {} and period {}", [
       vault.id.toHexString(),
       periods[i].toString(),
     ])
@@ -376,7 +389,7 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
 
   ///////
   // update investor positions
-  log.debug("handleStrategyChargedFees: updating investor positions for vault {}", [vault.id.toHexString()])
+  log.debug("handleStrategyFees: updating investor positions for vault {}", [vault.id.toHexString()])
   let positions = vault.positions.load()
   let positivePositionCount = 0
   for (let i = 0; i < positions.length; i++) {
@@ -386,9 +399,7 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
     }
     positivePositionCount += 1
 
-    log.debug("handleStrategyChargedFees: updating investor position for investor {}", [
-      position.investor.toHexString(),
-    ])
+    log.debug("handleStrategyFees: updating investor position for investor {}", [position.investor.toHexString()])
     let investor = getInvestor(position.investor)
     position.underlyingBalance0 = position.sharesBalance.times(shareTokenToUnderlying0Rate)
     position.underlyingBalance1 = position.sharesBalance.times(shareTokenToUnderlying1Rate)
@@ -399,7 +410,7 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
     const positionChangeUSD = position.positionValueUSD.minus(previousPositionValueUSD)
     position.save()
     for (let i = 0; i < periods.length; i++) {
-      log.debug("handleStrategyChargedFees: updating investor position snapshot for investor {} and period {}", [
+      log.debug("handleStrategyFees: updating investor position snapshot for investor {} and period {}", [
         position.investor.toHexString(),
         periods[i].toString(),
       ])
@@ -413,11 +424,11 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
       positionSnapshot.save()
     }
 
-    log.debug("handleStrategyChargedFees: updating investor for investor {}", [position.investor.toHexString()])
+    log.debug("handleStrategyFees: updating investor for investor {}", [position.investor.toHexString()])
     investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
     investor.save()
     for (let i = 0; i < periods.length; i++) {
-      log.debug("handleStrategyChargedFees: updating investor snapshot for investor {} and period {}", [
+      log.debug("handleStrategyFees: updating investor snapshot for investor {} and period {}", [
         position.investor.toHexString(),
         periods[i].toString(),
       ])
@@ -429,14 +440,14 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
 
   ///////
   // update protocol entities
-  log.debug("handleStrategyChargedFees: updating protocol entities for vault {}", [vault.id.toHexString()])
+  log.debug("handleStrategyFees: updating protocol entities for vault {}", [vault.id.toHexString()])
   const protocol = getBeefyCLProtocol()
   // this is not exact but will be corrected by the next clock tick
   protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(collect.collectedValueUSD)
   protocol.cumulativeTransactionCount += 1
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug("handleStrategyChargedFees: updating protocol snapshot for period {}", [periods[i].toString()])
+    log.debug("handleStrategyFees: updating protocol snapshot for period {}", [periods[i].toString()])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
     protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     protocolSnapshot.transactionCount += 1

@@ -19,6 +19,7 @@ import { InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { SHARE_TOKEN_MINT_ADDRESS } from "./config"
 import { isBoostAddress } from "./entity/boost"
+import { DailyAvgCalc, DailyAvgState } from "./utils/daily-avg"
 
 export function handleVaultDeposit(event: DepositEvent): void {
   updateUserPosition(event, event.params.user, true, false)
@@ -104,6 +105,7 @@ function updateUserPosition(
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
+  const earnedToken = getToken(vault.earnedToken)
 
   let tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
@@ -155,7 +157,7 @@ function updateUserPosition(
   let investorBalanceUnderlying0 = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   let investorBalanceUnderlying1 = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
 
-  const prices = fetchVaultPrices(vault, strategy, token0, token1)
+  const prices = fetchVaultPrices(vault, strategy, token0, token1, earnedToken)
   const token0PriceInNative = prices.token0ToNative
   const token1PriceInNative = prices.token1ToNative
   const nativePriceUSD = prices.nativeToUsd
@@ -222,6 +224,13 @@ function updateUserPosition(
     position.initialUnderlyingBalance1USD = position.initialUnderlyingBalance1USD.times(mult)
     position.initialPositionValueUSD = position.initialPositionValueUSD.times(mult)
   }
+  let dailyAvgState = DailyAvgState.deserialize(position.averageDailyPositionValueUSDState)
+  dailyAvgState.setPendingValue(position.positionValueUSD, event.block.timestamp)
+  position.averageDailyPositionValueUSD30D = DailyAvgCalc.avg(BigInt.fromI32(30), dailyAvgState)
+  position.averageDailyPositionValueUSDState = DailyAvgCalc.evictOldEntries(
+    BigInt.fromU32(30),
+    dailyAvgState,
+  ).serialize()
   position.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("updateUserPosition: updating investor position snapshot of investor {} for vault {} and period {}", [
@@ -351,6 +360,13 @@ function updateUserPosition(
   investor.cumulativeInteractionsCount += 1
   if (!isTransfer && isDeposit) investor.cumulativeDepositCount += 1
   if (!isTransfer && !isDeposit) investor.cumulativeWithdrawCount += 1
+  dailyAvgState = DailyAvgState.deserialize(investor.averageDailyTotalPositionValueUSDState)
+  dailyAvgState.setPendingValue(investor.totalPositionValueUSD, event.block.timestamp)
+  investor.averageDailyTotalPositionValueUSD30D = DailyAvgCalc.avg(BigInt.fromI32(30), dailyAvgState)
+  investor.averageDailyTotalPositionValueUSDState = DailyAvgCalc.evictOldEntries(
+    BigInt.fromU32(30),
+    dailyAvgState,
+  ).serialize()
   investor.save()
   for (let i = 0; i < periods.length; i++) {
     log.debug("updateUserPosition: updating investor snapshot for investor {} and period {}", [
