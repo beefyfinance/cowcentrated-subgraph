@@ -205,7 +205,10 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
     }
     state.setPendingValue(tvl, tick.timestamp)
     investor.averageDailyTotalPositionValueUSD30D = DailyAvgCalc.avg(DAY.times(BigInt.fromU32(30)), state)
-    investor.averageDailyTotalPositionValueUSDState = DailyAvgCalc.evictOldEntries(BigInt.fromU32(30), state).serialize()
+    investor.averageDailyTotalPositionValueUSDState = DailyAvgCalc.evictOldEntries(
+      BigInt.fromU32(30),
+      state,
+    ).serialize()
     investor.save()
     for (let j = 0; j < periods.length; j++) {
       const period = periods[j]
