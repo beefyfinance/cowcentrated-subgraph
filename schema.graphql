@@ -649,11 +649,10 @@ type Investor @entity {
   "Current position value in USD as the sum of all the investor ongoing positions"
   totalPositionValueUSD: BigDecimal!
 
+  "Internal state to calculate the moving averages of the total position value"
+  averageDailyTotalPositionValueUSDState: [BigDecimal!]!
   "Sum of the investor total positions value at the end of the day for the last 30 days in USD divided by the number of active days"
   averageDailyTotalPositionValueUSD30D: BigDecimal!
-
-  "The last daily total position values in USD for the last 30 days. Most recent last."
-  last30DailyTotalPositionValuesUSD: [BigDecimal!]!
 
   "The transactions count that the investor was the sender of"
   cumulativeInteractionsCount: Int!
@@ -765,11 +764,10 @@ type InvestorPosition @entity {
   "Current position value in USD"
   positionValueUSD: BigDecimal!
 
+  "Internal state to calculate the moving averages of the position value"
+  averageDailyPositionValueUSDState: [BigDecimal!]!
   "Sum of the daily position value for the last 30 days in USD divided by the number of active days"
   averageDailyPositionValueUSD30D: BigDecimal!
-
-  "The last daily position values in USD for the last 30 days. Most recent last."
-  last30DailyPositionValuesUSD: [BigDecimal!]!
 
   "The compounded amount of the first token"
   cumulativeCompoundedAmount0: BigDecimal!
