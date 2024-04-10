@@ -327,8 +327,8 @@ export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   collect.priceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
   collect.save()
 
-  const collectedAmountInToken1 = (collectedAmount0.times(currentPriceInToken1)).plus(collectedAmount1);
-  const vaultBalanceInToken1 = (vaultBalanceUnderlying0.times(currentPriceInToken1)).plus(vaultBalanceUnderlying1);
+  const collectedAmountInToken1 = collectedAmount0.times(currentPriceInToken1).plus(collectedAmount1)
+  const vaultBalanceInToken1 = vaultBalanceUnderlying0.times(currentPriceInToken1).plus(vaultBalanceUnderlying1)
 
   ///////
   // update vault entities

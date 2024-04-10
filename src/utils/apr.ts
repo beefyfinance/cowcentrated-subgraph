@@ -1,5 +1,5 @@
 import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
-import { ZERO_BD, ZERO_BI, bigIntMax, bigIntMin } from "./decimal"
+import { ONE_BI, ZERO_BD, ZERO_BI, bigIntMax } from "./decimal"
 import { YEAR } from "./time"
 
 class AprStateEntry {
@@ -27,16 +27,16 @@ export class AprState {
   static deserialize(data: Array<BigDecimal>): AprState {
     let collects = new Array<AprStateEntry>()
     while (data.length > 0) {
-      let collectedAmountUSD = data.shift() as BigDecimal
+      let collectedAmount = data.shift() as BigDecimal
       let collectTimestamp = BigInt.fromString((data.shift() as BigDecimal).truncate(0).toString())
       let totalValueLocked = data.shift() as BigDecimal
-      collects.push(new AprStateEntry(collectedAmountUSD, collectTimestamp, totalValueLocked))
+      collects.push(new AprStateEntry(collectedAmount, collectTimestamp, totalValueLocked))
     }
     return new AprState(collects)
   }
 
-  public addTransaction(collectedAmountUSD: BigDecimal, collectTimestamp: BigInt, totalValueLocked: BigDecimal): void {
-    const entry = new AprStateEntry(collectedAmountUSD, collectTimestamp, totalValueLocked)
+  public addTransaction(collectedAmount: BigDecimal, collectTimestamp: BigInt, totalValueLocked: BigDecimal): void {
+    const entry = new AprStateEntry(collectedAmount, collectTimestamp, totalValueLocked)
 
     if (this.collects.length === 0) {
       this.collects.push(entry)
@@ -82,15 +82,8 @@ export class AprCalc {
     state = AprCalc.evictOldEntries(period, state, now)
 
     // special cases for 1 or 2 entries after eviction
-    if (state.collects.length === 0) {
+    if (state.collects.length <= 1) {
       return ZERO_BD
-    }
-    if (state.collects.length === 1) {
-      const entry = state.collects[0]
-      if (entry.totalValueLocked.equals(ZERO_BD)) {
-        return ZERO_BD
-      }
-      return entry.collectedAmount.div(entry.totalValueLocked)
     }
 
     // for each time slice, we get the APR and duration for it
@@ -103,26 +96,23 @@ export class AprCalc {
 
       const sliceStart = bigIntMax(periodStart, prev.collectTimestamp)
       const sliceEnd = curr.collectTimestamp
+      const sliceDuration = bigIntMax(sliceEnd.minus(sliceStart), ONE_BI).toBigDecimal()
 
       // account for slices beginning before the period start
-      const slicePercentSpan = sliceEnd
-        .minus(sliceStart)
-        .toBigDecimal()
-        .div(curr.collectTimestamp.minus(prev.collectTimestamp).toBigDecimal())
-      const sliceCollectedUSD = curr.collectedAmount.times(slicePercentSpan)
+      const slicePercentSpan = sliceDuration.div(curr.collectTimestamp.minus(prev.collectTimestamp).toBigDecimal())
+      const sliceCollected = curr.collectedAmount.times(slicePercentSpan)
 
       // consider the previous TVL as it's updated on the same block as the collected amount
       const sliceTvl = prev.totalValueLocked
-      const sliceDuration = curr.collectTimestamp.minus(sliceStart).toBigDecimal()
 
       // if the slice has no TVL, we skip it since it doesn't contribute to the APR
       if (!sliceTvl.equals(ZERO_BD)) {
-        durations.push(sliceDuration)
-
         // we compute the reward rate for the slice per unit of tvl
-        const rewardRate = sliceCollectedUSD.div(sliceTvl).div(sliceDuration)
+        const rewardRate = sliceCollected.div(sliceTvl).div(sliceDuration)
+
         // We normalize the APR to a yearly rate
         APRs.push(rewardRate.times(YEAR.toBigDecimal()))
+        durations.push(sliceDuration)
       }
     }
 

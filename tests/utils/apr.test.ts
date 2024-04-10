@@ -79,7 +79,7 @@ describe("AprCalc", () => {
     const res = AprCalc.calculateLastApr(DAY, aprState, now)
     log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("96.85503685503685"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("127.75"), BigDecimal.fromString("0.0001"))
   })
 
   test("should evict old entries", () => {
@@ -102,7 +102,7 @@ describe("AprCalc", () => {
     const res = AprCalc.calculateLastApr(DAY, aprState, now)
     log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("0.1"), BigDecimal.fromString("0.0001"))
+    assert.assertTrue(res.equals(BigDecimal.fromString("0")))
   })
 
   test("should compute apr in the simplest case", () => {
@@ -154,7 +154,7 @@ describe("AprCalc", () => {
     const res = AprCalc.calculateLastApr(DAY, aprState, now)
     log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("38.74201474201474"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("54.75"), BigDecimal.fromString("0.0001"))
   })
 
   test("should compute apr when yield and total value locked changes", () => {
@@ -167,7 +167,7 @@ describe("AprCalc", () => {
     const res = AprCalc.calculateLastApr(DAY, aprState, now)
     log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("96.8550368"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("127.75"), BigDecimal.fromString("0.0001"))
   })
 
   test("should allow multiple changes in the same timestamp/block (multicall)", () => {
@@ -181,7 +181,7 @@ describe("AprCalc", () => {
     const res = AprCalc.calculateLastApr(DAY, aprState, now)
     log.debug("res: {}", [res.toString()])
 
-    assertIsCloseTo(res, BigDecimal.fromString("96.8550368"), BigDecimal.fromString("0.0001"))
+    assertIsCloseTo(res, BigDecimal.fromString("127.75"), BigDecimal.fromString("0.0001"))
   })
 
   test("should compute apr when the day is not over yet", () => {
