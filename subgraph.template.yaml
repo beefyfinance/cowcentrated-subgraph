@@ -90,6 +90,8 @@ dataSources:
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
+        - name: Multicall3
+          file: ./abis/multicall/Multicall3.json
       #eventHandlers:
       #  - event: NewRound(indexed uint256,indexed address,uint256)
       #    handler: handleClockTick
@@ -126,6 +128,8 @@ dataSources:
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
+        - name: Multicall3
+          file: ./abis/multicall/Multicall3.json
       eventHandlers:
         - event: BoostDeployed(indexed address)
           handler: handleBoostCreated
@@ -160,6 +164,8 @@ templates:
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
+        - name: Multicall3
+          file: ./abis/multicall/Multicall3.json
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
@@ -202,6 +208,8 @@ templates:
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
+        - name: Multicall3
+          file: ./abis/multicall/Multicall3.json
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
@@ -252,6 +260,8 @@ templates:
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
+        - name: Multicall3
+          file: ./abis/multicall/Multicall3.json
       eventHandlers:
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
