@@ -1,6 +1,6 @@
 import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
 import { BeefyCLStrategy, BeefyCLVault, Token } from "../../generated/schema"
-import { ZERO_BD, tokenAmountToDecimal } from "./decimal"
+import { ZERO_BD, exponentToBigInt, tokenAmountToDecimal } from "./decimal"
 import { ChainLinkPriceFeed } from "../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed"
 import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, WNATIVE_DECIMALS } from "../config"
 import { Multicall3Params, multicall } from "./multicall"
@@ -78,8 +78,9 @@ export function fetchVaultLatestData(
   let previewWithdraw0Raw = BigInt.fromI32(0)
   let previewWithdraw1Raw = BigInt.fromI32(0)
   if (totalSupplyRaw.gt(BigInt.fromI32(0))) {
-    previewWithdraw0Raw = token0BalanceRaw.times(totalSupplyRaw).div(totalSupplyRaw)
-    previewWithdraw1Raw = token1BalanceRaw.times(totalSupplyRaw).div(totalSupplyRaw)
+    const oneShare = exponentToBigInt(sharesToken.decimals)
+    previewWithdraw0Raw = token0BalanceRaw.times(oneShare).div(totalSupplyRaw)
+    previewWithdraw1Raw = token1BalanceRaw.times(oneShare).div(totalSupplyRaw)
   }
   const shareTokenToUnderlying0Rate = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   const shareTokenToUnderlying1Rate = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
