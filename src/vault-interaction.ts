@@ -75,9 +75,6 @@ function updateUserPosition(
   let tx = getTransaction(event.block, event.transaction)
   tx.save()
 
-  let investor = getInvestor(investorAddress)
-  const newInvestor = isNewInvestor(investor)
-
   ///////
   // fetch data on chain
   // TODO: use multicall3 to fetch all data in one call
@@ -104,17 +101,23 @@ function updateUserPosition(
   const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
   const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
 
+  const investor = getInvestor(investorAddress)
+  const position = getInvestorPosition(vault, investor)
+  const newInvestor = isNewInvestor(investor)
+  const isNewPosition = isNewInvestorPosition(position)
+  const isClosingPosition = investorShareTokenBalance.equals(ZERO_BD)
+  const isEnteringTheProtocol = newInvestor || (isNewPosition && investor.activePositionCount === 1)
+  const isExitingTheProtocol = investor.activePositionCount > 0
+  const previousInteractionAt = investor.lastInteractionAt
+
   ///////
   // update investor positions
-  const position = getInvestorPosition(vault, investor)
   const previousSharesBalance = position.sharesBalance
   const previousUnderlyingBalance0 = position.underlyingBalance0
   const previousUnderlyingBalance1 = position.underlyingBalance1
   const previousUnderlyingBalance0USD = position.underlyingBalance0USD
   const previousUnderlyingBalance1USD = position.underlyingBalance1USD
   const previousPositionValueUSD = position.positionValueUSD
-  const isNewPosition = isNewInvestorPosition(position)
-  const isClosingPosition = isDeposit ? false : investorShareTokenBalance.equals(ZERO_BD)
   if (ADDRESS_ZERO.equals(position.createdWith)) {
     position.createdWith = tx.id
   }
@@ -201,9 +204,7 @@ function updateUserPosition(
   // update investor entities
   if (isNewPosition) investor.activePositionCount += 1
   if (isClosingPosition) investor.activePositionCount -= 1
-  const isEnteringTheProtocol = newInvestor || (isNewPosition && investor.activePositionCount === 1)
   if (isEnteringTheProtocol) investor.currentInvestmentOpenAtTimestamp = event.block.timestamp
-  const isExitingTheProtocol = investor.activePositionCount > 0
   if (!isExitingTheProtocol) {
     investor.closedInvestmentDuration = investor.closedInvestmentDuration.plus(
       event.block.timestamp.minus(investor.currentInvestmentOpenAtTimestamp),
@@ -288,7 +289,7 @@ function updateUserPosition(
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     if (isEnteringTheProtocol) protocolSnapshot.newInvestorCount += 1
-    if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))
+    if (previousInteractionAt.lt(protocolSnapshot.roundedTimestamp))
       protocolSnapshot.uniqueActiveInvestorCount += 1
     if (!isTransfer || isDeposit) protocolSnapshot.transactionCount += 1
     if (!isTransfer || isDeposit) protocolSnapshot.investorInteractionsCount += 1
