@@ -118,9 +118,7 @@ function updateUserPosition(
   const previousUnderlyingBalance0USD = position.underlyingBalance0USD
   const previousUnderlyingBalance1USD = position.underlyingBalance1USD
   const previousPositionValueUSD = position.positionValueUSD
-  if (ADDRESS_ZERO.equals(position.createdWith)) {
-    position.createdWith = tx.id
-  }
+  if (ADDRESS_ZERO.equals(position.createdWith)) position.createdWith = tx.id
   if (isNewPosition) position.positionOpenAtTimestamp = event.block.timestamp
   if (isClosingPosition) {
     position.closedPositionDuration = position.closedPositionDuration.plus(
@@ -289,8 +287,7 @@ function updateUserPosition(
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     if (isEnteringTheProtocol) protocolSnapshot.newInvestorCount += 1
-    if (previousInteractionAt.lt(protocolSnapshot.roundedTimestamp))
-      protocolSnapshot.uniqueActiveInvestorCount += 1
+    if (previousInteractionAt.lt(protocolSnapshot.roundedTimestamp)) protocolSnapshot.uniqueActiveInvestorCount += 1
     if (!isTransfer || isDeposit) protocolSnapshot.transactionCount += 1
     if (!isTransfer || isDeposit) protocolSnapshot.investorInteractionsCount += 1
     protocolSnapshot.save()
