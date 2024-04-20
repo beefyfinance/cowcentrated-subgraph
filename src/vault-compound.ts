@@ -15,7 +15,7 @@ import { DAY, SNAPSHOT_PERIODS } from "./utils/time"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestorPositionSnapshot } from "./entity/position"
 import { getInvestor, getInvestorSnapshot } from "./entity/investor"
-import { fetchCurrentPriceInToken1, fetchVaultPriceRangeInToken1, fetchVaultPrices } from "./utils/price"
+import { fetchVaultLatestData } from "./utils/price"
 import { AprCalc, AprState } from "./utils/apr"
 
 export function handleStrategyHarvest(event: HarvestEvent): void {
@@ -43,35 +43,15 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
 
   ///////
   // fetch data on chain
-  // TODO: use multicall3 to fetch all data in one call
   log.debug("handleStrategyHarvest: fetching data for vault {}", [vault.id.toHexString()])
-  const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
-  const strategyAddress = Address.fromBytes(vault.strategy)
-
-  // current prices
-  const currentPriceInToken1 = fetchCurrentPriceInToken1(strategyAddress, true)
-
-  // balances of the vault
-  const vaultBalancesRes = vaultContract.try_balances()
-  if (vaultBalancesRes.reverted) {
-    log.error("handleStrategyHarvest: balances() reverted for strategy {}", [vault.strategy.toHexString()])
-    throw Error("handleStrategyHarvest: balances() reverted")
-  }
-  const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
-  const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
-
-  // vault shares total supply
-  const sharesTotalSupplyRes = vaultContract.try_totalSupply()
-  if (sharesTotalSupplyRes.reverted) {
-    log.error("handleStrategyHarvest: totalSupply() reverted for vault {}", [vault.id.toHexString()])
-    throw Error("handleStrategyHarvest: totalSupply() reverted")
-  }
-  const sharesTotalSupply = tokenAmountToDecimal(sharesTotalSupplyRes.value, sharesToken.decimals)
-
-  const prices = fetchVaultPrices(vault, strategy, token0, token1, earnedToken)
-  const token0PriceInNative = prices.token0ToNative
-  const token1PriceInNative = prices.token1ToNative
-  const nativePriceUSD = prices.nativeToUsd
+  const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, token0, token1, earnedToken)
+  const currentPriceInToken1 = vaultData.currentPriceInToken1
+  const vaultBalanceUnderlying0 = vaultData.token0Balance
+  const vaultBalanceUnderlying1 = vaultData.token1Balance
+  const sharesTotalSupply = vaultData.sharesTotalSupply
+  const token0PriceInNative = vaultData.token0ToNative
+  const token1PriceInNative = vaultData.token1ToNative
+  const nativePriceUSD = vaultData.nativeToUsd
 
   ///////
   // compute derived values
@@ -261,25 +241,20 @@ function handleStrategyFees(
 
   ///////
   // fetch data on chain
-  // TODO: use multicall3 to fetch all data in one call
   log.debug("handleStrategyFees: fetching data for vault {}", [vault.id.toHexString()])
-  const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
-  const strategyAddress = Address.fromBytes(vault.strategy)
-
-  // current prices
-  const currentPriceInToken1 = fetchCurrentPriceInToken1(strategyAddress, true)
-  const rangeToken1Price = fetchVaultPriceRangeInToken1(strategyAddress, true)
-
-  // balances of the vault
-  const vaultBalancesRes = vaultContract.try_balances()
-  if (vaultBalancesRes.reverted) {
-    log.error("handleStrategyFees: balances() reverted for strategy {}", [vault.strategy.toHexString()])
-    throw Error("handleStrategyFees: balances() reverted")
-  }
-  const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
-  const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
+  const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, token0, token1, earnedToken)
+  const currentPriceInToken1 = vaultData.currentPriceInToken1
+  const rangeMinToken1Price = vaultData.rangeMinToken1Price
+  const rangeMaxToken1Price = vaultData.rangeMaxToken1Price
+  const vaultBalanceUnderlying0 = vaultData.token0Balance
+  const vaultBalanceUnderlying1 = vaultData.token1Balance
+  const token0PriceInNative = vaultData.token0ToNative
+  const token1PriceInNative = vaultData.token1ToNative
+  const earnedTokenPriceInNative = vaultData.earnedToNative
+  const nativePriceUSD = vaultData.nativeToUsd
 
   // preview withdraw of 1 share token
+  const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
   let previewWithdraw0Raw = BigInt.fromI32(0)
   let previewWithdraw1Raw = BigInt.fromI32(0)
   if (vaultBalanceUnderlying0.gt(ZERO_BD) || vaultBalanceUnderlying1.gt(ZERO_BD)) {
@@ -293,12 +268,6 @@ function handleStrategyFees(
   }
   let shareTokenToUnderlying0Rate = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   let shareTokenToUnderlying1Rate = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
-
-  const prices = fetchVaultPrices(vault, strategy, token0, token1, earnedToken)
-  const token0PriceInNative = prices.token0ToNative
-  const token1PriceInNative = prices.token1ToNative
-  const earnedTokenPriceInNative = prices.earnedToNative
-  const nativePriceUSD = prices.nativeToUsd
 
   ///////
   // compute derived values
@@ -347,8 +316,8 @@ function handleStrategyFees(
   // update vault entities
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
   vault.currentPriceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
-  vault.priceRangeMin1 = rangeToken1Price.min
-  vault.priceRangeMax1 = rangeToken1Price.max
+  vault.priceRangeMin1 = rangeMinToken1Price
+  vault.priceRangeMax1 = rangeMaxToken1Price
   vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
   vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
   vault.underlyingAmount0 = vaultBalanceUnderlying0

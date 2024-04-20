@@ -2,11 +2,23 @@ import { Bytes, ethereum, log, crypto, ByteArray, Address } from "@graphprotocol
 import { Multicall3 as Multicall3Contract } from "../../generated/templates/BeefyCLStrategy/Multicall3"
 import { MULTICALL3_ADDRESS } from "../config"
 
-export class MulticallParams {
-    constructor(public contractAddress: Bytes, public functionSignature: string, public resultType: string) {}
+export class Multicall3Params {
+  constructor(
+    public contractAddress: Bytes,
+    public functionSignature: string,
+    public resultType: string,
+    public allowFailure: boolean = false,
+  ) {}
 }
 
-export function multicallRead(callParams: Array<MulticallParams>): Array<ethereum.Value> {
+class MulticallResult {
+  constructor(
+    public value: ethereum.Value,
+    public reverted: boolean,
+  ) {}
+}
+
+export function multicall(callParams: Array<Multicall3Params>): Array<MulticallResult> {
   const multicallContract = Multicall3Contract.bind(MULTICALL3_ADDRESS)
 
   let params: Array<ethereum.Tuple> = []
@@ -16,13 +28,14 @@ export function multicallRead(callParams: Array<MulticallParams>): Array<ethereu
     params.push(
       changetype<ethereum.Tuple>([
         ethereum.Value.fromAddress(Address.fromBytes(callParam.contractAddress)),
+        ethereum.Value.fromBoolean(callParam.allowFailure),
         ethereum.Value.fromBytes(sig),
       ]),
     )
   }
 
   // need a low level call, can't call aggregate due to typing issues
-  const callResult = multicallContract.tryCall("aggregate", "aggregate((address,bytes)[]):(uint256,bytes[])", [
+  const callResult = multicallContract.tryCall("aggregate3", "aggregate3((address,bool,bytes)[]):((bool,bytes)[])", [
     ethereum.Value.fromTupleArray(params),
   ])
   if (callResult.reverted) {
@@ -30,11 +43,17 @@ export function multicallRead(callParams: Array<MulticallParams>): Array<ethereu
     throw Error("Multicall failed")
   }
 
-  const multiResults = callResult.value[1].toBytesArray()
-  let results: Array<ethereum.Value> = []
+  const multiResults: Array<ethereum.Tuple> = callResult.value[0].toTupleArray<ethereum.Tuple>()
+  let results: Array<MulticallResult> = []
   for (let i = 0; i < callParams.length; i++) {
     const callParam = callParams[i]
-    results.push(ethereum.decode(callParam.resultType, multiResults[i])!)
+    const res = multiResults[i]
+    const success = res[0].toBoolean()
+    if (!success && !callParam.allowFailure) {
+      log.error("Multicall failed for {}", [callParam.functionSignature])
+      throw Error("Multicall failed")
+    }
+    results.push(new MulticallResult(ethereum.decode(callParam.resultType, res[1].toBytes())!, !success))
   }
 
   return results

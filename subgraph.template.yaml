@@ -169,8 +169,10 @@ templates:
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
+          receipt: true
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
+          receipt: true
         - event: Deposit(indexed address,uint256,uint256,uint256)
           handler: handleDeposit
           receipt: true
@@ -179,6 +181,7 @@ templates:
           receipt: true
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+          receipt: true
 
   - name: BeefyCLStrategy
     kind: ethereum/contract
@@ -213,12 +216,16 @@ templates:
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
+          receipt: true
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
+          receipt: true
         - event: Paused(address)
           handler: handlePaused
+          receipt: true
         - event: Unpaused(address)
           handler: handleUnpaused
+          receipt: true
         - event: Harvest(uint256,uint256)
           handler: handleHarvest
           receipt: true
@@ -265,6 +272,7 @@ templates:
       eventHandlers:
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
+          receipt: true
         - event: Staked(indexed address,uint256)
           handler: handleStaked
           receipt: true

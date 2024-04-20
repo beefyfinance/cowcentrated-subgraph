@@ -34,12 +34,10 @@ export function handleStrategyChargedFees(event: ChargedFees): void {
 
   ///////
   // fetch data on chain
-  // TODO: use multicall3 to fetch all data in one call
   const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(Address.fromHexString(vault.id.toHexString())))
   const strategyContract = BeefyCLStrategyContract.bind(
     Address.fromBytes(Address.fromHexString(vault.strategy.toHexString())),
   )
-
   const nativePriceUSD = fetchNativePriceUSD()
 
   ///////

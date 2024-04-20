@@ -14,7 +14,7 @@ import { SNAPSHOT_PERIODS } from "./utils/time"
 import { getToken } from "./entity/token"
 import { getInvestorPosition, getInvestorPositionSnapshot, isNewInvestorPosition } from "./entity/position"
 import { ADDRESS_ZERO } from "./utils/address"
-import { fetchCurrentPriceInToken1, fetchVaultPriceRangeInToken1, fetchVaultPrices } from "./utils/price"
+import { fetchVaultLatestData } from "./utils/price"
 import { InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { SHARE_TOKEN_MINT_ADDRESS } from "./config"
@@ -118,20 +118,15 @@ function updateUserPosition(
   // TODO: use multicall3 to fetch all data in one call
   log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])
   const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
-  const strategyAddress = Address.fromBytes(vault.strategy)
-
-  // current prices
-  const currentPriceInToken1 = fetchCurrentPriceInToken1(strategyAddress, true)
-  const rangeToken1Price = fetchVaultPriceRangeInToken1(strategyAddress, true)
-
-  // balances of the vault
-  const vaultBalancesRes = vaultContract.try_balances()
-  if (vaultBalancesRes.reverted) {
-    log.error("updateUserPosition: balances() reverted for strategy {}", [vault.strategy.toHexString()])
-    throw Error("updateUserPosition: balances() reverted")
-  }
-  const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
-  const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
+  const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, token0, token1, earnedToken)
+  const currentPriceInToken1 = vaultData.currentPriceInToken1
+  const rangeMinToken1Price = vaultData.rangeMinToken1Price
+  const rangeMaxToken1Price = vaultData.rangeMaxToken1Price
+  const vaultBalanceUnderlying0 = vaultData.token0Balance
+  const vaultBalanceUnderlying1 = vaultData.token1Balance
+  const token0PriceInNative = vaultData.token0ToNative
+  const token1PriceInNative = vaultData.token1ToNative
+  const nativePriceUSD = vaultData.nativeToUsd
 
   // get the new investor deposit value
   const investorBalanceRes = vaultContract.try_balanceOf(investorAddress)
@@ -156,11 +151,6 @@ function updateUserPosition(
   }
   let investorBalanceUnderlying0 = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
   let investorBalanceUnderlying1 = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
-
-  const prices = fetchVaultPrices(vault, strategy, token0, token1, earnedToken)
-  const token0PriceInNative = prices.token0ToNative
-  const token1PriceInNative = prices.token1ToNative
-  const nativePriceUSD = prices.nativeToUsd
 
   ///////
   // compute derived values
@@ -275,8 +265,8 @@ function updateUserPosition(
   log.debug("updateUserPosition: updating vault entities for vault {}", [vault.id.toHexString()])
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
   vault.currentPriceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
-  vault.priceRangeMin1 = rangeToken1Price.min
-  vault.priceRangeMax1 = rangeToken1Price.max
+  vault.priceRangeMin1 = rangeMinToken1Price
+  vault.priceRangeMax1 = rangeMaxToken1Price
   vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
   vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
   vault.underlyingAmount0 = vaultBalanceUnderlying0

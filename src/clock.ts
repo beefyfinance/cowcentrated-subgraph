@@ -1,15 +1,14 @@
-import { Address, BigDecimal, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
+import { BigDecimal, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
 import { ClockTick, Investor } from "../generated/schema"
 import { DAY, MINUTES_15, SNAPSHOT_PERIODS } from "./utils/time"
 import { getClockTick } from "./entity/clock"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
-import { ZERO_BD, tokenAmountToDecimal } from "./utils/decimal"
+import { ZERO_BD } from "./utils/decimal"
 import { getToken } from "./entity/token"
-import { fetchCurrentPriceInToken1, fetchVaultPrices } from "./utils/price"
+import { fetchVaultLatestData } from "./utils/price"
 import { getBeefyCLStrategy, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
 import { getInvestorPositionSnapshot } from "./entity/position"
 import { getInvestorSnapshot } from "./entity/investor"
-import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { DailyAvgCalc, DailyAvgState } from "./utils/daily-avg"
 
 export function handleClockTick(block: ethereum.Block): void {
@@ -40,7 +39,7 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
   const vaults = protocol.vaults.load()
   const investorTVL = new Map<string, BigDecimal>()
 
-  log.debug("updateDataOnClockTick: fetching data for {} vaults", [vaults.length.toString()])
+  log.debug("updateDataOnClockTick: updating data for {} vaults", [vaults.length.toString()])
 
   for (let i = 0; i < vaults.length; i++) {
     const vault = vaults[i]
@@ -51,26 +50,21 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
 
     const strategy = getBeefyCLStrategy(vault.strategy)
     const positions = vault.positions.load()
+    const sharesToken = getToken(vault.sharesToken)
     const token0 = getToken(vault.underlyingToken0)
     const token1 = getToken(vault.underlyingToken1)
     const earnedToken = getToken(vault.earnedToken)
 
     ///////
-    // fetch data on chain
+    // fetch data on chain for that vault
     log.debug("updateDataOnClockTick: fetching on chain data for vault {}", [vault.id.toHexString()])
-    const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
-    const vaultBalancesRes = vaultContract.try_balances()
-    if (vaultBalancesRes.reverted) {
-      log.error("handleNew15Minutes: balances() reverted for strategy {}", [vault.strategy.toHexString()])
-      throw Error("handleNew15Minutes: balances() reverted")
-    }
-    const vaultBalanceUnderlying0 = tokenAmountToDecimal(vaultBalancesRes.value.value0, token0.decimals)
-    const vaultBalanceUnderlying1 = tokenAmountToDecimal(vaultBalancesRes.value.value1, token1.decimals)
-    const currentPriceInToken1 = fetchCurrentPriceInToken1(vault.strategy, false)
-    const prices = fetchVaultPrices(vault, strategy, token0, token1, earnedToken)
-    const token0PriceInNative = prices.token0ToNative
-    const token1PriceInNative = prices.token1ToNative
-    const nativePriceUSD = prices.nativeToUsd
+    const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, token0, token1, earnedToken)
+    const vaultBalanceUnderlying0 = vaultData.token0Balance
+    const vaultBalanceUnderlying1 = vaultData.token1Balance
+    const currentPriceInToken1 = vaultData.currentPriceInToken1
+    const token0PriceInNative = vaultData.token0ToNative
+    const token1PriceInNative = vaultData.token1ToNative
+    const nativePriceUSD = vaultData.nativeToUsd
 
     ///////
     // compute derived values
