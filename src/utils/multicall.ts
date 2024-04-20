@@ -53,7 +53,12 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
       log.error("Multicall failed for {}", [callParam.functionSignature])
       throw Error("Multicall failed")
     }
-    results.push(new MulticallResult(ethereum.decode(callParam.resultType, res[1].toBytes())!, !success))
+
+    if (success) {
+      results.push(new MulticallResult(ethereum.decode(callParam.resultType, res[1].toBytes())!, !success))
+    } else {
+      results.push(new MulticallResult(ethereum.Value.fromBytes(Bytes.fromI32(0)), !success))
+    }
   }
 
   return results

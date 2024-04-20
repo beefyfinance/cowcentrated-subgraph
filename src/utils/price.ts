@@ -30,7 +30,7 @@ export function fetchVaultLatestData(
     new Multicall3Params(vault.id, "totalSupply()", "uint256"),
     new Multicall3Params(vault.id, "balances()", "(uint256,uint256)"),
     new Multicall3Params(strategy.id, "price()", "uint256", true), // this can revert when the liquidity is 0
-    new Multicall3Params(strategy.id, "range()", "uint256", true),
+    new Multicall3Params(strategy.id, "range()", "(uint256,uint256)", true), // this can revert when the liquidity is 0
     new Multicall3Params(strategy.id, "lpToken0ToNativePrice()", "uint256"),
     new Multicall3Params(strategy.id, "lpToken1ToNativePrice()", "uint256"),
     new Multicall3Params(strategy.id, "ouptutToNativePrice()", "uint256", true), // not all strategies have this
