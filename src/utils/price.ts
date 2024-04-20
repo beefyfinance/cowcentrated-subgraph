@@ -33,7 +33,7 @@ export function fetchVaultLatestData(
     new Multicall3Params(strategy.id, "lpToken0ToNativePrice()", "uint256"),
     new Multicall3Params(strategy.id, "lpToken1ToNativePrice()", "uint256"),
     new Multicall3Params(strategy.id, "ouptutToNativePrice()", "uint256", true), // not all strategies have this
-    new Multicall3Params(CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, "latestRoundData()", "uint256"),
+    new Multicall3Params(CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, "latestRoundData()", "(uint80,int256,uint256,uint256,uint80)"),
   ]
   const results = multicall(signatures)
 
@@ -71,7 +71,8 @@ export function fetchVaultLatestData(
   }
 
   // and have a native price in USD
-  const nativePriceUSD = tokenAmountToDecimal(results[7].value.toBigInt(), PRICE_FEED_DECIMALS)
+  const chainLinkAnswer = results[7].value.toTuple()
+  const nativePriceUSD = tokenAmountToDecimal(chainLinkAnswer[1].toBigInt(), PRICE_FEED_DECIMALS)
 
   // compute the derived values
   let previewWithdraw0Raw = BigInt.fromI32(0)
