@@ -2,7 +2,7 @@ import { Address, BigInt } from "@graphprotocol/graph-ts"
 import { BeefyCLVault } from "../generated/schema"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
-import { SNAPSHOT_PERIODS } from "./utils/time"
+import { PROTOCOL_SNAPSHOT_PERIODS } from "./utils/time"
 import { BEEFY_CL_VAULT_LIFECYCLE_PAUSED, BEEFY_CL_VAULT_LIFECYCLE_RUNNING } from "./entity/vault"
 import { Initialized as VaultInitialized } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { getBeefyCLStrategy, getBeefyCLVault } from "./entity/vault"
@@ -23,7 +23,7 @@ import { fetchAndSaveTokenData } from "./utils/token"
 import { getNullToken } from "./entity/token"
 
 export function handleVaultCreated(event: VaultCreatedEvent): void {
-  const tx = getTransaction(event.block, event.transaction, event.receipt)
+  const tx = getTransaction(event.block, event.transaction)
   tx.save()
 
   const vaultAddress = event.params.proxy
@@ -154,9 +154,9 @@ function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLV
   protocol.activeVaultCount += 1
   protocol.save()
 
-  const periods = SNAPSHOT_PERIODS
-  for (let i = 0; i < periods.length; i++) {
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(timestamp, periods[i])
+  for (let i = 0; i < PROTOCOL_SNAPSHOT_PERIODS.length; i++) {
+    const period = PROTOCOL_SNAPSHOT_PERIODS[i]
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(timestamp, period)
     protocolSnapshot.activeVaultCount += 1
     protocolSnapshot.save()
   }

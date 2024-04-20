@@ -1,6 +1,6 @@
 import { BigDecimal, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
 import { ClockTick, Investor } from "../generated/schema"
-import { DAY, MINUTES_15, SNAPSHOT_PERIODS } from "./utils/time"
+import { DAY, HOUR, VAULT_SNAPSHOT_PERIODS, INVESTOR_SNAPSHOT_PERIODS, PROTOCOL_SNAPSHOT_PERIODS } from "./utils/time"
 import { getClockTick } from "./entity/clock"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { ZERO_BD } from "./utils/decimal"
@@ -14,21 +14,20 @@ import { DailyAvgCalc, DailyAvgState } from "./utils/daily-avg"
 export function handleClockTick(block: ethereum.Block): void {
   const timestamp = block.timestamp
 
-  let tickRes15min = getClockTick(timestamp, MINUTES_15)
-  if (!tickRes15min.isNew) {
-    log.debug("handleClockTick: tick already exists for 15 minutes period", [])
+  let tickRes1h = getClockTick(timestamp, HOUR)
+  if (!tickRes1h.isNew) {
+    log.debug("handleClockTick: tick already exists for 1h period", [])
     return
   }
-  tickRes15min.tick.save()
+  tickRes1h.tick.save()
 
   let tickResDay = getClockTick(timestamp, DAY)
   tickResDay.tick.save()
 
-  updateDataOnClockTick(tickRes15min.tick, tickResDay.isNew)
+  updateDataOnClockTick(tickRes1h.tick, tickResDay.isNew)
 }
 
 function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
-  const periods = SNAPSHOT_PERIODS
   const protocol = getBeefyCLProtocol()
   let protocolTotalValueLockedUSD = ZERO_BD
   let protocolActiveVaultCount = 0
@@ -78,8 +77,8 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
     vault.totalValueLockedUSD = vault.underlyingAmount0USD.plus(vault.underlyingAmount1USD)
     vault.save()
     // update vault snapshots
-    for (let j = 0; j < periods.length; j++) {
-      const period = periods[j]
+    for (let j = 0; j < VAULT_SNAPSHOT_PERIODS.length; j++) {
+      const period = VAULT_SNAPSHOT_PERIODS[j]
       const vaultSnapshot = getBeefyCLVaultSnapshot(vault, tick.timestamp, period)
       vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
       vaultSnapshot.currentPriceOfToken0InUSD = vault.currentPriceOfToken0InUSD
@@ -122,8 +121,8 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
       position.averageDailyPositionValueUSDState = state.serialize()
       position.save()
       // update position snapshot
-      for (let k = 0; k < periods.length; k++) {
-        const period = periods[k]
+      for (let k = 0; k < INVESTOR_SNAPSHOT_PERIODS.length; k++) {
+        const period = INVESTOR_SNAPSHOT_PERIODS[k]
         const positionSnapshot = getInvestorPositionSnapshot(vault, investor, tick.timestamp, period)
         positionSnapshot.underlyingBalance0USD = position.underlyingBalance0USD
         positionSnapshot.underlyingBalance1USD = position.underlyingBalance1USD
@@ -171,8 +170,8 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
       state,
     ).serialize()
     investor.save()
-    for (let j = 0; j < periods.length; j++) {
-      const period = periods[j]
+    for (let j = 0; j < INVESTOR_SNAPSHOT_PERIODS.length; j++) {
+      const period = INVESTOR_SNAPSHOT_PERIODS[j]
       const investorSnapshot = getInvestorSnapshot(investor, tick.timestamp, period)
       investorSnapshot.totalPositionValueUSD = tvl
       investorSnapshot.save()
@@ -185,8 +184,8 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
   protocol.activeVaultCount = protocolActiveVaultCount
   protocol.activeInvestorCount = protocolActiveInvestorCount
   protocol.save()
-  for (let i = 0; i < periods.length; i++) {
-    const period = periods[i]
+  for (let i = 0; i < PROTOCOL_SNAPSHOT_PERIODS.length; i++) {
+    const period = PROTOCOL_SNAPSHOT_PERIODS[i]
     const protocolSnapshot = getBeefyCLProtocolSnapshot(tick.timestamp, period)
     protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     protocolSnapshot.activeVaultCount = protocol.activeVaultCount

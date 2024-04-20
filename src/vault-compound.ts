@@ -1,4 +1,4 @@
-import { BigDecimal, BigInt, ethereum } from "@graphprotocol/graph-ts"
+import { BigInt, ethereum } from "@graphprotocol/graph-ts"
 import {
   ClaimedFees as ClaimedFeesEvent,
   Harvest as HarvestEvent,
@@ -10,7 +10,7 @@ import { BeefyCLVaultHarvestEvent, BeefyCLVaultUnderlyingFeesCollectedEvent } fr
 import { getEventIdentifier } from "./utils/event"
 import { getToken } from "./entity/token"
 import { ZERO_BD, tokenAmountToDecimal, ZERO_BI } from "./utils/decimal"
-import { DAY, SNAPSHOT_PERIODS } from "./utils/time"
+import { DAY, VAULT_SNAPSHOT_PERIODS, INVESTOR_SNAPSHOT_PERIODS, PROTOCOL_SNAPSHOT_PERIODS } from "./utils/time"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { getInvestorPositionSnapshot } from "./entity/position"
 import { getInvestor, getInvestorSnapshot } from "./entity/investor"
@@ -24,13 +24,12 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
     return
   }
 
-  const periods = SNAPSHOT_PERIODS
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
   const earnedToken = getToken(vault.earnedToken)
 
-  let tx = getTransaction(event.block, event.transaction, event.receipt)
+  let tx = getTransaction(event.block, event.transaction)
   tx.save()
 
   ///////
@@ -46,7 +45,6 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
 
   ///////
   // compute derived values
-  const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
   const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
   const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
 
@@ -82,8 +80,9 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   vault.cumulativeCompoundedAmount1USD = vault.cumulativeCompoundedAmount1USD.plus(harvest.compoundedAmount1USD)
   vault.cumulativeCompoundedValueUSD = vault.cumulativeCompoundedAmount0USD.plus(vault.cumulativeCompoundedAmount1USD)
   vault.save()
-  for (let i = 0; i < periods.length; i++) {
-    const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
+  for (let i = 0; i < VAULT_SNAPSHOT_PERIODS.length; i++) {
+    const period = VAULT_SNAPSHOT_PERIODS[i]
+    const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, period)
     vaultSnapshot.harvestCount += 1
     vaultSnapshot.compoundedAmount0 = vaultSnapshot.compoundedAmount0.plus(harvest.compoundedAmount0)
     vaultSnapshot.compoundedAmount1 = vaultSnapshot.compoundedAmount1.plus(harvest.compoundedAmount1)
@@ -122,8 +121,9 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
     )
     position.cumulativeCompoundedValueUSD = position.cumulativeCompoundedValueUSD.plus(positionChangeUSD)
     position.save()
-    for (let i = 0; i < periods.length; i++) {
-      const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, periods[i])
+    for (let i = 0; i < INVESTOR_SNAPSHOT_PERIODS.length; i++) {
+      const period = INVESTOR_SNAPSHOT_PERIODS[i]
+      const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, period)
       positionSnapshot.compoundedAmount0 = positionSnapshot.compoundedAmount0.plus(
         harvest.compoundedAmount0.times(positionPercentOfTotalSupply),
       )
@@ -142,8 +142,9 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
 
     investor.cumulativeCompoundedValueUSD = investor.cumulativeCompoundedValueUSD.plus(positionChangeUSD)
     investor.save()
-    for (let i = 0; i < periods.length; i++) {
-      const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, periods[i])
+    for (let i = 0; i < INVESTOR_SNAPSHOT_PERIODS.length; i++) {
+      const period = INVESTOR_SNAPSHOT_PERIODS[i]
+      const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, period)
       investorSnapshot.compoundedValueUSD = investorSnapshot.compoundedValueUSD.plus(positionChangeUSD)
       investorSnapshot.save()
     }
@@ -154,19 +155,10 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   const protocol = getBeefyCLProtocol()
   protocol.cumulativeHarvestCount += 1
   protocol.save()
-  for (let i = 0; i < periods.length; i++) {
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
+  for (let i = 0; i < PROTOCOL_SNAPSHOT_PERIODS.length; i++) {
+    const period = PROTOCOL_SNAPSHOT_PERIODS[i]
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     protocolSnapshot.harvesterTransactionsCount += 1
-    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
-    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
-    protocolSnapshot.harvesterGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
-    protocolSnapshot.harvesterGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
-    const harvestGasSaved = tx.gasFee.times(BigDecimal.fromString(positivePositionCount.toString()))
-    protocolSnapshot.protocolGasSaved = protocolSnapshot.protocolGasSaved.plus(harvestGasSaved)
-    protocolSnapshot.protocolGasSavedUSD = protocolSnapshot.protocolGasSavedUSD.plus(
-      harvestGasSaved.times(nativePriceUSD),
-    )
-
     protocolSnapshot.save()
   }
 }
@@ -195,13 +187,12 @@ function handleStrategyFees(
     return
   }
 
-  const periods = SNAPSHOT_PERIODS
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
   const earnedToken = getToken(vault.earnedToken)
 
-  let tx = getTransaction(event.block, event.transaction, event.receipt)
+  let tx = getTransaction(event.block, event.transaction)
   tx.save()
 
   ///////
@@ -281,8 +272,9 @@ function handleStrategyFees(
   // keep the longest period in the state, AprCalc will ignore older entries if they don't fit the period
   vault.aprState = AprCalc.evictOldEntries(DAY.times(BigInt.fromU32(30)), aprState, event.block.timestamp).serialize()
   vault.save()
-  for (let i = 0; i < periods.length; i++) {
-    const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
+  for (let i = 0; i < VAULT_SNAPSHOT_PERIODS.length; i++) {
+    const period = VAULT_SNAPSHOT_PERIODS[i]
+    const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, period)
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
     vaultSnapshot.currentPriceOfToken0InUSD = vault.currentPriceOfToken0InUSD
     vaultSnapshot.priceRangeMin1 = vault.priceRangeMin1
@@ -320,8 +312,9 @@ function handleStrategyFees(
     position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)
     const positionChangeUSD = position.positionValueUSD.minus(previousPositionValueUSD)
     position.save()
-    for (let i = 0; i < periods.length; i++) {
-      const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, periods[i])
+    for (let i = 0; i < INVESTOR_SNAPSHOT_PERIODS.length; i++) {
+      const period = INVESTOR_SNAPSHOT_PERIODS[i]
+      const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, period)
       positionSnapshot.sharesBalance = position.sharesBalance
       positionSnapshot.underlyingBalance0 = position.underlyingBalance0
       positionSnapshot.underlyingBalance1 = position.underlyingBalance1
@@ -333,8 +326,9 @@ function handleStrategyFees(
 
     investor.totalPositionValueUSD = investor.totalPositionValueUSD.plus(positionChangeUSD)
     investor.save()
-    for (let i = 0; i < periods.length; i++) {
-      const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, periods[i])
+    for (let i = 0; i < INVESTOR_SNAPSHOT_PERIODS.length; i++) {
+      const period = INVESTOR_SNAPSHOT_PERIODS[i]
+      const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, period)
       investorSnapshot.totalPositionValueUSD = investor.totalPositionValueUSD
       investorSnapshot.save()
     }
@@ -347,8 +341,9 @@ function handleStrategyFees(
   protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(collect.collectedValueUSD)
   protocol.cumulativeTransactionCount += 1
   protocol.save()
-  for (let i = 0; i < periods.length; i++) {
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
+  for (let i = 0; i < PROTOCOL_SNAPSHOT_PERIODS.length; i++) {
+    const period = PROTOCOL_SNAPSHOT_PERIODS[i]
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     protocolSnapshot.transactionCount += 1
     protocolSnapshot.save()

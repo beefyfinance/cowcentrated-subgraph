@@ -31,7 +31,6 @@ dataSources:
       eventHandlers:
         - event: ProxyCreated(address)
           handler: handleVaultCreated
-          receipt: true
           
   - kind: ethereum/contract
     name: BeefyCLStrategyFactory
@@ -58,7 +57,6 @@ dataSources:
       eventHandlers:
         - event: GlobalPause(bool)
           handler: handleGlobalStrategyPause
-          receipt: true
           
   - kind: ethereum/contract
     name: ChainlinkClock
@@ -133,7 +131,6 @@ dataSources:
       eventHandlers:
         - event: BoostDeployed(indexed address)
           handler: handleBoostCreated
-          receipt: true
 
 templates:
   - name: BeefyCLVault
@@ -169,19 +166,14 @@ templates:
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
-          receipt: true
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
-          receipt: true
         - event: Deposit(indexed address,uint256,uint256,uint256)
           handler: handleDeposit
-          receipt: true
         - event: Withdraw(indexed address,uint256,uint256,uint256)
           handler: handleWithdraw
-          receipt: true
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
-          receipt: true
 
   - name: BeefyCLStrategy
     kind: ethereum/contract
@@ -216,28 +208,20 @@ templates:
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
-          receipt: true
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
-          receipt: true
         - event: Paused(address)
           handler: handlePaused
-          receipt: true
         - event: Unpaused(address)
           handler: handleUnpaused
-          receipt: true
         - event: Harvest(uint256,uint256)
           handler: handleHarvest
-          receipt: true
         - event: ChargedFees(uint256,uint256,uint256)
           handler: handleChargedFees
-          receipt: true
         - event: ClaimedFees(uint256,uint256,uint256,uint256)
           handler: handleClaimedFees
-          receipt: true
         - event: ClaimedOutput(uint256)
           handler: handleClaimedOutput
-          receipt: true
 
   
   - name: BeefyBoost
@@ -272,13 +256,9 @@ templates:
       eventHandlers:
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
-          receipt: true
         - event: Staked(indexed address,uint256)
           handler: handleStaked
-          receipt: true
         - event: Withdrawn(indexed address,uint256)
           handler: handleUnstaked
-          receipt: true
         - event: RewardPaid(indexed address,uint256)
           handler: handleRewardPaid
-          receipt: true

@@ -21,27 +21,17 @@ import { getTransaction } from "./entity/transaction"
 import { ZERO_BD, tokenAmountToDecimal } from "./utils/decimal"
 import { getToken } from "./entity/token"
 import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
-import { SNAPSHOT_PERIODS } from "./utils/time"
-import { fetchNativePriceUSD } from "./utils/price"
+import { PROTOCOL_SNAPSHOT_PERIODS } from "./utils/time"
 
 export function handleBoostStake(event: StakedEvent): void {
-  const tx = getTransaction(event.block, event.transaction, event.receipt)
+  const tx = getTransaction(event.block, event.transaction)
   tx.save()
 
-  const periods = SNAPSHOT_PERIODS
   const protocol = getBeefyCLProtocol()
   const boost = getBoost(event.address)
   const vault = getBeefyCLVault(boost.vault)
   const investor = getInvestor(event.params.user)
   const position = getInvestorPosition(vault, investor)
-
-  ///////
-  // fetch native token price
-  const nativePriceUSD = fetchNativePriceUSD()
-
-  ///////
-  // compute derived values
-  const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
 
   /////
   // create the interaction
@@ -59,12 +49,9 @@ export function handleBoostStake(event: StakedEvent): void {
   protocol.cumulativeTransactionCount += 1
   protocol.cumulativeInvestorInteractionsCount += 1
   protocol.save()
-  for (let i = 0; i < periods.length; i++) {
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
-    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
-    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
-    protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
-    protocolSnapshot.investorGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
+  for (let i = 0; i < PROTOCOL_SNAPSHOT_PERIODS.length; i++) {
+    const period = PROTOCOL_SNAPSHOT_PERIODS[i]
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))
       protocolSnapshot.uniqueActiveInvestorCount += 1
     protocolSnapshot.transactionCount += 1
@@ -74,23 +61,14 @@ export function handleBoostStake(event: StakedEvent): void {
 }
 
 export function handleBoostWithdraw(event: WithdrawnEvent): void {
-  const tx = getTransaction(event.block, event.transaction, event.receipt)
+  const tx = getTransaction(event.block, event.transaction)
   tx.save()
 
-  const periods = SNAPSHOT_PERIODS
   const protocol = getBeefyCLProtocol()
   const boost = getBoost(event.address)
   const vault = getBeefyCLVault(boost.vault)
   const investor = getInvestor(event.params.user)
   const position = getInvestorPosition(vault, investor)
-
-  ///////
-  // fetch native token price
-  const nativePriceUSD = fetchNativePriceUSD()
-
-  ///////
-  // compute derived values
-  const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
 
   /////
   // create the interaction
@@ -108,12 +86,9 @@ export function handleBoostWithdraw(event: WithdrawnEvent): void {
   protocol.cumulativeTransactionCount += 1
   protocol.cumulativeInvestorInteractionsCount += 1
   protocol.save()
-  for (let i = 0; i < periods.length; i++) {
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
-    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
-    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
-    protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
-    protocolSnapshot.investorGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
+  for (let i = 0; i < PROTOCOL_SNAPSHOT_PERIODS.length; i++) {
+    const period = PROTOCOL_SNAPSHOT_PERIODS[i]
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))
       protocolSnapshot.uniqueActiveInvestorCount += 1
     protocolSnapshot.transactionCount += 1
@@ -123,24 +98,15 @@ export function handleBoostWithdraw(event: WithdrawnEvent): void {
 }
 
 export function handleBoostReward(event: RewardPaidEvent): void {
-  const tx = getTransaction(event.block, event.transaction, event.receipt)
+  const tx = getTransaction(event.block, event.transaction)
   tx.save()
 
-  const periods = SNAPSHOT_PERIODS
   const protocol = getBeefyCLProtocol()
   const boost = getBoost(event.address)
   const vault = getBeefyCLVault(boost.vault)
   const investor = getInvestor(event.params.user)
   const position = getInvestorPosition(vault, investor)
   const rewardToken = getToken(boost.rewardedIn)
-
-  ///////
-  // fetch native token price
-  const nativePriceUSD = fetchNativePriceUSD()
-
-  ///////
-  // compute derived values
-  const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
 
   /////
   // create the interaction
@@ -158,12 +124,9 @@ export function handleBoostReward(event: RewardPaidEvent): void {
   protocol.cumulativeTransactionCount += 1
   protocol.cumulativeInvestorInteractionsCount += 1
   protocol.save()
-  for (let i = 0; i < periods.length; i++) {
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
-    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
-    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
-    protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
-    protocolSnapshot.investorGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
+  for (let i = 0; i < PROTOCOL_SNAPSHOT_PERIODS.length; i++) {
+    const period = PROTOCOL_SNAPSHOT_PERIODS[i]
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))
       protocolSnapshot.uniqueActiveInvestorCount += 1
     protocolSnapshot.transactionCount += 1

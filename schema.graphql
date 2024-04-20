@@ -36,9 +36,6 @@ type Transaction @entity(immutable: true) {
 
   "The address of the sender of the transaction"
   sender: Bytes!
-
-  "Gas fee paid for the transaction in the native token"
-  gasFee: BigDecimal!
 }
 
 """
@@ -164,30 +161,6 @@ type ProtocolSnapshot implements Snapshot @entity {
   "Number of transactions initiated by harvesters at the time of the snapshot"
   harvesterTransactionsCount: Int!
 
-  "Total amount of gas spent by anyone at the time of the snapshot"
-  totalGasSpent: BigDecimal!
-  "Total amount of gas spent by anyone in USD at the time of the snapshot"
-  totalGasSpentUSD: BigDecimal!
-  "Total amount of gas spent by investors at the time of the snapshot"
-  investorGasSpent: BigDecimal!
-  "Total amount of gas spent by investors in USD at the time of the snapshot"
-  investorGasSpentUSD: BigDecimal!
-  "Total amount of gas spent by harvesters at the time of the snapshot"
-  harvesterGasSpent: BigDecimal!
-  "Total amount of gas spent by harvesters in USD at the time of the snapshot"
-  harvesterGasSpentUSD: BigDecimal!
-
-  """
-  Total amount of gas saved by the protocol at the time of the snapshot.
-  Each time an harvest transaction is executed, this value is increased by the amount of gas saved.
-  Gas saved is equal the the number of gas units that would have been spent if the transaction was executed on-chain
-  by each investor instead of using the Beefy Finance protocol.
-  It is expressed in native token.
-  """
-  protocolGasSaved: BigDecimal!
-  "Total amount of gas saved by the protocol in USD at the time of the snapshot"
-  protocolGasSavedUSD: BigDecimal!
-
   "Amount of fees collected by the protocol in the native token at the time of the snapshot"
   protocolFeesCollectedNative: BigDecimal!
   "Total amount of fees collected by the protocol in USD at the time of the snapshot"
@@ -202,11 +175,6 @@ type ProtocolSnapshot implements Snapshot @entity {
   strategistFeesCollectedNative: BigDecimal!
   "Total amount of strategist incentive fees collected by the protocol in USD at the time of the snapshot"
   strategistFeesCollectedUSD: BigDecimal!
-
-  "Zap fees collected by the protocol in the native token at the time of the snapshot"
-  zapFeesCollectedNative: BigDecimal!
-  "Total amount of zap fees collected by the protocol in USD at the time of the snapshot"
-  zapFeesCollectedUSD: BigDecimal!
 }
 
 #############################

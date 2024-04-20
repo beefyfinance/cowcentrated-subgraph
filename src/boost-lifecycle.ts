@@ -10,7 +10,7 @@ import { getBeefyCLVault, isNewVault } from "./entity/vault"
 export function handleBoostCreated(event: BoostDeployedEvent): void {
   const boostAddress = event.params.boost
 
-  const tx = getTransaction(event.block, event.transaction, event.receipt)
+  const tx = getTransaction(event.block, event.transaction)
   tx.save()
 
   const boostContract = BeefyBoostContract.bind(boostAddress)

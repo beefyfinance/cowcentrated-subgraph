@@ -10,7 +10,7 @@ import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protoco
 import { getInvestor, getInvestorSnapshot, isNewInvestor } from "./entity/investor"
 import { ONE_BD, ZERO_BD, ZERO_BI, bigDecMax, tokenAmountToDecimal } from "./utils/decimal"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
-import { SNAPSHOT_PERIODS } from "./utils/time"
+import { INVESTOR_SNAPSHOT_PERIODS, PROTOCOL_SNAPSHOT_PERIODS, VAULT_SNAPSHOT_PERIODS } from "./utils/time"
 import { getToken } from "./entity/token"
 import { getInvestorPosition, getInvestorPositionSnapshot, isNewInvestorPosition } from "./entity/position"
 import { ADDRESS_ZERO } from "./utils/address"
@@ -66,14 +66,13 @@ function updateUserPosition(
     return
   }
 
-  const periods = SNAPSHOT_PERIODS
   const strategy = getBeefyCLStrategy(vault.strategy)
   const sharesToken = getToken(vault.sharesToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
   const earnedToken = getToken(vault.earnedToken)
 
-  let tx = getTransaction(event.block, event.transaction, event.receipt)
+  let tx = getTransaction(event.block, event.transaction)
   tx.save()
 
   let investor = getInvestor(investorAddress)
@@ -102,7 +101,6 @@ function updateUserPosition(
   // compute derived values
   const investorBalanceUnderlying0 = investorShareTokenBalance.times(vaultData.shareTokenToUnderlying0Rate)
   const investorBalanceUnderlying1 = investorShareTokenBalance.times(vaultData.shareTokenToUnderlying1Rate)
-  const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
   const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
   const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
 
@@ -165,8 +163,9 @@ function updateUserPosition(
     dailyAvgState,
   ).serialize()
   position.save()
-  for (let i = 0; i < periods.length; i++) {
-    const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, periods[i])
+  for (let i = 0; i < INVESTOR_SNAPSHOT_PERIODS.length; i++) {
+    const period = INVESTOR_SNAPSHOT_PERIODS[i]
+    const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, period)
     positionSnapshot.sharesBalance = position.sharesBalance
     positionSnapshot.underlyingBalance0 = position.underlyingBalance0
     positionSnapshot.underlyingBalance1 = position.underlyingBalance1
@@ -224,8 +223,9 @@ function updateUserPosition(
     dailyAvgState,
   ).serialize()
   investor.save()
-  for (let i = 0; i < periods.length; i++) {
-    const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, periods[i])
+  for (let i = 0; i < INVESTOR_SNAPSHOT_PERIODS.length; i++) {
+    const period = INVESTOR_SNAPSHOT_PERIODS[i]
+    const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, period)
     investorSnapshot.totalPositionValueUSD = investor.totalPositionValueUSD
     investorSnapshot.interactionsCount += 1
     if (!isTransfer && isDeposit) investorSnapshot.depositCount += 1
@@ -254,8 +254,9 @@ function updateUserPosition(
   if (!isTransfer && isDeposit) vault.cumulativeDepositCount += 1
   if (!isTransfer && !isDeposit) vault.cumulativeWithdrawCount += 1
   vault.save()
-  for (let i = 0; i < periods.length; i++) {
-    const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
+  for (let i = 0; i < VAULT_SNAPSHOT_PERIODS.length; i++) {
+    const period = VAULT_SNAPSHOT_PERIODS[i]
+    const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, period)
     vaultSnapshot.activeInvestorCount = vault.activeInvestorCount
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
     vaultSnapshot.currentPriceOfToken0InUSD = vault.currentPriceOfToken0InUSD
@@ -282,8 +283,8 @@ function updateUserPosition(
   if (isEnteringTheProtocol) protocol.activeInvestorCount += 1
   else if (isExitingTheProtocol) protocol.activeInvestorCount -= 1
   protocol.save()
-  for (let i = 0; i < periods.length; i++) {
-    const period = periods[i]
+  for (let i = 0; i < PROTOCOL_SNAPSHOT_PERIODS.length; i++) {
+    const period = PROTOCOL_SNAPSHOT_PERIODS[i]
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     if (isEnteringTheProtocol) protocolSnapshot.newInvestorCount += 1
@@ -291,10 +292,6 @@ function updateUserPosition(
       protocolSnapshot.uniqueActiveInvestorCount += 1
     if (!isTransfer || isDeposit) protocolSnapshot.transactionCount += 1
     if (!isTransfer || isDeposit) protocolSnapshot.investorInteractionsCount += 1
-    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
-    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
-    protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
-    protocolSnapshot.investorGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
     protocolSnapshot.save()
   }
 }

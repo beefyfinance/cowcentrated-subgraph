@@ -1,6 +1,6 @@
 import { ChargedFees } from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
-import { SNAPSHOT_PERIODS } from "./utils/time"
+import { PROTOCOL_SNAPSHOT_PERIODS, VAULT_SNAPSHOT_PERIODS } from "./utils/time"
 import { getTransaction } from "./entity/transaction"
 import { getBeefyCLProtocolSnapshot } from "./entity/protocol"
 import { weiToBigDecimal } from "./utils/decimal"
@@ -13,9 +13,7 @@ export function handleStrategyChargedFees(event: ChargedFees): void {
     return
   }
 
-  const periods = SNAPSHOT_PERIODS
-
-  let tx = getTransaction(event.block, event.transaction, event.receipt)
+  let tx = getTransaction(event.block, event.transaction)
   tx.save()
 
   ///////
@@ -30,8 +28,9 @@ export function handleStrategyChargedFees(event: ChargedFees): void {
 
   ///////
   // update protocol entities
-  for (let i = 0; i < periods.length; i++) {
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
+  for (let i = 0; i < PROTOCOL_SNAPSHOT_PERIODS.length; i++) {
+    const period = PROTOCOL_SNAPSHOT_PERIODS[i]
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     protocolSnapshot.protocolFeesCollectedNative = protocolSnapshot.protocolFeesCollectedNative.plus(beefyFeeNative)
     protocolSnapshot.protocolFeesCollectedUSD = protocolSnapshot.protocolFeesCollectedUSD.plus(
       beefyFeeNative.times(nativePriceUSD),
@@ -65,8 +64,9 @@ export function handleStrategyChargedFees(event: ChargedFees): void {
   )
   vault.save()
 
-  for (let i = 0; i < periods.length; i++) {
-    const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
+  for (let i = 0; i < VAULT_SNAPSHOT_PERIODS.length; i++) {
+    const period = VAULT_SNAPSHOT_PERIODS[i]
+    const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, period)
     vaultSnapshot.protocolFeeCollectedNative = vaultSnapshot.protocolFeeCollectedNative.plus(beefyFeeNative)
     vaultSnapshot.protocolFeeCollectedUSD = vaultSnapshot.protocolFeeCollectedUSD.plus(
       beefyFeeNative.times(nativePriceUSD),
