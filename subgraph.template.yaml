@@ -18,16 +18,43 @@ dataSources:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/mapping/factory.ts
-      entities:
-        - Investor
+      entities: &entities
+        - Token
         - Transaction
-        - BeefyCLVault
-        - BeefyCLStrategy
+        - ClockTick
         - Protocol
         - ProtocolSnapshot
-      abis:
+        - BeefyCLVault
+        - BeefyCLVaultSnapshot
+        - BeefyCLStrategy
+        - BeefyCLVaultHarvestEvent
+        - BeefyCLVaultUnderlyingFeesCollectedEvent
+        - BeefyBoost
+        - BeefyBoostClaimEvent
+        - Investor
+        - InvestorSnapshot
+        - InvestorPosition
+        - InvestorPositionSnapshot
+        - InvestorPositionInteraction
+      abis: &abis
         - name: BeefyVaultConcLiqFactory
           file: ./abis/beefy/concliq/BeefyVaultConcLiqFactory.json
+        - name: BeefyVaultConcLiq
+          file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
+        - name: BeefyBoostFactory
+          file: ./abis/beefy/concliq/BeefyBoostFactory.json
+        - name: BeefyBoost
+          file: ./abis/beefy/concliq/BeefyBoost.json
+        - name: BeefyStrategyFactory
+          file: ./abis/beefy/concliq/BeefyStrategyFactory.json
+        - name: BeefyStrategy
+          file: ./abis/beefy/concliq/BeefyStrategy.json
+        - name: ChainLinkPriceFeed
+          file: ./abis/chainlink/AggregatorV3Interface.json
+        - name: IERC20
+          file: ./abis/IERC20/IERC20.json
+        - name: Multicall3
+          file: ./abis/multicall/Multicall3.json
       eventHandlers:
         - event: ProxyCreated(address)
           handler: handleVaultCreated
@@ -44,16 +71,8 @@ dataSources:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/mapping/factory.ts
-      entities:
-        - Investor
-        - Transaction
-        - BeefyCLVault
-        - BeefyCLStrategy
-        - Protocol
-        - ProtocolSnapshot
-      abis:
-        - name: BeefyStrategyFactory
-          file: ./abis/beefy/concliq/BeefyStrategyFactory.json
+      entities: *entities
+      abis: *abis
       eventHandlers:
         - event: GlobalPause(bool)
           handler: handleGlobalStrategyPause
@@ -70,29 +89,8 @@ dataSources:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/mapping/clock.ts
-      entities:
-        - Investor
-        - Transaction
-        - BeefyCLVault
-        - BeefyCLStrategy
-        - Protocol
-        - ProtocolSnapshot
-      abis:
-        - name: ChainlinkClock
-          file: ./abis/chainlink/AggregatorV3Interface.json
-        - name: BeefyVaultConcLiq
-          file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
-        - name: BeefyStrategy
-          file: ./abis/beefy/concliq/BeefyStrategy.json
-        - name: ChainLinkPriceFeed
-          file: ./abis/chainlink/AggregatorV3Interface.json
-        - name: IERC20
-          file: ./abis/IERC20/IERC20.json
-        - name: Multicall3
-          file: ./abis/multicall/Multicall3.json
-      #eventHandlers:
-      #  - event: NewRound(indexed uint256,indexed address,uint256)
-      #    handler: handleClockTick
+      entities: *entities
+      abis: *abis
       blockHandlers:
         - handler: handleClockTick
           filter:
@@ -111,23 +109,8 @@ dataSources:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/mapping/boost.ts
-      entities:
-        - Investor
-        - Transaction
-        - BeefyVaultIncentive
-        - Protocol
-        - ProtocolSnapshot
-      abis:
-        - name: BeefyBoostFactory
-          file: ./abis/beefy/concliq/BeefyBoostFactory.json
-        - name: BeefyBoost
-          file: ./abis/beefy/concliq/BeefyBoost.json
-        - name: ChainLinkPriceFeed
-          file: ./abis/chainlink/AggregatorV3Interface.json
-        - name: IERC20
-          file: ./abis/IERC20/IERC20.json
-        - name: Multicall3
-          file: ./abis/multicall/Multicall3.json
+      entities: *entities
+      abis: *abis
       eventHandlers:
         - event: BoostDeployed(indexed address)
           handler: handleBoostCreated
@@ -143,26 +126,8 @@ templates:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/mapping/vault.ts
-      entities:
-        - Investor
-        - Transaction
-        - BeefyCLVault
-        - BeefyCLStrategy
-        - Protocol
-        - ProtocolSnapshot
-      abis:
-        - name: BeefyVaultConcLiq
-          file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
-        - name: BeefyBoost
-          file: ./abis/beefy/concliq/BeefyBoost.json
-        - name: BeefyStrategy
-          file: ./abis/beefy/concliq/BeefyStrategy.json
-        - name: ChainLinkPriceFeed
-          file: ./abis/chainlink/AggregatorV3Interface.json
-        - name: IERC20
-          file: ./abis/IERC20/IERC20.json
-        - name: Multicall3
-          file: ./abis/multicall/Multicall3.json
+      entities: *entities
+      abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
@@ -185,26 +150,8 @@ templates:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/mapping/strategy.ts
-      entities:
-        - Investor
-        - Transaction
-        - BeefyCLVault
-        - BeefyCLStrategy
-        - Protocol
-        - ProtocolSnapshot
-      abis:
-        - name: BeefyVaultConcLiq
-          file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
-        - name: BeefyBoost
-          file: ./abis/beefy/concliq/BeefyBoost.json
-        - name: BeefyStrategy
-          file: ./abis/beefy/concliq/BeefyStrategy.json
-        - name: ChainLinkPriceFeed
-          file: ./abis/chainlink/AggregatorV3Interface.json
-        - name: IERC20
-          file: ./abis/IERC20/IERC20.json
-        - name: Multicall3
-          file: ./abis/multicall/Multicall3.json
+      entities: *entities
+      abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
@@ -234,25 +181,8 @@ templates:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/mapping/boost.ts
-      entities:
-        - Investor
-        - Transaction
-        - BeefyBoost
-        - Protocol
-        - ProtocolSnapshot
-      abis:
-        - name: BeefyVaultConcLiq
-          file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
-        - name: BeefyBoost
-          file: ./abis/beefy/concliq/BeefyBoost.json
-        - name: BeefyStrategy
-          file: ./abis/beefy/concliq/BeefyStrategy.json
-        - name: ChainLinkPriceFeed
-          file: ./abis/chainlink/AggregatorV3Interface.json
-        - name: IERC20
-          file: ./abis/IERC20/IERC20.json
-        - name: Multicall3
-          file: ./abis/multicall/Multicall3.json
+      entities: *entities
+      abis: *abis
       eventHandlers:
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
