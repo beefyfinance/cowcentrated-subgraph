@@ -28,53 +28,29 @@ export function handleVaultWithdraw(event: WithdrawEvent): void {
   updateUserPosition(event, event.params.user, false, false)
 }
 export function handleVaultTransfer(event: TransferEvent): void {
+  // sending to self
   if (event.params.from.equals(event.params.to)) {
-    log.info("handleVaultTransfer: from and to addresses are the same for vault {} at block {}", [
-      event.address.toHexString(),
-      event.block.number.toString(),
-    ])
     return
   }
 
+  // transfering nothing
   if (event.params.value.equals(ZERO_BI)) {
-    log.info("handleVaultTransfer: transfer value is zero for vault {} at block {}", [
-      event.address.toHexString(),
-      event.block.number.toString(),
-    ])
     return
   }
 
   // don't duplicate processing between Transfer and Deposit/Withdraw
   if (event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) || event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS)) {
-    log.debug("handleVaultTransfer: skipping processing for vault {} at block {}", [
-      event.address.toHexString(),
-      event.block.number.toString(),
-    ])
     return
   }
 
   // ignore transfers from/to boosts
   if (isBoostAddress(event.params.from)) {
-    log.debug("handleVaultTransfer: skipping transfer processing for vault {} at block {}. Withdraw from boost {}", [
-      event.address.toHexString(),
-      event.block.number.toString(),
-      event.params.from.toHexString(),
-    ])
     return
   }
   if (isBoostAddress(event.params.to)) {
-    log.debug("handleVaultTransfer: skipping transfer processing for vault {} at block {}. Deposit to boost {}", [
-      event.address.toHexString(),
-      event.block.number.toString(),
-      event.params.to.toHexString(),
-    ])
     return
   }
 
-  log.info("handleVaultTransfer: processing transfer for vault {} at block {}", [
-    event.address.toHexString(),
-    event.block.number.toString(),
-  ])
   updateUserPosition(event, event.params.to, true, true)
   updateUserPosition(event, event.params.from, false, true)
 }
@@ -87,18 +63,8 @@ function updateUserPosition(
 ): void {
   let vault = getBeefyCLVault(event.address)
   if (!isVaultRunning(vault)) {
-    log.error("updateUserPosition: vault {} not active at block {}: {}", [
-      vault.id.toHexString(),
-      event.block.number.toString(),
-      vault.lifecycle,
-    ])
     return
   }
-
-  log.debug("updateUserPosition: processing {} for vault {}", [
-    isDeposit ? "deposit" : "withdraw",
-    vault.id.toHexString(),
-  ])
 
   const periods = SNAPSHOT_PERIODS
   const strategy = getBeefyCLStrategy(vault.strategy)
@@ -116,7 +82,6 @@ function updateUserPosition(
   ///////
   // fetch data on chain
   // TODO: use multicall3 to fetch all data in one call
-  log.debug("updateUserPosition: fetching data for vault {}", [vault.id.toHexString()])
   const vaultContract = BeefyCLVaultContract.bind(Address.fromBytes(vault.id))
   const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, token0, token1, earnedToken)
   const currentPriceInToken1 = vaultData.currentPriceInToken1
@@ -128,43 +93,21 @@ function updateUserPosition(
   const token1PriceInNative = vaultData.token1ToNative
   const nativePriceUSD = vaultData.nativeToUsd
 
-  // get the new investor deposit value
-  const investorBalanceRes = vaultContract.try_balanceOf(investorAddress)
-  if (investorBalanceRes.reverted) {
-    log.error("updateUserPosition: balanceOf() reverted for vault {}", [vault.id.toHexString()])
-    throw Error("updateUserPosition: balanceOf() reverted")
-  }
-  const investorShareTokenBalanceRaw = investorBalanceRes.value
+  // get the new investor deposit value, this shouldn't be necessary but
+  // avoids any potential issues with people gifting to the vault
+  const investorShareTokenBalanceRaw = vaultContract.balanceOf(investorAddress)
   const investorShareTokenBalance = tokenAmountToDecimal(investorShareTokenBalanceRaw, sharesToken.decimals)
-
-  // get the current user balances by simulating a withdraw
-  let previewWithdraw0Raw = BigInt.fromI32(0)
-  let previewWithdraw1Raw = BigInt.fromI32(0)
-  if (investorShareTokenBalanceRaw.gt(ZERO_BI)) {
-    const previewWithdrawRes = vaultContract.try_previewWithdraw(investorShareTokenBalanceRaw)
-    if (previewWithdrawRes.reverted) {
-      log.error("updateUserPosition: previewWithdraw() reverted for vault {}", [vault.id.toHexString()])
-      throw Error("updateUserPosition: previewWithdraw() reverted")
-    }
-    previewWithdraw0Raw = previewWithdrawRes.value.value0
-    previewWithdraw1Raw = previewWithdrawRes.value.value1
-  }
-  let investorBalanceUnderlying0 = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
-  let investorBalanceUnderlying1 = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
 
   ///////
   // compute derived values
-  log.debug("updateUserPosition: computing derived values for vault {}", [vault.id.toHexString()])
+  const investorBalanceUnderlying0 = investorShareTokenBalance.times(vaultData.shareTokenToUnderlying0Rate)
+  const investorBalanceUnderlying1 = investorShareTokenBalance.times(vaultData.shareTokenToUnderlying1Rate)
   const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
   const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
   const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
 
   ///////
   // update investor positions
-  log.debug("updateUserPosition: updating investor position of investor {} for vault {}", [
-    investor.id.toHexString(),
-    vault.id.toHexString(),
-  ])
   const position = getInvestorPosition(vault, investor)
   const previousSharesBalance = position.sharesBalance
   const previousUnderlyingBalance0 = position.underlyingBalance0
@@ -223,11 +166,6 @@ function updateUserPosition(
   ).serialize()
   position.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug("updateUserPosition: updating investor position snapshot of investor {} for vault {} and period {}", [
-      investor.id.toHexString(),
-      vault.id.toHexString(),
-      periods[i].toString(),
-    ])
     const positionSnapshot = getInvestorPositionSnapshot(vault, investor, event.block.timestamp, periods[i])
     positionSnapshot.sharesBalance = position.sharesBalance
     positionSnapshot.underlyingBalance0 = position.underlyingBalance0
@@ -262,7 +200,6 @@ function updateUserPosition(
 
   ///////
   // update vault entities
-  log.debug("updateUserPosition: updating vault entities for vault {}", [vault.id.toHexString()])
   vault.currentPriceOfToken0InToken1 = currentPriceInToken1
   vault.currentPriceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
   vault.priceRangeMin1 = rangeMinToken1Price
@@ -281,10 +218,6 @@ function updateUserPosition(
   if (!isTransfer && !isDeposit) vault.cumulativeWithdrawCount += 1
   vault.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug("updateUserPosition: updating vault snapshot for vault {} and period {}", [
-      vault.id.toHexString(),
-      periods[i].toString(),
-    ])
     const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
     vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
     vaultSnapshot.currentPriceOfToken0InUSD = vault.currentPriceOfToken0InUSD
@@ -304,7 +237,6 @@ function updateUserPosition(
 
   ///////
   // update protocol entities
-  log.debug("updateUserPosition: updating protocol entities for vault {}", [vault.id.toHexString()])
   const protocol = getBeefyCLProtocol()
   if (!isTransfer || isDeposit) protocol.cumulativeTransactionCount += 1
   if (!isTransfer || isDeposit) protocol.cumulativeInvestorInteractionsCount += 1
@@ -313,10 +245,6 @@ function updateUserPosition(
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
     const period = periods[i]
-    log.debug("updateUserPosition: updating protocol snapshot for vault {} and period {}", [
-      vault.id.toHexString(),
-      period.toString(),
-    ])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
     protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     if (newInvestor) protocolSnapshot.newInvestorCount += 1
@@ -333,7 +261,6 @@ function updateUserPosition(
 
   ///////
   // update investor entities
-  log.debug("updateUserPosition: updating investor entities for investor {}", [investor.id.toHexString()])
   if (isNewPosition) investor.activePositionCount += 1
   if (isClosingPosition) investor.activePositionCount -= 1
   const isEnteringTheProtocol = newInvestor || (isNewPosition && investor.activePositionCount === 1)
@@ -359,10 +286,6 @@ function updateUserPosition(
   ).serialize()
   investor.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug("updateUserPosition: updating investor snapshot for investor {} and period {}", [
-      investor.id.toHexString(),
-      periods[i].toString(),
-    ])
     const investorSnapshot = getInvestorSnapshot(investor, event.block.timestamp, periods[i])
     investorSnapshot.totalPositionValueUSD = investor.totalPositionValueUSD
     investorSnapshot.interactionsCount += 1

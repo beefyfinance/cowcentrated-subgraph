@@ -130,7 +130,6 @@ yarn test:lint # run prettier linter
 - vaultFactory: ProxyCreated(address)
 - vault.balances()
 - vault.totalSupply()
-- vault.previewWithdraw()
 - vault.balanceOf()
 - vault.strategy()
 - vault.wants()

@@ -1,4 +1,4 @@
-import { ethereum, log } from "@graphprotocol/graph-ts"
+import { ethereum } from "@graphprotocol/graph-ts"
 import {
   Staked as StakedEvent,
   Withdrawn as WithdrawnEvent,
@@ -25,8 +25,6 @@ import { SNAPSHOT_PERIODS } from "./utils/time"
 import { fetchNativePriceUSD } from "./utils/price"
 
 export function handleBoostStake(event: StakedEvent): void {
-  log.debug("handleBoostStake: {}", [event.params.amount.toString()])
-
   const tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
 
@@ -43,7 +41,6 @@ export function handleBoostStake(event: StakedEvent): void {
 
   ///////
   // compute derived values
-  log.debug("handleBoostWithdraw: computing derived values for vault {}", [vault.id.toHexString()])
   const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
 
   /////
@@ -63,10 +60,6 @@ export function handleBoostStake(event: StakedEvent): void {
   protocol.cumulativeInvestorInteractionsCount += 1
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug("updateUserPosition: updating protocol snapshot for vault {} and period {}", [
-      vault.id.toHexString(),
-      periods[i].toString(),
-    ])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
     protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
     protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
@@ -81,8 +74,6 @@ export function handleBoostStake(event: StakedEvent): void {
 }
 
 export function handleBoostWithdraw(event: WithdrawnEvent): void {
-  log.debug("handleBoostWithdraw: {}", [event.params.amount.toString()])
-
   const tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
 
@@ -99,7 +90,6 @@ export function handleBoostWithdraw(event: WithdrawnEvent): void {
 
   ///////
   // compute derived values
-  log.debug("handleBoostWithdraw: computing derived values for vault {}", [vault.id.toHexString()])
   const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
 
   /////
@@ -119,10 +109,6 @@ export function handleBoostWithdraw(event: WithdrawnEvent): void {
   protocol.cumulativeInvestorInteractionsCount += 1
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug("updateUserPosition: updating protocol snapshot for vault {} and period {}", [
-      vault.id.toHexString(),
-      periods[i].toString(),
-    ])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
     protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
     protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
@@ -137,8 +123,6 @@ export function handleBoostWithdraw(event: WithdrawnEvent): void {
 }
 
 export function handleBoostReward(event: RewardPaidEvent): void {
-  log.debug("handleBoostReward: {}", [event.params.reward.toString()])
-
   const tx = getTransaction(event.block, event.transaction, event.receipt)
   tx.save()
 
@@ -156,7 +140,6 @@ export function handleBoostReward(event: RewardPaidEvent): void {
 
   ///////
   // compute derived values
-  log.debug("handleBoostWithdraw: computing derived values for vault {}", [vault.id.toHexString()])
   const txGasFeeUSD = tx.gasFee.times(nativePriceUSD)
 
   /////
@@ -176,10 +159,6 @@ export function handleBoostReward(event: RewardPaidEvent): void {
   protocol.cumulativeInvestorInteractionsCount += 1
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
-    log.debug("updateUserPosition: updating protocol snapshot for vault {} and period {}", [
-      vault.id.toHexString(),
-      periods[i].toString(),
-    ])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, periods[i])
     protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
     protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)

@@ -28,8 +28,6 @@ export function handleClockTick(block: ethereum.Block): void {
 }
 
 function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
-  log.debug("updateDataOnClockTick: processing new tick: {}", [tick.roundedTimestamp.toString()])
-
   const periods = SNAPSHOT_PERIODS
   const protocol = getBeefyCLProtocol()
   let protocolTotalValueLockedUSD = ZERO_BD
@@ -39,12 +37,9 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
   const vaults = protocol.vaults.load()
   const investorTVL = new Map<string, BigDecimal>()
 
-  log.debug("updateDataOnClockTick: updating data for {} vaults", [vaults.length.toString()])
-
   for (let i = 0; i < vaults.length; i++) {
     const vault = vaults[i]
     if (!isVaultRunning(vault)) {
-      log.debug("updateDataOnClockTick: vault {} is not running", [vault.id.toHexString()])
       continue
     }
 
@@ -57,7 +52,6 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
 
     ///////
     // fetch data on chain for that vault
-    log.debug("updateDataOnClockTick: fetching on chain data for vault {}", [vault.id.toHexString()])
     const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, token0, token1, earnedToken)
     const vaultBalanceUnderlying0 = vaultData.token0Balance
     const vaultBalanceUnderlying1 = vaultData.token1Balance
@@ -68,13 +62,11 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
 
     ///////
     // compute derived values
-    log.debug("updateDataOnClockTick: computing derived values for vault {}", [vault.id.toHexString()])
     const token0PriceInUSD = token0PriceInNative.times(nativePriceUSD)
     const token1PriceInUSD = token1PriceInNative.times(nativePriceUSD)
 
     //////
     // update vault usd values
-    log.debug("updateDataOnClockTick: updating vault usd values for vault {}", [vault.id.toHexString()])
     vault.currentPriceOfToken0InToken1 = currentPriceInToken1
     vault.currentPriceOfToken0InUSD = token0PriceInUSD
     vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
@@ -88,10 +80,6 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
     // update vault snapshots
     for (let j = 0; j < periods.length; j++) {
       const period = periods[j]
-      log.debug("updateDataOnClockTick: updating vault snapshot for vault {} and period {}", [
-        vault.id.toHexString(),
-        period.toString(),
-      ])
       const vaultSnapshot = getBeefyCLVaultSnapshot(vault, tick.timestamp, period)
       vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
       vaultSnapshot.currentPriceOfToken0InUSD = vault.currentPriceOfToken0InUSD
@@ -107,34 +95,21 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
 
     //////
     // keep track of protocol values
-    log.debug("handleNew15Minutes: updating protocol values for vault {}, contributing TVL {}", [
-      vault.id.toHexString(),
-      vault.totalValueLockedUSD.toString(),
-    ])
     protocolTotalValueLockedUSD = protocolTotalValueLockedUSD.plus(vault.totalValueLockedUSD)
     protocolActiveVaultCount = protocolActiveVaultCount + 1
-
-    log.debug("updateDataOnClockTick: updating {} positions for vault {}", [
-      positions.length.toString(),
-      vault.id.toHexString(),
-    ])
-
     for (let j = 0; j < positions.length; j++) {
       const position = positions[j]
       if (position.sharesBalance.equals(ZERO_BD)) {
-        log.debug("updateDataOnClockTick: position {} has zero shares", [position.id.toHexString()])
         continue
       }
 
       const investor = Investor.load(position.investor)
       if (!investor) {
-        log.error("updateDataOnClockTick: investor {} not found", [position.investor.toHexString()])
         continue
       }
 
       //////
       // update position usd values
-      log.debug("updateDataOnClockTick: updating position usd values for position {}", [position.id.toHexString()])
       position.underlyingBalance0USD = position.underlyingBalance0.times(token0PriceInUSD)
       position.underlyingBalance1USD = position.underlyingBalance1.times(token1PriceInUSD)
       position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)
@@ -149,10 +124,6 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
       // update position snapshot
       for (let k = 0; k < periods.length; k++) {
         const period = periods[k]
-        log.debug("updateDataOnClockTick: updating position snapshot for position {} and period {}", [
-          position.id.toHexString(),
-          period.toString(),
-        ])
         const positionSnapshot = getInvestorPositionSnapshot(vault, investor, tick.timestamp, period)
         positionSnapshot.underlyingBalance0USD = position.underlyingBalance0USD
         positionSnapshot.underlyingBalance1USD = position.underlyingBalance1USD
@@ -174,15 +145,11 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
   let investorIdStrings: Array<string> = investorTVL.keys()
 
   // update investor moving averages
-  log.debug("updateDataOnClockTick: updating investor moving averages for {} investors", [
-    investorIdStrings.length.toString(),
-  ])
   for (let i = 0; i < investorIdStrings.length; i++) {
     const investorIdStr = investorIdStrings[i]
     const id = Bytes.fromHexString(investorIdStr)
     const investor = Investor.load(id)
     if (!investor) {
-      log.error("updateDataOnClockTick: investor {} not found", [investorIdStr])
       continue
     }
     //////
@@ -206,10 +173,6 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
     investor.save()
     for (let j = 0; j < periods.length; j++) {
       const period = periods[j]
-      log.debug("updateDataOnClockTick: updating investor snapshot for investor {} and period {}", [
-        investor.id.toHexString(),
-        period.toString(),
-      ])
       const investorSnapshot = getInvestorSnapshot(investor, tick.timestamp, period)
       investorSnapshot.totalPositionValueUSD = tvl
       investorSnapshot.save()
@@ -218,18 +181,14 @@ function updateDataOnClockTick(tick: ClockTick, isNewDay: boolean): void {
 
   ///////
   // update protocol values
-  log.debug("updateDataOnClockTick: updating protocol values", [])
   protocol.totalValueLockedUSD = protocolTotalValueLockedUSD
   protocol.activeVaultCount = protocolActiveVaultCount
   protocol.activeInvestorCount = protocolActiveInvestorCount
   protocol.save()
   for (let i = 0; i < periods.length; i++) {
     const period = periods[i]
-    log.debug("updateDataOnClockTick: updating protocol snapshot for period {}", [period.toString()])
     const protocolSnapshot = getBeefyCLProtocolSnapshot(tick.timestamp, period)
     protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
     protocolSnapshot.activeVaultCount = protocol.activeVaultCount
   }
-
-  log.debug("updateDataOnClockTick: done for {} vaults", [vaults.length.toString()])
 }

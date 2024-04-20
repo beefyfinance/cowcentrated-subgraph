@@ -1,6 +1,5 @@
-import { Address, BigDecimal, BigInt, Bytes, log } from "@graphprotocol/graph-ts"
+import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
 import { BeefyCLStrategy, BeefyCLVault, Token } from "../../generated/schema"
-import { BeefyStrategy as BeefyCLStrategyContract } from "../../generated/templates/BeefyCLStrategy/BeefyStrategy"
 import { ZERO_BD, tokenAmountToDecimal } from "./decimal"
 import { ChainLinkPriceFeed } from "../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed"
 import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, WNATIVE_DECIMALS } from "../config"
@@ -38,11 +37,14 @@ export function fetchVaultLatestData(
   ]
   const results = multicall(signatures)
 
-  const totalSupply = tokenAmountToDecimal(results[0].value.toBigInt(), sharesToken.decimals)
+  const totalSupplyRaw = results[0].value.toBigInt()
+  const totalSupply = tokenAmountToDecimal(totalSupplyRaw, sharesToken.decimals)
 
   const balanceRes = results[1].value.toTuple()
-  const token0Balance = tokenAmountToDecimal(balanceRes[0].toBigInt(), token0.decimals)
-  const token1Balance = tokenAmountToDecimal(balanceRes[1].toBigInt(), token1.decimals)
+  const token0BalanceRaw = balanceRes[0].toBigInt()
+  const token0Balance = tokenAmountToDecimal(token0BalanceRaw, token0.decimals)
+  const token1BalanceRaw = balanceRes[1].toBigInt()
+  const token1Balance = tokenAmountToDecimal(token1BalanceRaw, token1.decimals)
 
   // price is the amount of token1 per token0, expressed with 36 decimals
   const encodingDecimals = BigInt.fromU32(36)
@@ -71,12 +73,24 @@ export function fetchVaultLatestData(
   // and have a native price in USD
   const nativePriceUSD = tokenAmountToDecimal(results[7].value.toBigInt(), PRICE_FEED_DECIMALS)
 
+  // compute the derived values
+  let previewWithdraw0Raw = BigInt.fromI32(0)
+  let previewWithdraw1Raw = BigInt.fromI32(0)
+  if (totalSupplyRaw.gt(BigInt.fromI32(0))) {
+    previewWithdraw0Raw = token0BalanceRaw.times(totalSupplyRaw).div(totalSupplyRaw)
+    previewWithdraw1Raw = token1BalanceRaw.times(totalSupplyRaw).div(totalSupplyRaw)
+  }
+  const shareTokenToUnderlying0Rate = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
+  const shareTokenToUnderlying1Rate = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
+
   return new VaultData(
     totalSupply,
     token0Balance,
     token1Balance,
     rangeMinToken1Price,
     rangeMaxToken1Price,
+    shareTokenToUnderlying0Rate,
+    shareTokenToUnderlying1Rate,
     currentPriceInToken1,
     token0PriceInNative,
     token1PriceInNative,
@@ -92,6 +106,8 @@ class VaultData {
     public token1Balance: BigDecimal,
     public rangeMinToken1Price: BigDecimal,
     public rangeMaxToken1Price: BigDecimal,
+    public shareTokenToUnderlying0Rate: BigDecimal,
+    public shareTokenToUnderlying1Rate: BigDecimal,
     public currentPriceInToken1: BigDecimal,
     public token0ToNative: BigDecimal,
     public token1ToNative: BigDecimal,
