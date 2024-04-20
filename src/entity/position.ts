@@ -1,4 +1,4 @@
-import { BigDecimal, BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { BigDecimal, BigInt, Bytes, store } from "@graphprotocol/graph-ts"
 import { BeefyCLVault, Investor, InvestorPosition, InvestorPositionSnapshot } from "../../generated/schema"
 import { ADDRESS_ZERO } from "../utils/address"
 import { ZERO_BD, ZERO_BI } from "../utils/decimal"
@@ -84,4 +84,9 @@ export function getInvestorPositionSnapshot(
   }
 
   return snapshot
+}
+
+export function removeInvestorPosition(vault: BeefyCLVault, investor: Investor): void {
+  const id = getPositionId(vault, investor)
+  store.remove("InvestorPosition", id.toHexString())
 }

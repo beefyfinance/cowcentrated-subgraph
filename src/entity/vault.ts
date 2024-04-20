@@ -132,6 +132,9 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
       snapshot.underlyingAmount0USD = previousSnapshot.underlyingAmount0USD
       snapshot.underlyingAmount1USD = previousSnapshot.underlyingAmount1USD
       snapshot.totalValueLockedUSD = previousSnapshot.totalValueLockedUSD
+      snapshot.apr1D = previousSnapshot.apr1D
+      snapshot.apr7D = previousSnapshot.apr7D
+      snapshot.apr30D = previousSnapshot.apr30D
     }
   }
 
