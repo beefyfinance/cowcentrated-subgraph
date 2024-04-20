@@ -78,11 +78,11 @@ dataSources:
           handler: handleGlobalStrategyPause
           
   - kind: ethereum/contract
-    name: ChainlinkClock
+    name: ChainLinkPriceFeed
     network: {{network}}
     source:
       address: "{{chainlinkNativePriceFeedAddress}}"
-      abi: ChainlinkClock
+      abi: ChainLinkPriceFeed
       startBlock: {{vaultFactoryStartBlock}} # same as BeefyCLVaultFactory
     mapping:
       kind: ethereum/events
