@@ -199,67 +199,6 @@ function updateUserPosition(
   positionInteraction.save()
 
   ///////
-  // update vault entities
-  vault.currentPriceOfToken0InToken1 = currentPriceInToken1
-  vault.currentPriceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
-  vault.priceRangeMin1 = rangeMinToken1Price
-  vault.priceRangeMax1 = rangeMaxToken1Price
-  vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
-  vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
-  vault.underlyingAmount0 = vaultBalanceUnderlying0
-  vault.underlyingAmount1 = vaultBalanceUnderlying1
-  vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
-  vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
-  // due to price changes, the total value locked in USD plus a big % negative change in the position value
-  // can be negative, so we take the max with 0. This is OK as our clock will reset it to the right value
-  // on the next tick anyway.
-  vault.totalValueLockedUSD = bigDecMax(ZERO_BD, vault.underlyingAmount0USD.plus(positionValueUSDDelta))
-  if (!isTransfer && isDeposit) vault.cumulativeDepositCount += 1
-  if (!isTransfer && !isDeposit) vault.cumulativeWithdrawCount += 1
-  vault.save()
-  for (let i = 0; i < periods.length; i++) {
-    const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
-    vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
-    vaultSnapshot.currentPriceOfToken0InUSD = vault.currentPriceOfToken0InUSD
-    vaultSnapshot.priceRangeMin1 = vault.priceRangeMin1
-    vaultSnapshot.priceRangeMax1 = vault.priceRangeMax1
-    vaultSnapshot.priceRangeMinUSD = vault.priceRangeMinUSD
-    vaultSnapshot.priceRangeMaxUSD = vault.priceRangeMaxUSD
-    vaultSnapshot.underlyingAmount0 = vault.underlyingAmount0
-    vaultSnapshot.underlyingAmount1 = vault.underlyingAmount1
-    vaultSnapshot.underlyingAmount0USD = vault.underlyingAmount0USD
-    vaultSnapshot.underlyingAmount1USD = vault.underlyingAmount1USD
-    vaultSnapshot.totalValueLockedUSD = vault.totalValueLockedUSD
-    if (!isTransfer && isDeposit) vaultSnapshot.depositCount += 1
-    if (!isTransfer && !isDeposit) vaultSnapshot.withdrawCount += 1
-    vaultSnapshot.save()
-  }
-
-  ///////
-  // update protocol entities
-  const protocol = getBeefyCLProtocol()
-  if (!isTransfer || isDeposit) protocol.cumulativeTransactionCount += 1
-  if (!isTransfer || isDeposit) protocol.cumulativeInvestorInteractionsCount += 1
-  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(positionValueUSDDelta)
-  if (isNewPosition) protocol.activeInvestorCount += 1
-  protocol.save()
-  for (let i = 0; i < periods.length; i++) {
-    const period = periods[i]
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
-    protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
-    if (newInvestor) protocolSnapshot.newInvestorCount += 1
-    if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))
-      protocolSnapshot.uniqueActiveInvestorCount += 1
-    if (!isTransfer || isDeposit) protocolSnapshot.transactionCount += 1
-    if (!isTransfer || isDeposit) protocolSnapshot.investorInteractionsCount += 1
-    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
-    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
-    protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
-    protocolSnapshot.investorGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
-    protocolSnapshot.save()
-  }
-
-  ///////
   // update investor entities
   if (isNewPosition) investor.activePositionCount += 1
   if (isClosingPosition) investor.activePositionCount -= 1
@@ -292,5 +231,70 @@ function updateUserPosition(
     if (!isTransfer && isDeposit) investorSnapshot.depositCount += 1
     if (!isTransfer && !isDeposit) investorSnapshot.withdrawCount += 1
     investorSnapshot.save()
+  }
+
+  ///////
+  // update vault entities
+  if (isNewPosition) vault.activeInvestorCount += 1
+  if (isClosingPosition) vault.activeInvestorCount -= 1
+  vault.currentPriceOfToken0InToken1 = currentPriceInToken1
+  vault.currentPriceOfToken0InUSD = currentPriceInToken1.times(token1PriceInUSD)
+  vault.priceRangeMin1 = rangeMinToken1Price
+  vault.priceRangeMax1 = rangeMaxToken1Price
+  vault.priceRangeMinUSD = vault.priceRangeMin1.times(token1PriceInUSD)
+  vault.priceRangeMaxUSD = vault.priceRangeMax1.times(token1PriceInUSD)
+  vault.underlyingAmount0 = vaultBalanceUnderlying0
+  vault.underlyingAmount1 = vaultBalanceUnderlying1
+  vault.underlyingAmount0USD = vault.underlyingAmount0.times(token0PriceInUSD)
+  vault.underlyingAmount1USD = vault.underlyingAmount1.times(token1PriceInUSD)
+  // due to price changes, the total value locked in USD plus a big % negative change in the position value
+  // can be negative, so we take the max with 0. This is OK as our clock will reset it to the right value
+  // on the next tick anyway.
+  vault.totalValueLockedUSD = bigDecMax(ZERO_BD, vault.underlyingAmount0USD.plus(positionValueUSDDelta))
+  if (!isTransfer && isDeposit) vault.cumulativeDepositCount += 1
+  if (!isTransfer && !isDeposit) vault.cumulativeWithdrawCount += 1
+  vault.save()
+  for (let i = 0; i < periods.length; i++) {
+    const vaultSnapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, periods[i])
+    vaultSnapshot.activeInvestorCount = vault.activeInvestorCount
+    vaultSnapshot.currentPriceOfToken0InToken1 = vault.currentPriceOfToken0InToken1
+    vaultSnapshot.currentPriceOfToken0InUSD = vault.currentPriceOfToken0InUSD
+    vaultSnapshot.priceRangeMin1 = vault.priceRangeMin1
+    vaultSnapshot.priceRangeMax1 = vault.priceRangeMax1
+    vaultSnapshot.priceRangeMinUSD = vault.priceRangeMinUSD
+    vaultSnapshot.priceRangeMaxUSD = vault.priceRangeMaxUSD
+    vaultSnapshot.underlyingAmount0 = vault.underlyingAmount0
+    vaultSnapshot.underlyingAmount1 = vault.underlyingAmount1
+    vaultSnapshot.underlyingAmount0USD = vault.underlyingAmount0USD
+    vaultSnapshot.underlyingAmount1USD = vault.underlyingAmount1USD
+    vaultSnapshot.totalValueLockedUSD = vault.totalValueLockedUSD
+    if (!isTransfer && isDeposit) vaultSnapshot.depositCount += 1
+    if (!isTransfer && !isDeposit) vaultSnapshot.withdrawCount += 1
+    vaultSnapshot.save()
+  }
+
+  ///////
+  // update protocol entities
+  const protocol = getBeefyCLProtocol()
+  if (!isTransfer || isDeposit) protocol.cumulativeTransactionCount += 1
+  if (!isTransfer || isDeposit) protocol.cumulativeInvestorInteractionsCount += 1
+  protocol.totalValueLockedUSD = protocol.totalValueLockedUSD.plus(positionValueUSDDelta)
+  if (isEnteringTheProtocol) protocol.activeInvestorCount += 1
+  else if (isExitingTheProtocol) protocol.activeInvestorCount -= 1
+  protocol.save()
+  for (let i = 0; i < periods.length; i++) {
+    const period = periods[i]
+    const protocolSnapshot = getBeefyCLProtocolSnapshot(event.block.timestamp, period)
+    protocolSnapshot.totalValueLockedUSD = protocol.totalValueLockedUSD
+    if (isEnteringTheProtocol) protocolSnapshot.newInvestorCount += 1
+    if (investor.lastInteractionAt.lt(protocolSnapshot.roundedTimestamp))
+      protocolSnapshot.uniqueActiveInvestorCount += 1
+    if (!isTransfer || isDeposit) protocolSnapshot.transactionCount += 1
+    if (!isTransfer || isDeposit) protocolSnapshot.investorInteractionsCount += 1
+    protocolSnapshot.totalGasSpent = protocolSnapshot.totalGasSpent.plus(tx.gasFee)
+    protocolSnapshot.totalGasSpentUSD = protocolSnapshot.totalGasSpentUSD.plus(txGasFeeUSD)
+    protocolSnapshot.investorGasSpent = protocolSnapshot.investorGasSpent.plus(tx.gasFee)
+    protocolSnapshot.investorGasSpentUSD = protocolSnapshot.investorGasSpentUSD.plus(txGasFeeUSD)
+    protocolSnapshot.save()
   }
 }

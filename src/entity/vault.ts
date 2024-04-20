@@ -32,6 +32,7 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
     vault.underlyingToken0 = ADDRESS_ZERO
     vault.underlyingToken1 = ADDRESS_ZERO
     vault.earnedToken = ADDRESS_ZERO
+    vault.activeInvestorCount = 0
     vault.currentPriceOfToken0InToken1 = ZERO_BD
     vault.currentPriceOfToken0InUSD = ZERO_BD
     vault.priceRangeMin1 = ZERO_BD
@@ -87,6 +88,7 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
     snapshot.timestamp = timestamp
     snapshot.roundedTimestamp = interval
     snapshot.period = period
+    snapshot.activeInvestorCount = 0
     snapshot.currentPriceOfToken0InToken1 = ZERO_BD
     snapshot.currentPriceOfToken0InUSD = ZERO_BD
     snapshot.priceRangeMin1 = ZERO_BD
@@ -121,6 +123,7 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
     const previousSnapshotId = vault.id.concat(getPreviousSnapshotIdSuffix(period, interval))
     const previousSnapshot = BeefyCLVaultSnapshot.load(previousSnapshotId)
     if (previousSnapshot) {
+      snapshot.activeInvestorCount = previousSnapshot.activeInvestorCount
       snapshot.currentPriceOfToken0InToken1 = previousSnapshot.currentPriceOfToken0InToken1
       snapshot.currentPriceOfToken0InUSD = previousSnapshot.currentPriceOfToken0InUSD
       snapshot.priceRangeMin1 = previousSnapshot.priceRangeMin1

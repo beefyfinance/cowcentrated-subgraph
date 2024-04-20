@@ -252,6 +252,9 @@ type BeefyCLVault @entity {
   "The token the vault is earning."
   earnedToken: Token!
 
+  "The current number of invested investors in the protocol"
+  activeInvestorCount: Int!
+
   """
   The current price of the token zero expressed as a token1 value.
   For example, if the vault is a BTC/ETH vault, this is the price of 1 BTC in ETH
@@ -366,6 +369,9 @@ type BeefyCLVaultSnapshot implements Snapshot @entity {
   roundedTimestamp: BigInt!
   "Actual timestamp snapshot was initiated at"
   timestamp: BigInt!
+
+  "Active investor count at the time of the snapshot"
+  activeInvestorCount: Int!
 
   """
   The current price of the token zero expressed as a token1 value.
