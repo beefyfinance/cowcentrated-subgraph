@@ -12,6 +12,7 @@ export const PROTOCOL_SNAPSHOT_PERIODS = [DAY, MONTH, QUARTER, YEAR]
 export const VAULT_SNAPSHOT_PERIODS = [HOUR, DAY, MONTH]
 export const INVESTOR_SNAPSHOT_PERIODS = [HOUR, DAY, MONTH]
 
+
 @inline
 export function getIntervalFromTimestamp(timestamp: BigInt, period: BigInt): BigInt {
   // if the period is not stable, use date math to calculate the interval

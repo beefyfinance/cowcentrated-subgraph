@@ -48,8 +48,6 @@ export function getBeefyCLProtocolSnapshot(timestamp: BigInt, period: BigInt): P
     snapshot.harvesterFeesCollectedUSD = ZERO_BD
     snapshot.strategistFeesCollectedNative = ZERO_BD
     snapshot.strategistFeesCollectedUSD = ZERO_BD
-    snapshot.zapFeesCollectedNative = ZERO_BD
-    snapshot.zapFeesCollectedUSD = ZERO_BD
 
     // copy non-reseting values from the previous snapshot to the new snapshot
     const previousInterval = getPreviousSnapshotIdSuffix(period, interval)
