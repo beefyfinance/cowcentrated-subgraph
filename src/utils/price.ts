@@ -28,8 +28,8 @@ export function fetchVaultLatestData(
   const signatures = [
     new Multicall3Params(vault.id, "totalSupply()", "uint256"),
     new Multicall3Params(vault.id, "balances()", "(uint256,uint256)"),
-    new Multicall3Params(strategy.id, "price()", "uint256", true), // this can revert when the liquidity is 0
     new Multicall3Params(strategy.id, "range()", "(uint256,uint256)", true), // this can revert when the liquidity is 0
+    new Multicall3Params(strategy.id, "price()", "uint256", true), // this can revert when the liquidity is 0
     new Multicall3Params(strategy.id, "lpToken0ToNativePrice()", "uint256"),
     new Multicall3Params(strategy.id, "lpToken1ToNativePrice()", "uint256"),
     new Multicall3Params(strategy.id, "ouptutToNativePrice()", "uint256", true), // not all strategies have this
@@ -50,20 +50,21 @@ export function fetchVaultLatestData(
   const token1BalanceRaw = balanceRes[1].toBigInt()
   const token1Balance = tokenAmountToDecimal(token1BalanceRaw, token1.decimals)
 
-  // price is the amount of token1 per token0, expressed with 36 decimals
   const encodingDecimals = BigInt.fromU32(36)
-  let currentPriceInToken1 = ZERO_BD
-  if (!results[2].reverted) {
-    currentPriceInToken1 = tokenAmountToDecimal(results[2].value.toBigInt(), encodingDecimals)
-  }
 
-  // price range
+  // range, expressed with 36 decimals
   let rangeMinToken1Price = ZERO_BD
   let rangeMaxToken1Price = ZERO_BD
-  if (!results[3].reverted) {
-    const rangeRes = results[3].value.toTuple()
+  if (!results[2].reverted) {
+    const rangeRes = results[2].value.toTuple()
     rangeMinToken1Price = tokenAmountToDecimal(rangeRes[0].toBigInt(), encodingDecimals)
     rangeMaxToken1Price = tokenAmountToDecimal(rangeRes[1].toBigInt(), encodingDecimals)
+  }
+
+  // price is the amount of token1 per token0, expressed with 36 decimals
+  let currentPriceInToken1 = ZERO_BD
+  if (!results[3].reverted) {
+    currentPriceInToken1 = tokenAmountToDecimal(results[3].value.toBigInt(), encodingDecimals)
   }
 
   // and now the prices

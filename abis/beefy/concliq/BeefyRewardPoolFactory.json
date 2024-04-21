@@ -1,0 +1,27 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [{ "name": "_instance", "type": "address", "internalType": "address" }],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "cloneRewardPool",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract BeefyRewardPool" }],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "instance",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract BeefyRewardPool" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "ProxyCreated",
+    "inputs": [{ "name": "proxy", "type": "address", "indexed": false, "internalType": "address" }],
+    "anonymous": false
+  }
+]

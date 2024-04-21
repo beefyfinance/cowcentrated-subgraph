@@ -123,9 +123,12 @@ yarn test:lint # run prettier linter
 # Dependecies on the underlying contracts
 
 ```text
-- boostFactory: BoostDeployed(indexed address)
-- boost.stakedToken()
-- boost.rewardToken()
+- rewardPoolFactory: ProxyCreated(address)
+- rewardPool: RewardPaid(address indexed,address indexed,uint256)
+- rewardPool: NotifyReward(address indexed,uint256,uint256)
+- rewardPool: RewardPaid(address indexed, address indexed, uint256)
+- rewardPool: RemoveReward(address,address);
+- rewardPool.earned(address _user)
 
 - vaultFactory: ProxyCreated(address)
 - vault.balances()

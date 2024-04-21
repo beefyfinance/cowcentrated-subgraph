@@ -98,22 +98,22 @@ dataSources:
             every: {{clockTickBlocks}}
   
   - kind: ethereum/contract
-    name: BeefyBoostFactory
+    name: BeefyRewardPoolFactory
     network: {{network}}
     source:
-      address: "{{boostFactoryAddress}}"
-      abi: BeefyBoostFactory
-      startBlock: {{boostFactoryStartBlock}}
+      address: "{{rewardPoolFactoryAddress}}"
+      abi: BeefyRewardPoolFactory
+      startBlock: {{rewardPoolFactoryStartBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/mapping/boost.ts
+      file: ./src/mapping/rewardPool.ts
       entities: *entities
       abis: *abis
       eventHandlers:
-        - event: BoostDeployed(indexed address)
-          handler: handleBoostCreated
+        - event: ProxyCreated(address)
+          handler: handleRewardPoolCreated
 
 templates:
   - name: BeefyCLVault
