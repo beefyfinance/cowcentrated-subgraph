@@ -3,7 +3,6 @@ import { ZERO_BD, bigDecMin } from "./decimal"
 
 class PnLStateEntry {
   constructor(
-    public boughtShares: BigDecimal,
     public remainingShares: BigDecimal,
     public entryPrice: BigDecimal,
   ) {}
@@ -20,7 +19,6 @@ export class PnLState {
     res.push(this.realizedPnl)
     for (let idx = 0; idx < this.sharesFifo.length; idx++) {
       let entry = this.sharesFifo[idx]
-      res.push(entry.boughtShares)
       res.push(entry.remainingShares)
       res.push(entry.entryPrice)
     }
@@ -32,10 +30,9 @@ export class PnLState {
     let realizedPnl = data.shift() as BigDecimal
     let sharesFifo = new Array<PnLStateEntry>()
     while (data.length > 0) {
-      let boughtShares = data.shift() as BigDecimal
       let remainingShares = data.shift() as BigDecimal
       let entryPrice = data.shift() as BigDecimal
-      sharesFifo.push(new PnLStateEntry(boughtShares, remainingShares, entryPrice))
+      sharesFifo.push(new PnLStateEntry(remainingShares, entryPrice))
     }
 
     return new PnLState(realizedPnl, sharesFifo)
@@ -58,8 +55,9 @@ export class PnLCalc {
       return
     }
 
+    // bought shares
     if (trxShares.gt(ZERO_BD)) {
-      this.state.sharesFifo.push(new PnLStateEntry(trxShares, trxShares, trxPrice))
+      this.state.sharesFifo.push(new PnLStateEntry(trxShares, trxPrice))
       return
     }
 
@@ -83,6 +81,9 @@ export class PnLCalc {
     }
 
     this.state.realizedPnl = this.state.realizedPnl.plus(trxPnl)
+
+    // evict empty entries
+    this.state.sharesFifo = this.state.sharesFifo.filter((entry) => !entry.remainingShares.equals(ZERO_BD))
     return
   }
 

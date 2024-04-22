@@ -12,59 +12,42 @@ describe("PnLState", () => {
 
   test("Can serialize and deserialize pnl state with one entry", () => {
     const realizedPnl = BigDecimal.fromString("100")
-    const boughtShares = BigDecimal.fromString("10")
     const remainingShares = BigDecimal.fromString("5")
     const entryPrice = BigDecimal.fromString("20")
-    const state = PnLState.deserialize([realizedPnl, boughtShares, remainingShares, entryPrice])
+    const state = PnLState.deserialize([realizedPnl, remainingShares, entryPrice])
     assert.assertTrue(state.realizedPnl.equals(realizedPnl))
     assert.assertTrue(state.sharesFifo.length === 1)
-    assert.assertTrue(state.sharesFifo[0].boughtShares.equals(boughtShares))
     assert.assertTrue(state.sharesFifo[0].remainingShares.equals(remainingShares))
     assert.assertTrue(state.sharesFifo[0].entryPrice.equals(entryPrice))
 
     const serialized = state.serialize()
-    assert.assertTrue(serialized.length === 4)
+    assert.assertTrue(serialized.length === 3)
     assert.assertTrue(serialized[0].equals(realizedPnl))
-    assert.assertTrue(serialized[1].equals(boughtShares))
-    assert.assertTrue(serialized[2].equals(remainingShares))
-    assert.assertTrue(serialized[3].equals(entryPrice))
+    assert.assertTrue(serialized[1].equals(remainingShares))
+    assert.assertTrue(serialized[2].equals(entryPrice))
   })
 
   test("Can serialize and deserialize pnl state with multiple entries", () => {
     const realizedPnl = BigDecimal.fromString("100")
-    const boughtShares1 = BigDecimal.fromString("10")
     const remainingShares1 = BigDecimal.fromString("5")
     const entryPrice1 = BigDecimal.fromString("20")
-    const boughtShares2 = BigDecimal.fromString("20")
     const remainingShares2 = BigDecimal.fromString("10")
     const entryPrice2 = BigDecimal.fromString("30")
-    const state = PnLState.deserialize([
-      realizedPnl,
-      boughtShares1,
-      remainingShares1,
-      entryPrice1,
-      boughtShares2,
-      remainingShares2,
-      entryPrice2,
-    ])
+    const state = PnLState.deserialize([realizedPnl, remainingShares1, entryPrice1, remainingShares2, entryPrice2])
     assert.assertTrue(state.realizedPnl.equals(realizedPnl))
     assert.assertTrue(state.sharesFifo.length === 2)
-    assert.assertTrue(state.sharesFifo[0].boughtShares.equals(boughtShares1))
     assert.assertTrue(state.sharesFifo[0].remainingShares.equals(remainingShares1))
     assert.assertTrue(state.sharesFifo[0].entryPrice.equals(entryPrice1))
-    assert.assertTrue(state.sharesFifo[1].boughtShares.equals(boughtShares2))
     assert.assertTrue(state.sharesFifo[1].remainingShares.equals(remainingShares2))
     assert.assertTrue(state.sharesFifo[1].entryPrice.equals(entryPrice2))
 
     const serialized = state.serialize()
-    assert.assertTrue(serialized.length === 7)
+    assert.assertTrue(serialized.length === 5)
     assert.assertTrue(serialized[0].equals(realizedPnl))
-    assert.assertTrue(serialized[1].equals(boughtShares1))
-    assert.assertTrue(serialized[2].equals(remainingShares1))
-    assert.assertTrue(serialized[3].equals(entryPrice1))
-    assert.assertTrue(serialized[4].equals(boughtShares2))
-    assert.assertTrue(serialized[5].equals(remainingShares2))
-    assert.assertTrue(serialized[6].equals(entryPrice2))
+    assert.assertTrue(serialized[1].equals(remainingShares1))
+    assert.assertTrue(serialized[2].equals(entryPrice1))
+    assert.assertTrue(serialized[3].equals(remainingShares2))
+    assert.assertTrue(serialized[4].equals(entryPrice2))
   })
 })
 
