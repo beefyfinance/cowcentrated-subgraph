@@ -133,9 +133,6 @@ function updateUserPosition(
   position.underlyingBalance1USD = position.underlyingBalance1.times(token1PriceInUSD)
   position.positionValueUSD = position.underlyingBalance0USD.plus(position.underlyingBalance1USD)
   const sharesBalanceDelta = position.sharesBalance.minus(previousSharesBalance)
-  const shareBalancePercentChange = previousSharesBalance.gt(ZERO_BD)
-    ? sharesBalanceDelta.div(previousSharesBalance)
-    : ZERO_BD
   const underlyingBalance0Delta = position.underlyingBalance0.minus(previousUnderlyingBalance0)
   const underlyingBalance1Delta = position.underlyingBalance1.minus(previousUnderlyingBalance1)
   const underlyingBalance0DeltaUSD = position.underlyingBalance0USD.minus(previousUnderlyingBalance0USD)
@@ -148,13 +145,12 @@ function updateUserPosition(
     position.initialUnderlyingBalance1USD = position.underlyingBalance1USD
     position.initialPositionValueUSD = position.positionValueUSD
   } else {
-    // apply the share balance percent change to the initial position value
-    const mult = shareBalancePercentChange.plus(ONE_BD)
-    position.initialUnderlyingBalance0 = position.initialUnderlyingBalance0.times(mult)
-    position.initialUnderlyingBalance1 = position.initialUnderlyingBalance1.times(mult)
-    position.initialUnderlyingBalance0USD = position.initialUnderlyingBalance0USD.times(mult)
-    position.initialUnderlyingBalance1USD = position.initialUnderlyingBalance1USD.times(mult)
-    position.initialPositionValueUSD = position.initialPositionValueUSD.times(mult)
+    // update initial values using the deltas
+    position.initialUnderlyingBalance0 = position.initialUnderlyingBalance0.plus(underlyingBalance0Delta)
+    position.initialUnderlyingBalance1 = position.initialUnderlyingBalance1.plus(underlyingBalance1Delta)
+    position.initialUnderlyingBalance0USD = position.initialUnderlyingBalance0.times(token0PriceInUSD)
+    position.initialUnderlyingBalance1USD = position.initialUnderlyingBalance1.times(token1PriceInUSD)
+    position.initialPositionValueUSD = position.initialUnderlyingBalance0USD.plus(position.initialUnderlyingBalance1USD)
   }
   let dailyAvgState = DailyAvgState.deserialize(position.averageDailyPositionValueUSDState)
   dailyAvgState.setPendingValue(position.positionValueUSD, event.block.timestamp)
