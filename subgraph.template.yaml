@@ -133,8 +133,6 @@ templates:
           handler: handlePaused
         - event: Unpaused(address)
           handler: handleUnpaused
-        - event: Harvest(uint256,uint256)
-          handler: handleHarvest
         - event: ClaimedFees(uint256,uint256,uint256,uint256)
           handler: handleClaimedFees
         - event: ClaimedOutput(uint256)
