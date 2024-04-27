@@ -62,7 +62,7 @@ function handleStrategyFees(
   collect.collectedAmount1 = collectedAmount1
   collect.token0ToNativePrice = vaultData.token0ToNativePrice
   collect.token1ToNativePrice = vaultData.token1ToNativePrice
-  collect.nativeToUSDPrice = collect.nativeToUSDPrice
+  collect.nativeToUSDPrice = vaultData.nativeToUSDPrice
   collect.save()
 
   ///////

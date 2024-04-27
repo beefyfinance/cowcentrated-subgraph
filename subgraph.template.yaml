@@ -107,8 +107,6 @@ templates:
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
         - event: Deposit(indexed address,uint256,uint256,uint256)
           handler: handleDeposit
         - event: Withdraw(indexed address,uint256,uint256,uint256)
@@ -131,8 +129,6 @@ templates:
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
         - event: Paused(address)
           handler: handlePaused
         - event: Unpaused(address)
