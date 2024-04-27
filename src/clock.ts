@@ -1,6 +1,6 @@
 import { ethereum, log } from "@graphprotocol/graph-ts"
 import { ClockTick } from "../generated/schema"
-import { MINUTES_15, VAULT_SNAPSHOT_PERIODS } from "./utils/time"
+import { HOUR, VAULT_SNAPSHOT_PERIODS } from "./utils/time"
 import { getClockTick } from "./entity/clock"
 import { getBeefyCLProtocol } from "./entity/protocol"
 import { getToken } from "./entity/token"
@@ -10,7 +10,7 @@ import { getBeefyCLStrategy, getBeefyCLVaultSnapshot, isVaultRunning } from "./e
 export function handleClockTick(block: ethereum.Block): void {
   const timestamp = block.timestamp
 
-  let tickRes1h = getClockTick(timestamp, MINUTES_15)
+  let tickRes1h = getClockTick(timestamp, HOUR)
   if (!tickRes1h.isNew) {
     log.debug("handleClockTick: tick already exists for 1h period", [])
     return
