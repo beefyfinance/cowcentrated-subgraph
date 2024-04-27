@@ -1,20 +1,18 @@
-import { BigDecimal, BigInt, log } from "@graphprotocol/graph-ts"
+import { BigInt } from "@graphprotocol/graph-ts"
 import { BeefyCLStrategy, BeefyCLVault, Token } from "../../generated/schema"
-import { ZERO_BD, exponentToBigInt, tokenAmountToDecimal } from "./decimal"
+import { ZERO_BI, changeValueEncoding } from "./decimal"
 import { ChainLinkPriceFeed } from "../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed"
-import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, WNATIVE_DECIMALS } from "../config"
+import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD } from "../config"
 import { Multicall3Params, multicall } from "./multicall"
-import { isNullToken } from "../entity/token"
 
 const nativePriceFeed = ChainLinkPriceFeed.bind(CHAINLINK_NATIVE_PRICE_FEED_ADDRESS)
 
-export function fetchNativePriceUSD(): BigDecimal {
-  const nativePriceUSDRes = nativePriceFeed.try_latestRoundData()
-  if (nativePriceUSDRes.reverted) {
-    log.error("updateUserPosition: latestRoundData() reverted for native token", [])
-    throw Error("updateUserPosition: latestRoundData() reverted")
-  }
-  return tokenAmountToDecimal(nativePriceUSDRes.value.getAnswer(), PRICE_FEED_DECIMALS)
+export function fetchNativePriceUSD(): BigInt {
+  return changeValueEncoding(
+    nativePriceFeed.latestRoundData().getAnswer(),
+    PRICE_FEED_DECIMALS,
+    PRICE_STORE_DECIMALS_USD,
+  )
 }
 
 export function fetchVaultLatestData(
@@ -23,16 +21,15 @@ export function fetchVaultLatestData(
   sharesToken: Token,
   token0: Token,
   token1: Token,
-  earnedToken: Token,
 ): VaultData {
   const signatures = [
     new Multicall3Params(vault.id, "totalSupply()", "uint256"),
     new Multicall3Params(vault.id, "balances()", "(uint256,uint256)"),
+    new Multicall3Params(strategy.id, "balancesOfPool()", "(uint256,uint256,uint256,uint256,uint256,uint256)"),
     new Multicall3Params(strategy.id, "price()", "uint256", true), // this can revert when the liquidity is 0
     new Multicall3Params(strategy.id, "range()", "(uint256,uint256)", true), // this can revert when the liquidity is 0
     new Multicall3Params(strategy.id, "lpToken0ToNativePrice()", "uint256"),
     new Multicall3Params(strategy.id, "lpToken1ToNativePrice()", "uint256"),
-    new Multicall3Params(strategy.id, "ouptutToNativePrice()", "uint256", true), // not all strategies have this
     new Multicall3Params(
       CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
       "latestRoundData()",
@@ -41,83 +38,82 @@ export function fetchVaultLatestData(
   ]
   const results = multicall(signatures)
 
-  const totalSupplyRaw = results[0].value.toBigInt()
-  const totalSupply = tokenAmountToDecimal(totalSupplyRaw, sharesToken.decimals)
-
+  const totalSupply = results[0].value.toBigInt()
   const balanceRes = results[1].value.toTuple()
-  const token0BalanceRaw = balanceRes[0].toBigInt()
-  const token0Balance = tokenAmountToDecimal(token0BalanceRaw, token0.decimals)
-  const token1BalanceRaw = balanceRes[1].toBigInt()
-  const token1Balance = tokenAmountToDecimal(token1BalanceRaw, token1.decimals)
+  const token0Balance = balanceRes[0].toBigInt()
+  const token1Balance = balanceRes[1].toBigInt()
+
+  const balanceOfPoolRes = results[2].value.toTuple()
+  const token0PositionMainBalance = balanceOfPoolRes[2].toBigInt()
+  const token1PositionMainBalance = balanceOfPoolRes[3].toBigInt()
+  const token0PositionAltBalance = balanceOfPoolRes[4].toBigInt()
+  const token1PositionAltBalance = balanceOfPoolRes[5].toBigInt()
 
   // price is the amount of token1 per token0, expressed with 36 decimals
-  const encodingDecimals = BigInt.fromU32(36)
-  let currentPriceInToken1 = ZERO_BD
-  if (!results[2].reverted) {
-    currentPriceInToken1 = tokenAmountToDecimal(results[2].value.toBigInt(), encodingDecimals)
+  const priceDecimals = BigInt.fromU32(36)
+  let priceOfToken0InToken1 = ZERO_BI
+  if (!results[3].reverted) {
+    priceOfToken0InToken1 = changeValueEncoding(results[3].value.toBigInt(), priceDecimals, token1.decimals)
   }
 
   // price range
-  let rangeMinToken1Price = ZERO_BD
-  let rangeMaxToken1Price = ZERO_BD
-  if (!results[3].reverted) {
-    const rangeRes = results[3].value.toTuple()
-    rangeMinToken1Price = tokenAmountToDecimal(rangeRes[0].toBigInt(), encodingDecimals)
-    rangeMaxToken1Price = tokenAmountToDecimal(rangeRes[1].toBigInt(), encodingDecimals)
+  let priceRangeMin1 = ZERO_BI
+  let priceRangeMax1 = ZERO_BI
+  if (!results[4].reverted) {
+    const rangeRes = results[4].value.toTuple()
+    priceRangeMin1 = changeValueEncoding(rangeRes[0].toBigInt(), priceDecimals, token1.decimals)
+    priceRangeMax1 = changeValueEncoding(rangeRes[1].toBigInt(), priceDecimals, token1.decimals)
   }
 
   // and now the prices
-  const token0PriceInNative = tokenAmountToDecimal(results[4].value.toBigInt(), WNATIVE_DECIMALS)
-  const token1PriceInNative = tokenAmountToDecimal(results[5].value.toBigInt(), WNATIVE_DECIMALS)
-  let earnedTokenPriceInNative = ZERO_BD
-  if (!isNullToken(earnedToken) && !results[6].reverted) {
-    earnedTokenPriceInNative = tokenAmountToDecimal(results[6].value.toBigInt(), WNATIVE_DECIMALS)
-  }
+  const token0ToNativePrice = results[5].value.toBigInt()
+  const token1ToNativePrice = results[6].value.toBigInt()
 
   // and have a native price in USD
   const chainLinkAnswer = results[7].value.toTuple()
-  const nativePriceUSD = tokenAmountToDecimal(chainLinkAnswer[1].toBigInt(), PRICE_FEED_DECIMALS)
-
-  // compute the derived values
-  let previewWithdraw0Raw = BigInt.fromI32(0)
-  let previewWithdraw1Raw = BigInt.fromI32(0)
-  if (totalSupplyRaw.gt(BigInt.fromI32(0))) {
-    const oneShare = exponentToBigInt(sharesToken.decimals)
-    previewWithdraw0Raw = token0BalanceRaw.times(oneShare).div(totalSupplyRaw)
-    previewWithdraw1Raw = token1BalanceRaw.times(oneShare).div(totalSupplyRaw)
-  }
-  const shareTokenToUnderlying0Rate = tokenAmountToDecimal(previewWithdraw0Raw, token0.decimals)
-  const shareTokenToUnderlying1Rate = tokenAmountToDecimal(previewWithdraw1Raw, token1.decimals)
+  const nativeToUSDPrice = changeValueEncoding(
+    chainLinkAnswer[1].toBigInt(),
+    PRICE_FEED_DECIMALS,
+    PRICE_STORE_DECIMALS_USD,
+  )
 
   return new VaultData(
     totalSupply,
     token0Balance,
     token1Balance,
-    rangeMinToken1Price,
-    rangeMaxToken1Price,
-    shareTokenToUnderlying0Rate,
-    shareTokenToUnderlying1Rate,
-    currentPriceInToken1,
-    token0PriceInNative,
-    token1PriceInNative,
-    earnedTokenPriceInNative,
-    nativePriceUSD,
+
+    token0PositionMainBalance,
+    token1PositionMainBalance,
+    token0PositionAltBalance,
+    token1PositionAltBalance,
+
+    priceOfToken0InToken1,
+    priceRangeMin1,
+    priceRangeMax1,
+
+    token0ToNativePrice,
+    token1ToNativePrice,
+    nativeToUSDPrice,
   )
 }
 
 class VaultData {
   constructor(
-    public sharesTotalSupply: BigDecimal,
-    public token0Balance: BigDecimal,
-    public token1Balance: BigDecimal,
-    public rangeMinToken1Price: BigDecimal,
-    public rangeMaxToken1Price: BigDecimal,
-    public shareTokenToUnderlying0Rate: BigDecimal,
-    public shareTokenToUnderlying1Rate: BigDecimal,
-    public currentPriceInToken1: BigDecimal,
-    public token0ToNative: BigDecimal,
-    public token1ToNative: BigDecimal,
-    public earnedToNative: BigDecimal,
-    public nativeToUsd: BigDecimal,
+    public sharesTotalSupply: BigInt,
+    public token0Balance: BigInt,
+    public token1Balance: BigInt,
+
+    public token0PositionMainBalance: BigInt,
+    public token1PositionMainBalance: BigInt,
+    public token0PositionAltBalance: BigInt,
+    public token1PositionAltBalance: BigInt,
+
+    public priceOfToken0InToken1: BigInt,
+    public priceRangeMin1: BigInt,
+    public priceRangeMax1: BigInt,
+
+    public token0ToNativePrice: BigInt,
+    public token1ToNativePrice: BigInt,
+    public nativeToUSDPrice: BigInt,
   ) {}
 }

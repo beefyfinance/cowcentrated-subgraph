@@ -8,8 +8,6 @@
   "vaultFactoryStartBlock": 198239651,
   "strategyFactoryAddress": "0xB37c7C935CcE547Eb858Fc8F2d8C3B48597f4aE9",
   "strategyFactoryStartBlock": 197959279,
-  "boostFactoryAddress": "0x2951c806a75b19954ce0bed477676a54f3c1c200",
-  "boostFactoryStartBlock": 198239651,
   "clockTickBlocks": 1300,
 
   "wrappedNativeAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",

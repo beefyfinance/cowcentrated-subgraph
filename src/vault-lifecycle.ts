@@ -1,8 +1,6 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts"
 import { BeefyCLVault } from "../generated/schema"
 import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
-import { getBeefyCLProtocol, getBeefyCLProtocolSnapshot } from "./entity/protocol"
-import { PROTOCOL_SNAPSHOT_PERIODS } from "./utils/time"
 import { BEEFY_CL_VAULT_LIFECYCLE_PAUSED, BEEFY_CL_VAULT_LIFECYCLE_RUNNING } from "./entity/vault"
 import { Initialized as VaultInitialized } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { getBeefyCLStrategy, getBeefyCLVault } from "./entity/vault"
@@ -20,7 +18,7 @@ import { GlobalPause as GlobalPauseEvent } from "../generated/BeefyCLStrategyFac
 import { BeefyCLVault as BeefyCLVaultTemplate } from "../generated/templates"
 import { getTransaction } from "./entity/transaction"
 import { fetchAndSaveTokenData } from "./utils/token"
-import { getNullToken } from "./entity/token"
+import { getBeefyCLProtocol } from "./entity/protocol"
 
 export function handleVaultCreated(event: VaultCreatedEvent): void {
   const tx = getTransaction(event.block, event.transaction)
@@ -124,8 +122,6 @@ export function handleStrategyInitialized(event: StrategyInitializedEvent): void
 function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLVault {
   const vaultAddress = Address.fromBytes(vault.id)
   const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
-  const strategyAddress = Address.fromBytes(vault.strategy)
-  const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
 
   const wantsRes = vaultContract.try_wants()
   if (wantsRes.reverted) {
@@ -139,27 +135,6 @@ function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLV
   const sharesToken = fetchAndSaveTokenData(vaultAddress)
   const underlyingToken0 = fetchAndSaveTokenData(underlyingToken0Address)
   const underlyingToken1 = fetchAndSaveTokenData(underlyingToken1Address)
-
-  // some strategies have an output token
-  const outputTokenRes = strategyContract.try_output()
-  if (!outputTokenRes.reverted) {
-    const outputToken = fetchAndSaveTokenData(outputTokenRes.value)
-    vault.earnedToken = outputToken.id
-  } else {
-    const nullToken = getNullToken()
-    vault.earnedToken = nullToken.id
-  }
-
-  const protocol = getBeefyCLProtocol()
-  protocol.activeVaultCount += 1
-  protocol.save()
-
-  for (let i = 0; i < PROTOCOL_SNAPSHOT_PERIODS.length; i++) {
-    const period = PROTOCOL_SNAPSHOT_PERIODS[i]
-    const protocolSnapshot = getBeefyCLProtocolSnapshot(timestamp, period)
-    protocolSnapshot.activeVaultCount += 1
-    protocolSnapshot.save()
-  }
 
   vault.sharesToken = sharesToken.id
   vault.underlyingToken0 = underlyingToken0.id

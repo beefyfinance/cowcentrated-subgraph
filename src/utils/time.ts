@@ -8,9 +8,7 @@ export const WEEK = BigInt.fromI32(60 * 60 * 24 * 7)
 export const MONTH = BigInt.fromI32(60 * 60 * 24 * 30)
 export const QUARTER = BigInt.fromI32(60 * 60 * 24 * 30 * 3)
 export const YEAR = BigInt.fromI32(60 * 60 * 24 * 365)
-export const PROTOCOL_SNAPSHOT_PERIODS = [DAY, MONTH, QUARTER, YEAR]
-export const VAULT_SNAPSHOT_PERIODS = [HOUR, DAY, MONTH]
-export const INVESTOR_SNAPSHOT_PERIODS = [HOUR, DAY, MONTH]
+export const VAULT_SNAPSHOT_PERIODS = [HOUR, DAY, WEEK]
 
 
 @inline

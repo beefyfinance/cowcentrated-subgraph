@@ -26,6 +26,7 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
     const callParam = callParams[i]
     const sig = Bytes.fromUint8Array(crypto.keccak256(ByteArray.fromUTF8(callParam.functionSignature)).slice(0, 4))
     params.push(
+      // @ts-ignore
       changetype<ethereum.Tuple>([
         ethereum.Value.fromAddress(Address.fromBytes(callParam.contractAddress)),
         ethereum.Value.fromBoolean(callParam.allowFailure),
