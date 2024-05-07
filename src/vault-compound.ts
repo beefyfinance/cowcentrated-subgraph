@@ -1,6 +1,7 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts"
 import {
   ClaimedFees as ClaimedFeesEvent,
+  Harvest as HarvestEvent,
   ClaimedOutput as ClaimedOutputEvent,
 } from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
