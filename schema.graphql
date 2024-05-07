@@ -230,6 +230,38 @@ type BeefyCLStrategy @entity {
 }
 
 """
+Vault are harvested by the strategy. This event is emitted when the strategy harvests the vault.
+"""
+type BeefyCLVaultHarvestEvent @entity(immutable: true) {
+  "transaction hash + log index"
+  id: Bytes!
+
+  "The vault the harvest event is for"
+  vault: BeefyCLVault!
+  "The strategy that harvested the vault"
+  strategy: BeefyCLStrategy!
+
+  "The transaction that created the vault harvest event"
+  createdWith: Transaction!
+
+  "The timestamp of the harvest event so you can sort by time"
+  timestamp: BigInt!
+
+  "Underlying balance of the first token after the harvest"
+  underlyingAmount0: BigInt!
+  "Underlying balance of the second token after the harvest"
+  underlyingAmount1: BigInt!
+
+  "The amount of first underlying tokens compounded"
+  compoundedAmount0: BigInt!
+  "The amount of second underlying tokens compounded"
+  compoundedAmount1: BigInt!
+
+  "Total amount of liquidity at time of harvest"
+  totalSupply: BigInt!
+}
+
+"""
 This event is emitted when we collect earned trading fees from the underlying pool.
 """
 type BeefyCLVaultUnderlyingFeesCollectedEvent @entity(immutable: true) {
