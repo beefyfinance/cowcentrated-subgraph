@@ -5,12 +5,48 @@ import {
 } from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
 import { getTransaction } from "./entity/transaction"
-import { BeefyCLVaultUnderlyingFeesCollectedEvent } from "../generated/schema"
+import { BeefyCLVaultHarvestEvent, BeefyCLVaultUnderlyingFeesCollectedEvent } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { getToken } from "./entity/token"
 import { ZERO_BI } from "./utils/decimal"
 import { VAULT_SNAPSHOT_PERIODS } from "./utils/time"
 import { fetchVaultLatestData } from "./utils/price"
+
+export function handleStrategyHarvest(event: HarvestEvent): void {
+  let strategy = getBeefyCLStrategy(event.address)
+  let vault = getBeefyCLVault(strategy.vault)
+  if (!isVaultRunning(vault)) {
+    return
+  }
+
+  const sharesToken = getToken(vault.sharesToken)
+  const token0 = getToken(vault.underlyingToken0)
+  const token1 = getToken(vault.underlyingToken1)
+
+  let tx = getTransaction(event.block, event.transaction)
+  tx.save()
+
+  ///////
+  // fetch data on chain
+  const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, token0, token1)
+  const vaultBalanceUnderlying0 = vaultData.token0Balance
+  const vaultBalanceUnderlying1 = vaultData.token1Balance
+  const sharesTotalSupply = vaultData.sharesTotalSupply
+
+  ///////
+  // store the raw harvest event
+  let harvest = new BeefyCLVaultHarvestEvent(getEventIdentifier(event))
+  harvest.vault = vault.id
+  harvest.strategy = strategy.id
+  harvest.createdWith = tx.id
+  harvest.timestamp = event.block.timestamp
+  harvest.underlyingAmount0 = vaultBalanceUnderlying0
+  harvest.underlyingAmount1 = vaultBalanceUnderlying1
+  harvest.totalSupply = sharesTotalSupply
+  harvest.compoundedAmount0 = event.params.fee0
+  harvest.compoundedAmount1 = event.params.fee1
+  harvest.save()
+}
 
 export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
   handleStrategyFees(
