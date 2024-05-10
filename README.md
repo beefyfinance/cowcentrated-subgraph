@@ -150,4 +150,8 @@ yarn test:lint # run prettier linter
 - strategy: Harvest(uint256,uint256)
 - strategy: ClaimedFees(uint256,uint256,uint256,uint256)
 - strategy: ClaimedOutput(uint256)
+
+- rewardPoolFactory: ProxyCreated(address)
+- rewardPool.stakedToken()
+- rewardPool: Initialized(uint8)
 ```

@@ -102,6 +102,8 @@ type BeefyCLVault @entity {
   createdWith: Transaction!
   "The strategy of the vault. The strategy is responsible for managing the vault's assets."
   strategy: BeefyCLStrategy!
+  "The reward pool of the vault. The reward pool is where the vault's earnings are sent if the vault does not automatically compound."
+  rewardPool: BeefyCLRewardPool
   "Technical field to remember if the vault was already initialized"
   isInitialized: Boolean!
   "The current lifecycle status of the vault"
@@ -218,9 +220,23 @@ type BeefyCLVaultSnapshot @entity {
 
 """
 A strategy is a contract that manages the assets of a vault.
-This is mostly used to start tracking the events and link them to the vault on new event
+This entity is mostly used to start tracking the events and link them to the vault on new event
 """
 type BeefyCLStrategy @entity {
+  "The strategy address"
+  id: Bytes!
+  "The vault the strategy is managing"
+  vault: BeefyCLVault!
+  "Technical field to remember if the strategy was already initialized"
+  isInitialized: Boolean!
+}
+
+"""
+Some vaults do not automatically compound their earnings. Those earnings are sent to the reward pool instead.
+
+This entit is mostly used to start tracking the events and link them to the vault on new event
+"""
+type BeefyCLRewardPool @entity {
   "The strategy address"
   id: Bytes!
   "The vault the strategy is managing"

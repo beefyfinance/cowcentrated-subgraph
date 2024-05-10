@@ -1,5 +1,5 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
-import { BeefyCLStrategy, BeefyCLVault, BeefyCLVaultSnapshot } from "../../generated/schema"
+import { BeefyCLRewardPool, BeefyCLStrategy, BeefyCLVault, BeefyCLVaultSnapshot } from "../../generated/schema"
 import { ADDRESS_ZERO } from "../utils/address"
 import { ZERO_BI } from "../utils/decimal"
 import { getIntervalFromTimestamp } from "../utils/time"
@@ -53,6 +53,16 @@ export function getBeefyCLStrategy(strategyAddress: Bytes): BeefyCLStrategy {
     strategy.isInitialized = false
   }
   return strategy
+}
+
+export function getBeefyCLRewardPool(rewardPoolAddress: Bytes): BeefyCLRewardPool {
+  let rewardPool = BeefyCLRewardPool.load(rewardPoolAddress)
+  if (!rewardPool) {
+    rewardPool = new BeefyCLRewardPool(rewardPoolAddress)
+    rewardPool.vault = ADDRESS_ZERO
+    rewardPool.isInitialized = false
+  }
+  return rewardPool
 }
 
 export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, period: BigInt): BeefyCLVaultSnapshot {

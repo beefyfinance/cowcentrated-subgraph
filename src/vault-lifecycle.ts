@@ -1,11 +1,22 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts"
-import { BeefyCLVault } from "../generated/schema"
-import { BeefyVaultConcLiq as BeefyCLVaultContract } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
-import { BEEFY_CL_VAULT_LIFECYCLE_PAUSED, BEEFY_CL_VAULT_LIFECYCLE_RUNNING } from "./entity/vault"
-import { Initialized as VaultInitialized } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
-import { getBeefyCLStrategy, getBeefyCLVault } from "./entity/vault"
+import { Address } from "@graphprotocol/graph-ts"
+import { BeefyCLVault, BeefyCLRewardPool } from "../generated/schema"
+import {
+  BeefyVaultConcLiq as BeefyCLVaultContract,
+  Initialized as VaultInitialized,
+} from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
+import {
+  BEEFY_CL_VAULT_LIFECYCLE_PAUSED,
+  BEEFY_CL_VAULT_LIFECYCLE_RUNNING,
+  getBeefyCLRewardPool,
+  getBeefyCLStrategy,
+  getBeefyCLVault,
+} from "./entity/vault"
 import { log } from "@graphprotocol/graph-ts"
-import { BeefyCLStrategy as BeefyCLStrategyTemplate } from "../generated/templates"
+import {
+  BeefyCLStrategy as BeefyCLStrategyTemplate,
+  BeefyCLVault as BeefyCLVaultTemplate,
+  BeefyCLRewardPool as BeefyCLRewardPoolTemplate,
+} from "../generated/templates"
 import { ADDRESS_ZERO } from "./utils/address"
 import {
   Initialized as StrategyInitializedEvent,
@@ -14,8 +25,12 @@ import {
   Unpaused as UnpausedEvent,
 } from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
 import { ProxyCreated as VaultCreatedEvent } from "../generated/BeefyCLVaultFactory/BeefyVaultConcLiqFactory"
+import { ProxyCreated as RewardPoolCreatedEvent } from "../generated/BeefyRewardPoolFactory/BeefyRewardPoolFactory"
+import {
+  Initialized as RewardPoolInitialized,
+  BeefyRewardPool as BeefyCLRewardPoolContract,
+} from "../generated/BeefyRewardPoolFactory/BeefyRewardPool"
 import { GlobalPause as GlobalPauseEvent } from "../generated/BeefyCLStrategyFactory/BeefyStrategyFactory"
-import { BeefyCLVault as BeefyCLVaultTemplate } from "../generated/templates"
 import { getTransaction } from "./entity/transaction"
 import { fetchAndSaveTokenData } from "./utils/token"
 import { getBeefyCLProtocol } from "./entity/protocol"
@@ -78,7 +93,7 @@ export function handleVaultInitialized(event: VaultInitialized): void {
   strategy.isInitialized = !strategyPool.value.equals(ADDRESS_ZERO)
 
   if (strategy.isInitialized) {
-    vault = fetchInitialVaultData(event.block.timestamp, vault)
+    vault = fetchInitialVaultData(vault)
     vault.save()
   }
 }
@@ -110,7 +125,7 @@ export function handleStrategyInitialized(event: StrategyInitializedEvent): void
 
   let vault = getBeefyCLVault(vaultAddress)
   if (vault.isInitialized) {
-    vault = fetchInitialVaultData(event.block.timestamp, vault)
+    vault = fetchInitialVaultData(vault)
     vault.save()
   }
 }
@@ -119,7 +134,7 @@ export function handleStrategyInitialized(event: StrategyInitializedEvent): void
  * Initialize the vault data.
  * Call this when both the vault and the strategy are initialized.
  */
-function fetchInitialVaultData(timestamp: BigInt, vault: BeefyCLVault): BeefyCLVault {
+function fetchInitialVaultData(vault: BeefyCLVault): BeefyCLVault {
   const vaultAddress = Address.fromBytes(vault.id)
   const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
 
@@ -172,4 +187,36 @@ export function handleStrategyUnpaused(event: UnpausedEvent): void {
   const vault = getBeefyCLVault(strategy.vault)
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_RUNNING
   vault.save()
+}
+
+export function handleRewardPoolCreated(event: RewardPoolCreatedEvent): void {
+  const rewardPoolAddress = event.params.proxy
+
+  const rewardPool = new BeefyCLRewardPool(rewardPoolAddress)
+  rewardPool.isInitialized = false
+  rewardPool.save()
+
+  // start indexing the new reward pool
+  BeefyCLRewardPoolTemplate.create(rewardPoolAddress)
+}
+
+export function handleRewardPoolInitialized(event: RewardPoolInitialized): void {
+  const rewardPoolAddress = event.address
+  const rewardPoolContract = BeefyCLRewardPoolContract.bind(rewardPoolAddress)
+  const vaultAddress = rewardPoolContract.stakedToken()
+
+  const rewardPool = getBeefyCLRewardPool(rewardPoolAddress)
+  rewardPool.isInitialized = true
+  rewardPool.vault = vaultAddress
+  rewardPool.save()
+
+  const vault = getBeefyCLVault(vaultAddress)
+  vault.rewardPool = rewardPool.id
+  vault.save()
+
+  log.info("handleRewardPoolInitialized: Reward pool {} initialized for vault {} on block {}", [
+    rewardPool.id.toHexString(),
+    rewardPool.vault.toHexString(),
+    event.block.number.toString(),
+  ])
 }
