@@ -26,6 +26,7 @@ dataSources:
         - ProtocolSnapshot
         - BeefyCLVault
         - BeefyCLVaultSnapshot
+        - BeefyCLRewardPool
         - BeefyCLStrategy
         - BeefyCLVaultHarvestEvent
         - BeefyCLVaultUnderlyingFeesCollectedEvent
@@ -43,6 +44,10 @@ dataSources:
           file: ./abis/beefy/concliq/BeefyStrategyFactory.json
         - name: BeefyStrategy
           file: ./abis/beefy/concliq/BeefyStrategy.json
+        - name: BeefyRewardPoolFactory
+          file: ./abis/beefy/concliq/BeefyRewardPoolFactory.json
+        - name: BeefyRewardPool
+          file: ./abis/beefy/concliq/BeefyRewardPool.json
         - name: ChainLinkPriceFeed
           file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
@@ -71,6 +76,24 @@ dataSources:
         - event: GlobalPause(bool)
           handler: handleGlobalStrategyPause
           
+  - kind: ethereum/contract
+    name: BeefyRewardPoolFactory
+    network: {{network}}
+    source:
+      address: "{{rewardPoolFactoryAddress}}"
+      abi: BeefyRewardPoolFactory
+      startBlock: {{rewardPoolFactoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/mapping/factory.ts
+      entities: *entities
+      abis: *abis
+      eventHandlers:
+        - event: ProxyCreated(address)
+          handler: handleRewardPoolCreated
+
   - kind: ethereum/contract
     name: ChainLinkPriceFeed
     network: {{network}}
@@ -141,3 +164,18 @@ templates:
           handler: handleClaimedOutput
 
   
+  - name: BeefyCLRewardPool
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: BeefyStrategy
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/mapping/reward-pool.ts
+      entities: *entities
+      abis: *abis
+      eventHandlers:
+        - event: Initialized(uint8)
+          handler: handleInitialized
