@@ -192,7 +192,7 @@ export function handleStrategyUnpaused(event: UnpausedEvent): void {
 export function handleRewardPoolCreated(event: RewardPoolCreatedEvent): void {
   const rewardPoolAddress = event.params.proxy
 
-  const rewardPool = new BeefyCLRewardPool(rewardPoolAddress)
+  const rewardPool = getBeefyCLRewardPool(rewardPoolAddress)
   rewardPool.isInitialized = false
   rewardPool.save()
 
