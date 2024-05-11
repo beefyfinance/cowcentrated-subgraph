@@ -210,8 +210,11 @@ export function handleRewardPoolInitialized(event: RewardPoolInitialized): void 
   rewardPool.vault = vaultAddress
   rewardPool.save()
 
+  const rewardPoolToken = fetchAndSaveTokenData(rewardPoolAddress)
+
   const vault = getBeefyCLVault(vaultAddress)
   vault.rewardPool = rewardPool.id
+  vault.rewardPoolToken = rewardPoolToken.id
   vault.save()
 
   log.info("handleRewardPoolInitialized: Reward pool {} initialized for vault {} on block {}", [

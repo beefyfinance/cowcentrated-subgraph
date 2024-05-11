@@ -111,6 +111,8 @@ type BeefyCLVault @entity {
 
   "The token data of the vault. The vault is also an ERC20 token. This tokens represents the shares of the vault."
   sharesToken: Token!
+  "The reward pool token of the vault. This is where the vault's earnings are sent if the vault does not automatically compound."
+  rewardPoolToken: Token!
   "The underlying tokens contained in the vault. This is the first token."
   underlyingToken0: Token!
   "The underlying tokens contained in the vault. This is the second token."
@@ -120,6 +122,8 @@ type BeefyCLVault @entity {
 
   "The total supply of the shares token in circulation. Express with `sharesToken.decimals` decimals."
   totalSupply: BigInt!
+  "Total supply of the reward pool token. Express with `rewardPoolToken.decimals` decimals."
+  rewardPoolTotalSupply: BigInt!
 
   "Token 0 price in native at the time of the interaction. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
@@ -189,6 +193,8 @@ type BeefyCLVaultSnapshot @entity {
 
   "The total supply of the shares token in circulation. Express with `sharesToken.decimals` decimals."
   totalSupply: BigInt!
+  "Total supply of the reward pool token. Express with `rewardPoolToken.decimals` decimals."
+  rewardPoolTotalSupply: BigInt!
 
   "Token 0 price in native at the time of the interaction. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
@@ -275,6 +281,8 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
 
   "Total amount of liquidity at time of harvest"
   totalSupply: BigInt!
+  "Total amount of reward pool shares at time of harvest"
+  rewardPoolTotalSupply: BigInt!
 }
 
 """
@@ -346,6 +354,8 @@ type InvestorPosition @entity {
 
   "The amount of shares the investor holds"
   sharesBalance: BigInt!
+  "Amount of reward pool shares the investor holds"
+  rewardPoolBalance: BigInt!
 
   "All investor position interactions"
   interactions: [InvestorPositionInteraction!]! @derivedFrom(field: "investorPosition")
@@ -353,15 +363,15 @@ type InvestorPosition @entity {
 
 enum InvestorPositionInteractionType {
   "The investor deposited funds into the vault"
-  DEPOSIT
+  VAULT_DEPOSIT
   "The investor withdrew funds from the vault"
-  WITHDRAW
-  "Boosts are given to investors in the form of a dedicated incentive token"
-  BOOST_START
-  "The investor claimed a boost"
-  BOOST_CLAIM
-  "The investor's position was closed"
-  BOOST_STOP
+  VAULT_WITHDRAW
+  "The investor staked in the reward pool of the vault and received reward pool shares"
+  REWARD_POOL_STAKE
+  "The investor unstaked from the reward pool of the vault and received underlying tokens"
+  REWARD_POOL_UNSTAKE
+  "The investor claimed their rewards from the reward pool of the vault"
+  REWARD_POOL_CLAIM
 }
 
 type InvestorPositionInteraction @entity(immutable: true) {
@@ -388,6 +398,8 @@ type InvestorPositionInteraction @entity(immutable: true) {
 
   "The amount of shares the investor holds at the time of the interaction"
   sharesBalance: BigInt!
+  "The amount of reward pool shares the investor holds at the time of the interaction"
+  rewardPoolBalance: BigInt!
   "The amount of first underlying tokens the investor is entitled to at the time of the interaction"
   underlyingBalance0: BigInt!
   "The amount of second underlying tokens the investor is entitled to at the time of the interaction"
@@ -395,6 +407,8 @@ type InvestorPositionInteraction @entity(immutable: true) {
 
   "Amount of shares change in the interaction"
   sharesBalanceDelta: BigInt!
+  "Amount of reward pool shares change in the interaction"
+  rewardPoolBalanceDelta: BigInt!
   "Amount of underlying token 0 change in the interaction"
   underlyingBalance0Delta: BigInt!
   "Amount of underlying token 0 change in the interaction"

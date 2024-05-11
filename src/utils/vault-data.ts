@@ -1,24 +1,15 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import { BeefyCLStrategy, BeefyCLVault, Token } from "../../generated/schema"
 import { ZERO_BI, changeValueEncoding } from "./decimal"
-import { ChainLinkPriceFeed } from "../../generated/templates/BeefyCLStrategy/ChainLinkPriceFeed"
 import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD } from "../config"
 import { Multicall3Params, multicall } from "./multicall"
-
-const nativePriceFeed = ChainLinkPriceFeed.bind(CHAINLINK_NATIVE_PRICE_FEED_ADDRESS)
-
-export function fetchNativePriceUSD(): BigInt {
-  return changeValueEncoding(
-    nativePriceFeed.latestRoundData().getAnswer(),
-    PRICE_FEED_DECIMALS,
-    PRICE_STORE_DECIMALS_USD,
-  )
-}
+import { isNullToken } from "../entity/token"
 
 export function fetchVaultLatestData(
   vault: BeefyCLVault,
   strategy: BeefyCLStrategy,
   sharesToken: Token,
+  rewardPoolToken: Token,
   token0: Token,
   token1: Token,
 ): VaultData {
@@ -36,6 +27,10 @@ export function fetchVaultLatestData(
       "(uint80,int256,uint256,uint256,uint80)",
     ),
   ]
+  if (!isNullToken(rewardPoolToken)) {
+    signatures.push(new Multicall3Params(rewardPoolToken.id, "totalSupply()", "uint256"))
+  }
+
   const results = multicall(signatures)
 
   const totalSupply = results[0].value.toBigInt()
@@ -77,8 +72,14 @@ export function fetchVaultLatestData(
     PRICE_STORE_DECIMALS_USD,
   )
 
+  let rewardPoolTotalSupply = ZERO_BI
+  if (!isNullToken(rewardPoolToken)) {
+    rewardPoolTotalSupply = results[8].value.toBigInt()
+  }
+
   return new VaultData(
     totalSupply,
+    rewardPoolTotalSupply,
     token0Balance,
     token1Balance,
 
@@ -100,6 +101,7 @@ export function fetchVaultLatestData(
 class VaultData {
   constructor(
     public sharesTotalSupply: BigInt,
+    public rewardPoolTotalSupply: BigInt,
     public token0Balance: BigInt,
     public token1Balance: BigInt,
 

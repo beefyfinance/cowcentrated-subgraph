@@ -18,6 +18,7 @@ export function getInvestorPosition(vault: BeefyCLVault, investor: Investor): In
     position.investor = investor.id
     position.createdWith = ADDRESS_ZERO
     position.sharesBalance = ZERO_BI
+    position.rewardPoolBalance = ZERO_BI
   }
   return position
 }

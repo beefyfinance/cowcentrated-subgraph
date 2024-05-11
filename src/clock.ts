@@ -4,7 +4,7 @@ import { HOUR, VAULT_SNAPSHOT_PERIODS } from "./utils/time"
 import { getClockTick } from "./entity/clock"
 import { getBeefyCLProtocol } from "./entity/protocol"
 import { getToken } from "./entity/token"
-import { fetchVaultLatestData } from "./utils/price"
+import { fetchVaultLatestData } from "./utils/vault-data"
 import { getBeefyCLStrategy, getBeefyCLVaultSnapshot, isVaultInitialized } from "./entity/vault"
 
 export function handleClockTick(block: ethereum.Block): void {
@@ -32,15 +32,17 @@ function updateDataOnClockTick(tick: ClockTick): void {
 
     const strategy = getBeefyCLStrategy(vault.strategy)
     const sharesToken = getToken(vault.sharesToken)
+    const rewardPoolToken = getToken(vault.rewardPoolToken)
     const token0 = getToken(vault.underlyingToken0)
     const token1 = getToken(vault.underlyingToken1)
 
     ///////
     // fetch data on chain for that vault
-    const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, token0, token1)
+    const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, rewardPoolToken, token0, token1)
 
     // update vault data
     vault.totalSupply = vaultData.sharesTotalSupply
+    vault.rewardPoolTotalSupply = vaultData.rewardPoolTotalSupply
     vault.token0ToNativePrice = vaultData.token0ToNativePrice
     vault.token1ToNativePrice = vaultData.token1ToNativePrice
     vault.nativeToUSDPrice = vaultData.nativeToUSDPrice
@@ -56,6 +58,7 @@ function updateDataOnClockTick(tick: ClockTick): void {
       const period = VAULT_SNAPSHOT_PERIODS[i]
       const snapshot = getBeefyCLVaultSnapshot(vault, tick.timestamp, period)
       snapshot.totalSupply = vault.totalSupply
+      snapshot.rewardPoolTotalSupply = vault.rewardPoolTotalSupply
       snapshot.token0ToNativePrice = vault.token0ToNativePrice
       snapshot.token1ToNativePrice = vault.token1ToNativePrice
       snapshot.nativeToUSDPrice = vault.nativeToUSDPrice
