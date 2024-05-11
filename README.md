@@ -130,8 +130,6 @@ yarn test:lint # run prettier linter
 - vault.strategy()
 - vault.wants()
 - vault: Initialized(uint8)
-- vault: Deposit(indexed address,uint256,uint256,uint256)
-- vault: Withdraw(indexed address,uint256,uint256,uint256)
 - vault: Transfer(indexed address,indexed address,uint256)
 
 - strategyFactory: GlobalPause(bool)

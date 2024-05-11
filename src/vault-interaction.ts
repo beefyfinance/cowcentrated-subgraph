@@ -1,10 +1,8 @@
-import { Address, BigInt, ethereum, log } from "@graphprotocol/graph-ts"
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts"
 import {
-  Deposit as DepositEvent,
-  Withdraw as WithdrawEvent,
   Transfer as TransferEvent,
 } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
-import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
+import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultInitialized } from "./entity/vault"
 import { getTransaction } from "./entity/transaction"
 import { getInvestor } from "./entity/investor"
 import { ZERO_BI } from "./utils/decimal"
@@ -16,12 +14,6 @@ import { InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { SHARE_TOKEN_MINT_ADDRESS } from "./config"
 
-export function handleVaultDeposit(event: DepositEvent): void {
-  updateUserPosition(event, event.params.user, event.params.shares, true, false)
-}
-export function handleVaultWithdraw(event: WithdrawEvent): void {
-  updateUserPosition(event, event.params.user, event.params.shares.neg(), false, false)
-}
 
 export function handleVaultTransfer(event: TransferEvent): void {
   // sending to self
@@ -35,23 +27,22 @@ export function handleVaultTransfer(event: TransferEvent): void {
   }
 
   // don't duplicate processing between Transfer and Deposit/Withdraw
-  if (event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) || event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS)) {
-    return
+  if (!event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS)) {
+    updateUserPosition(event, event.params.from, event.params.value.neg())
+  } 
+  
+  if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS)) {
+    updateUserPosition(event, event.params.to, event.params.value)
   }
-
-  updateUserPosition(event, event.params.to, event.params.value, true, true)
-  updateUserPosition(event, event.params.from, event.params.value.neg(), false, true)
 }
 
 function updateUserPosition(
   event: ethereum.Event,
   investorAddress: Address,
   sharesDelta: BigInt,
-  isDeposit: boolean,
-  isTransfer: boolean,
 ): void {
   let vault = getBeefyCLVault(event.address)
-  if (!isVaultRunning(vault)) {
+  if (!isVaultInitialized(vault)) {
     return
   }
 
@@ -121,7 +112,7 @@ function updateUserPosition(
   interaction.createdWith = event.transaction.hash
   interaction.blockNumber = event.block.number
   interaction.timestamp = event.block.timestamp
-  interaction.type = isTransfer ? "TRANSFER" : isDeposit ? "DEPOSIT" : "WITHDRAW"
+  interaction.type = sharesDelta.gt(ZERO_BI) ? "DEPOSIT" : "WITHDRAW"
   interaction.sharesBalance = position.sharesBalance
   interaction.underlyingBalance0 = vaultData.token0Balance
     .times(position.sharesBalance)

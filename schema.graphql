@@ -356,8 +356,6 @@ enum InvestorPositionInteractionType {
   DEPOSIT
   "The investor withdrew funds from the vault"
   WITHDRAW
-  "The investor transferred funds from one vault to another vault"
-  TRANSFER
   "Boosts are given to investors in the form of a dedicated incentive token"
   BOOST_START
   "The investor claimed a boost"

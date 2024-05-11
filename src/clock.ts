@@ -5,7 +5,7 @@ import { getClockTick } from "./entity/clock"
 import { getBeefyCLProtocol } from "./entity/protocol"
 import { getToken } from "./entity/token"
 import { fetchVaultLatestData } from "./utils/price"
-import { getBeefyCLStrategy, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
+import { getBeefyCLStrategy, getBeefyCLVaultSnapshot, isVaultInitialized } from "./entity/vault"
 
 export function handleClockTick(block: ethereum.Block): void {
   const timestamp = block.timestamp
@@ -26,7 +26,7 @@ function updateDataOnClockTick(tick: ClockTick): void {
 
   for (let i = 0; i < vaults.length; i++) {
     const vault = vaults[i]
-    if (!isVaultRunning(vault)) {
+    if (!isVaultInitialized(vault)) {
       continue
     }
 

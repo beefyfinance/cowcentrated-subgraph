@@ -4,7 +4,7 @@ import {
   Harvest as HarvestEvent,
   ClaimedOutput as ClaimedOutputEvent,
 } from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
-import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultRunning } from "./entity/vault"
+import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultInitialized } from "./entity/vault"
 import { getTransaction } from "./entity/transaction"
 import { BeefyCLVaultHarvestEvent, BeefyCLVaultUnderlyingFeesCollectedEvent } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
@@ -16,7 +16,7 @@ import { fetchVaultLatestData } from "./utils/price"
 export function handleStrategyHarvest(event: HarvestEvent): void {
   let strategy = getBeefyCLStrategy(event.address)
   let vault = getBeefyCLVault(strategy.vault)
-  if (!isVaultRunning(vault)) {
+  if (!isVaultInitialized(vault)) {
     return
   }
 
@@ -69,7 +69,7 @@ function handleStrategyFees(
 ): void {
   let strategy = getBeefyCLStrategy(event.address)
   let vault = getBeefyCLVault(strategy.vault)
-  if (!isVaultRunning(vault)) {
+  if (!isVaultInitialized(vault)) {
     return
   }
 
