@@ -1,7 +1,5 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts"
-import {
-  Transfer as TransferEvent,
-} from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
+import { Transfer as TransferEvent } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultInitialized } from "./entity/vault"
 import { getTransaction } from "./entity/transaction"
 import { getInvestor } from "./entity/investor"
@@ -13,7 +11,6 @@ import { fetchVaultLatestData } from "./utils/price"
 import { InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { SHARE_TOKEN_MINT_ADDRESS } from "./config"
-
 
 export function handleVaultTransfer(event: TransferEvent): void {
   // sending to self
@@ -29,18 +26,14 @@ export function handleVaultTransfer(event: TransferEvent): void {
   // don't duplicate processing between Transfer and Deposit/Withdraw
   if (!event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS)) {
     updateUserPosition(event, event.params.from, event.params.value.neg())
-  } 
-  
+  }
+
   if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS)) {
     updateUserPosition(event, event.params.to, event.params.value)
   }
 }
 
-function updateUserPosition(
-  event: ethereum.Event,
-  investorAddress: Address,
-  sharesDelta: BigInt,
-): void {
+function updateUserPosition(event: ethereum.Event, investorAddress: Address, sharesDelta: BigInt): void {
   let vault = getBeefyCLVault(event.address)
   if (!isVaultInitialized(vault)) {
     return

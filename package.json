@@ -2,6 +2,7 @@
   "name": "subgraphs",
   "private": true,
   "scripts": {
+    "prepare": "husky",
     "postinstall": "yarn run --silent prepare:arbitrum && yarn run --silent codegen",
     "codegen": "rm -Rf generated && graph codegen",
     "build": "graph build",
@@ -27,7 +28,7 @@
     "@graphprotocol/graph-cli": "^0.69.2",
     "@graphprotocol/graph-ts": "^0.34.0",
     "assemblyscript-prettier": "^3.0.1",
-    "husky": ">=7",
+    "husky": "^9.0.11",
     "lint-staged": ">=10",
     "matchstick-as": "^0.6.0",
     "mustache": "^4.2.0",
