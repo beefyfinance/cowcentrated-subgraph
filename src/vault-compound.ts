@@ -11,7 +11,7 @@ import { getEventIdentifier } from "./utils/event"
 import { getToken } from "./entity/token"
 import { ZERO_BI } from "./utils/decimal"
 import { VAULT_SNAPSHOT_PERIODS } from "./utils/time"
-import { fetchVaultLatestData } from "./utils/price"
+import { fetchVaultLatestData } from "./utils/vault-data"
 
 export function handleStrategyHarvest(event: HarvestEvent): void {
   let strategy = getBeefyCLStrategy(event.address)
@@ -21,6 +21,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   }
 
   const sharesToken = getToken(vault.sharesToken)
+  const rewardPoolToken = getToken(vault.rewardPoolToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
 
@@ -29,10 +30,7 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
 
   ///////
   // fetch data on chain
-  const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, token0, token1)
-  const vaultBalanceUnderlying0 = vaultData.token0Balance
-  const vaultBalanceUnderlying1 = vaultData.token1Balance
-  const sharesTotalSupply = vaultData.sharesTotalSupply
+  const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, rewardPoolToken, token0, token1)
 
   ///////
   // store the raw harvest event
@@ -41,9 +39,10 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   harvest.strategy = strategy.id
   harvest.createdWith = tx.id
   harvest.timestamp = event.block.timestamp
-  harvest.underlyingAmount0 = vaultBalanceUnderlying0
-  harvest.underlyingAmount1 = vaultBalanceUnderlying1
-  harvest.totalSupply = sharesTotalSupply
+  harvest.underlyingAmount0 = vaultData.token0Balance
+  harvest.underlyingAmount1 = vaultData.token1Balance
+  harvest.totalSupply = vaultData.sharesTotalSupply
+  harvest.rewardPoolTotalSupply = vaultData.rewardPoolTotalSupply
   harvest.compoundedAmount0 = event.params.fee0
   harvest.compoundedAmount1 = event.params.fee1
   harvest.save()
@@ -74,6 +73,7 @@ function handleStrategyFees(
   }
 
   const sharesToken = getToken(vault.sharesToken)
+  const rewardPoolToken = getToken(vault.rewardPoolToken)
   const token0 = getToken(vault.underlyingToken0)
   const token1 = getToken(vault.underlyingToken1)
 
@@ -82,7 +82,7 @@ function handleStrategyFees(
 
   ///////
   // fetch data on chain
-  const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, token0, token1)
+  const vaultData = fetchVaultLatestData(vault, strategy, sharesToken, rewardPoolToken, token0, token1)
 
   ///////
   // store the raw collect event
@@ -105,6 +105,7 @@ function handleStrategyFees(
   ///////
   // update vault entity
   vault.totalSupply = vaultData.sharesTotalSupply
+  vault.rewardPoolTotalSupply = vaultData.rewardPoolTotalSupply
   vault.token0ToNativePrice = vaultData.token0ToNativePrice
   vault.token1ToNativePrice = vaultData.token1ToNativePrice
   vault.nativeToUSDPrice = vaultData.nativeToUSDPrice
@@ -120,6 +121,7 @@ function handleStrategyFees(
     const period = VAULT_SNAPSHOT_PERIODS[i]
     const snapshot = getBeefyCLVaultSnapshot(vault, event.block.timestamp, period)
     snapshot.totalSupply = vault.totalSupply
+    snapshot.rewardPoolTotalSupply = vault.rewardPoolTotalSupply
     snapshot.token0ToNativePrice = vault.token0ToNativePrice
     snapshot.token1ToNativePrice = vault.token1ToNativePrice
     snapshot.nativeToUSDPrice = vault.nativeToUSDPrice

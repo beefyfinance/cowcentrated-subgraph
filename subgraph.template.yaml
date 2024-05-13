@@ -48,8 +48,6 @@ dataSources:
           file: ./abis/beefy/concliq/BeefyRewardPoolFactory.json
         - name: BeefyRewardPool
           file: ./abis/beefy/concliq/BeefyRewardPool.json
-        - name: ChainLinkPriceFeed
-          file: ./abis/chainlink/AggregatorV3Interface.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
         - name: Multicall3
@@ -95,11 +93,11 @@ dataSources:
           handler: handleRewardPoolCreated
 
   - kind: ethereum/contract
-    name: ChainLinkPriceFeed
+    name: Clock
     network: {{network}}
     source:
-      address: "{{chainlinkNativePriceFeedAddress}}"
-      abi: ChainLinkPriceFeed
+      address: "{{vaultFactoryAddress}}"
+      abi: BeefyVaultConcLiqFactory
       startBlock: {{vaultFactoryStartBlock}} # same as BeefyCLVaultFactory
     mapping:
       kind: ethereum/events
@@ -164,7 +162,7 @@ templates:
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: BeefyStrategy
+      abi: BeefyRewardPool
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
@@ -175,3 +173,5 @@ templates:
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleInitialized
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
