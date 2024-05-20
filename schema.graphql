@@ -158,6 +158,9 @@ type BeefyCLVault @entity {
   "All underlying fees collected by the vault"
   collectedFees: [BeefyCLVaultUnderlyingFeesCollectedEvent!]! @derivedFrom(field: "vault")
 
+  "All harvest events of the vault"
+  harvests: [BeefyCLVaultHarvestEvent!]! @derivedFrom(field: "vault")
+
   "Snapshot of the vault's stats"
   snapshots: [BeefyCLVaultSnapshot!]! @derivedFrom(field: "vault")
 
