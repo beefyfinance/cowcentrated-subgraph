@@ -286,6 +286,13 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
   totalSupply: BigInt!
   "Total amount of reward pool shares at time of harvest"
   rewardPoolTotalSupply: BigInt!
+
+  "Token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  token0ToNativePrice: BigInt!
+  "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
+  token1ToNativePrice: BigInt!
+  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  nativeToUSDPrice: BigInt!
 }
 
 """
