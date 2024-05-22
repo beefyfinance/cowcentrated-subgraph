@@ -45,6 +45,9 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   harvest.rewardPoolTotalSupply = vaultData.rewardPoolTotalSupply
   harvest.compoundedAmount0 = event.params.fee0
   harvest.compoundedAmount1 = event.params.fee1
+  harvest.token0ToNativePrice = vaultData.token0ToNativePrice
+  harvest.token1ToNativePrice = vaultData.token1ToNativePrice
+  harvest.nativeToUSDPrice = vaultData.nativeToUSDPrice
   harvest.save()
 }
 
