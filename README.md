@@ -18,6 +18,21 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 - Base: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn)
 - Optimism: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn)
 
+
+# Beta version Deployments
+
+## Goldsky.com
+
+### GraphiQL Explorer
+
+- Arbitrum (new): [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-arbitrum/gn)
+- Arbitrum (old): [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-old-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-old-arbitrum/gn)
+
+### Api Endpoints
+
+- Arbitrum (new): [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-arbitrum/gn)
+- Arbitrum (old): [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-old-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-old-arbitrum/gn)
+
 ## 0xgraph.xyz
 
 ### GraphiQL Explorer
