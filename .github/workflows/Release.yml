@@ -1,4 +1,4 @@
-name: Release
+name: Release PROD
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - "*.*.*" # Push events to matching x.x.x tags, e.g. 1.0.0, 1.4.5, etc
 
 jobs:
-  Release:
+  Release_PROD:
     strategy:
       matrix:
         node: ["21.x"]
@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Install Goldsky CLI
-        run: curl -fsSL https://cli.goldsky.com/install | bash
+        run: curl -fsSL https://cli.goldsky.com/install | FORCE=1 bash
 
       - name: Checkout code
         uses: actions/checkout@v2
