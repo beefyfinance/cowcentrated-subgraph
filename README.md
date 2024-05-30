@@ -6,45 +6,18 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 
 ## Goldsky.com
 
-### GraphiQL Explorer
+### Latest endpoints
 
-- Arbitrum: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn)
-- Base: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn)
-- Optimism: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn)
+- [Arbitrum](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-arbitrum/latest/gn)
+- [Base](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-base/latest/gn)
+- [Optimism](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-optimism/latest/gn)
 
-### Api Endpoints
+### Historical endpoints
 
-- Arbitrum: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-arbitrum/gn)
-- Base: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn)
-- Optimism: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn)
-
-# Beta version Deployments
-
-## Goldsky.com
-
-### GraphiQL Explorer
-
-- Arbitrum (new): [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-arbitrum/gn)
-- Arbitrum (old): [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-old-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-old-arbitrum/gn)
-
-### Api Endpoints
-
-- Arbitrum (new): [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-arbitrum/gn)
-- Arbitrum (old): [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-old-arbitrum/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-beta-old-arbitrum/gn)
-
-## 0xgraph.xyz
-
-### GraphiQL Explorer
-
-- Arbitrum: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum/graphql](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum/graphql)
-- Base: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-base/graphql](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-base/graphql)
-- Optimism: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism/graphql](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism/graphql)
-
-### Api Endpoints
-
-- Arbitrum: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-arbitrum)
-- Base: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-base](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-base)
-- Optimism: [https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism](https://api.0xgraph.xyz/subgraphs/name/beefyfinance/clm-optimism)
+- [Arbitrum (beta, old subgraph)](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-arbitrum/clm-beta-old/gn)
+- [Arbitrum (beta)](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-arbitrum/clm-beta/gn)
+- [Base (beta)](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-base/clm-beta/gn)
+- [Optimism (beta)](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-optimism/clm-beta/gn)
 
 # Contributing
 
