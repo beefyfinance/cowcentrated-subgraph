@@ -41,13 +41,12 @@ function publish_goldsky {
 function publish {
     CHAIN=$1
     PROVIDER=$2
-    SUBGRAPH=beefyfinance/clm-$CHAIN
     case $PROVIDER in
         "0xgraph")
-            publish_0xgraph $SUBGRAPH
+            publish_0xgraph beefyfinance/clm-$CHAIN
             ;;
         "goldsky")
-            publish_goldsky $SUBGRAPH
+            publish_goldsky beefy-clm-$CHAIN-dev
             ;;
     esac
 }
