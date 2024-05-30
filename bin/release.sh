@@ -35,6 +35,7 @@ function publish_goldsky {
     VERSION=$2
     DEPLOY_KEY=$3
     echo "publishing $SUBGRAPH to goldsky"
+    goldsky login --token $DEPLOY_KEY
     goldsky subgraph deploy $SUBGRAPH/$VERSION --path .
 }
 

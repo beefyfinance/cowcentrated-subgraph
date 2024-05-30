@@ -17,6 +17,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Install Goldsky CLI
+        run: curl -fsSL https://cli.goldsky.com/install | bash
+
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -40,5 +43,5 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Deploy to 0xgraph
-        run: ./bin/release.sh ${{ github.ref_name }} ${{ matrix.chain }} 0xgraph ${{ secrets.OXGRAPH_TOKEN }}
+      - name: Deploy to Goldsky
+        run: ./bin/release.sh ${{ github.ref_name }} ${{ matrix.chain }} goldsky ${{ secrets.GOLDSKY_TOKEN }}
