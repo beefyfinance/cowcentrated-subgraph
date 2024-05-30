@@ -47,7 +47,10 @@ export function handleVaultCreated(event: VaultCreatedEvent): void {
   // start indexing the new vault
   BeefyCLVaultTemplate.create(vaultAddress)
 
-  log.info("handleVaultCreated: Vault was {} created on block {}", [vault.id.toHexString(), event.block.number.toString()])
+  log.info("handleVaultCreated: Vault was {} created on block {}", [
+    vault.id.toHexString(),
+    event.block.number.toString(),
+  ])
 }
 
 export function handleVaultInitialized(event: VaultInitialized): void {

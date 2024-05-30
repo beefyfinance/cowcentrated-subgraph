@@ -18,7 +18,6 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 - Base: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-base/gn)
 - Optimism: [https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefyfinance/clm-optimism/gn)
 
-
 # Beta version Deployments
 
 ## Goldsky.com

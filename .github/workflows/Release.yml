@@ -7,7 +7,7 @@ on:
       - "*.*.*" # Push events to matching x.x.x tags, e.g. 1.0.0, 1.4.5, etc
 
 jobs:
-  test:
+  Release:
     strategy:
       matrix:
         node: ["21.x"]
