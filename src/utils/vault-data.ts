@@ -31,16 +31,16 @@ export function fetchVaultLatestData(
   ]
 
   const results = multicall(signatures)
-  const totalSupplyRes = results[0];
-  const balanceRes = results[1];
-  const balanceOfPoolRes = results[2];
-  const priceRes = results[3];
-  const rangeRes = results[4];
-  const token0ToNativePriceRes = results[5];
-  const token1ToNativePriceRes = results[6];
-  const output0ToNativePriceRes = results[7];
-  const chainLinkAnswerRes = results[8];
-  const rewardPoolTotalSupplyRes = results[9];
+  const totalSupplyRes = results[0]
+  const balanceRes = results[1]
+  const balanceOfPoolRes = results[2]
+  const priceRes = results[3]
+  const rangeRes = results[4]
+  const token0ToNativePriceRes = results[5]
+  const token1ToNativePriceRes = results[6]
+  const output0ToNativePriceRes = results[7]
+  const chainLinkAnswerRes = results[8]
+  const rewardPoolTotalSupplyRes = results[9]
 
   const totalSupply = totalSupplyRes.value.toBigInt()
   const balances = balanceRes.value.toTuple()

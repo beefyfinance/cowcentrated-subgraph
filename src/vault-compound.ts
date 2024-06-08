@@ -22,7 +22,12 @@ export function handleClmStrategyHarvestRewards(event: CLMHarvestRewardsEvent): 
   handleClmStrategyHarvest(event, ZERO_BI, ZERO_BI, event.params.fees)
 }
 
-function handleClmStrategyHarvest(event: ethereum.Event, compoundedAmount0: BigInt, compoundedAmount1: BigInt, compoundedOutput0: BigInt): void {
+function handleClmStrategyHarvest(
+  event: ethereum.Event,
+  compoundedAmount0: BigInt,
+  compoundedAmount1: BigInt,
+  compoundedOutput0: BigInt,
+): void {
   let strategy = getBeefyCLStrategy(event.address)
   let vault = getBeefyCLVault(strategy.vault)
   if (!isVaultInitialized(vault)) {

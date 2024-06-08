@@ -140,7 +140,6 @@ export function handleClmStrategyInitialized(event: StrategyInitializedEvent): v
 function fetchInitialClmVaultData(vault: BeefyCLVault): BeefyCLVault {
   const vaultAddress = Address.fromBytes(vault.id)
   const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
-
   const wantsRes = vaultContract.try_wants()
   if (wantsRes.reverted) {
     log.error("fetchInitialVaultData: wants() reverted for vault {}.", [vaultAddress.toHexString()])
@@ -153,6 +152,15 @@ function fetchInitialClmVaultData(vault: BeefyCLVault): BeefyCLVault {
   const sharesToken = fetchAndSaveTokenData(vaultAddress)
   const underlyingToken0 = fetchAndSaveTokenData(underlyingToken0Address)
   const underlyingToken1 = fetchAndSaveTokenData(underlyingToken1Address)
+
+  // maaaaybe we have an output token
+  const strategyAddress = Address.fromBytes(vault.strategy)
+  const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
+  const outputTokenRes = strategyContract.try_output()
+  if (!outputTokenRes.reverted) {
+    const outputToken0 = fetchAndSaveTokenData(outputTokenRes.value)
+    vault.outputToken0 = outputToken0.id
+  }
 
   vault.sharesToken = sharesToken.id
   vault.underlyingToken0 = underlyingToken0.id

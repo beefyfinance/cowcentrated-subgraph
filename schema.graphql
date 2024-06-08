@@ -113,7 +113,7 @@ type BeefyCLVault @entity {
   sharesToken: Token!
   "The reward pool token of the vault. This is where the vault's earnings are sent if the vault does not automatically compound."
   rewardPoolToken: Token!
-  
+
   "The underlying tokens contained in the vault. This is the first token."
   underlyingToken0: Token!
   "The underlying tokens contained in the vault. This is the second token."

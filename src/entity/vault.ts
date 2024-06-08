@@ -39,6 +39,7 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
     vault.rewardPoolToken = getNullToken().id
     vault.underlyingToken0 = ADDRESS_ZERO
     vault.underlyingToken1 = ADDRESS_ZERO
+    vault.outputToken0 = getNullToken().id
 
     vault.totalSupply = ZERO_BI
     vault.rewardPoolTotalSupply = ZERO_BI
