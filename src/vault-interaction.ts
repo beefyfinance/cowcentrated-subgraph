@@ -98,6 +98,7 @@ function updateUserPosition(
   vault.rewardPoolTotalSupply = vaultData.rewardPoolTotalSupply
   vault.token0ToNativePrice = vaultData.token0ToNativePrice
   vault.token1ToNativePrice = vaultData.token1ToNativePrice
+  vault.output0ToNativePrice = vaultData.output0ToNativePrice
   vault.nativeToUSDPrice = vaultData.nativeToUSDPrice
   vault.priceOfToken0InToken1 = vaultData.priceOfToken0InToken1
   vault.priceRangeMin1 = vaultData.priceRangeMin1
@@ -114,6 +115,7 @@ function updateUserPosition(
     snapshot.rewardPoolTotalSupply = vault.rewardPoolTotalSupply
     snapshot.token0ToNativePrice = vault.token0ToNativePrice
     snapshot.token1ToNativePrice = vault.token1ToNativePrice
+    snapshot.output0ToNativePrice = vault.output0ToNativePrice
     snapshot.nativeToUSDPrice = vault.nativeToUSDPrice
     snapshot.priceOfToken0InToken1 = vault.priceOfToken0InToken1
     snapshot.priceRangeMin1 = vault.priceRangeMin1
@@ -201,6 +203,7 @@ function updateUserPosition(
   }
   interaction.token0ToNativePrice = vaultData.token0ToNativePrice
   interaction.token1ToNativePrice = vaultData.token1ToNativePrice
+  interaction.output0ToNativePrice = vaultData.output0ToNativePrice
   interaction.nativeToUSDPrice = vaultData.nativeToUSDPrice
   interaction.save()
 }

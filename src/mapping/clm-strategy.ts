@@ -4,7 +4,8 @@ export {
   handleClmStrategyUnpaused as handleUnpaused,
 } from "../vault-lifecycle"
 export {
-  handleClmStrategyHarvest as handleHarvest,
+  handleClmStrategyHarvestAmounts as handleHarvestAmounts,
+  handleClmStrategyHarvestRewards as handleHarvestRewards,
   handleClmStrategyClaimedFees as handleClaimedFees,
   handleClmStrategyClaimedRewards as handleClaimedRewards,
 } from "../vault-compound"

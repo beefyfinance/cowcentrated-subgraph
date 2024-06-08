@@ -113,10 +113,13 @@ type BeefyCLVault @entity {
   sharesToken: Token!
   "The reward pool token of the vault. This is where the vault's earnings are sent if the vault does not automatically compound."
   rewardPoolToken: Token!
+  
   "The underlying tokens contained in the vault. This is the first token."
   underlyingToken0: Token!
   "The underlying tokens contained in the vault. This is the second token."
   underlyingToken1: Token!
+  "The first output token of the vault. This is the token that is minted when the vault earns yield."
+  outputToken0: Token!
 
   # ----- PRICES & STATS -----
 
@@ -129,6 +132,8 @@ type BeefyCLVault @entity {
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
+  "Output token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  output0ToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
@@ -203,6 +208,8 @@ type BeefyCLVaultSnapshot @entity {
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
+  "Output token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  output0ToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
@@ -281,6 +288,8 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
   compoundedAmount0: BigInt!
   "The amount of second underlying tokens compounded"
   compoundedAmount1: BigInt!
+  "The amount of output tokens compounded"
+  compoundedOutput0: BigInt!
 
   "Total amount of liquidity at time of harvest"
   totalSupply: BigInt!
@@ -291,6 +300,8 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
+  "Output token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  output0ToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }
@@ -326,11 +337,15 @@ type BeefyCLVaultUnderlyingFeesCollectedEvent @entity(immutable: true) {
   collectedAmount0: BigInt!
   "Amount of collected fees in the second token"
   collectedAmount1: BigInt!
+  "Amount of collected fees in the output token"
+  collectedOutput0: BigInt!
 
   "Token 0 price in native at the time of the interaction. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
+  "Output token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  output0ToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }
@@ -428,6 +443,8 @@ type InvestorPositionInteraction @entity(immutable: true) {
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
+  "Output token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  output0ToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }

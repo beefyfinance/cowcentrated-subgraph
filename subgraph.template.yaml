@@ -151,7 +151,9 @@ templates:
         - event: Unpaused(address)
           handler: handleUnpaused
         - event: Harvest(uint256,uint256)
-          handler: handleHarvest
+          handler: handleHarvestAmounts
+        - event: HarvestRewards(uint256)
+          handler: handleHarvestRewards
         - event: ClaimedFees(uint256,uint256,uint256,uint256)
           handler: handleClaimedFees
         - event: ClaimedRewards(uint256)

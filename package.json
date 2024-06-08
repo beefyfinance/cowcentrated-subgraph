@@ -17,7 +17,8 @@
     "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "prepare:arbitrum": "./bin/prepare.sh arbitrum",
     "prepare:base": "./bin/prepare.sh base",
-    "prepare:optimism": "./bin/prepare.sh optimism"
+    "prepare:optimism": "./bin/prepare.sh optimism",
+    "prepare:optimism-tmp": "./bin/prepare.sh optimism-tmp"
   },
   "main": "./bin/index.js",
   "bin": {

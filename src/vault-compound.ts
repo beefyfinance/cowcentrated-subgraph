@@ -1,7 +1,8 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts"
 import {
-  ClaimedFees as CLMClaimedFeesEvent,
   Harvest as CLMHarvestEvent,
+  HarvestRewards as CLMHarvestRewardsEvent,
+  ClaimedFees as CLMClaimedFeesEvent,
   ClaimedRewards as CLMClaimedRewardsEvent,
 } from "../generated/templates/BeefyCLStrategy/BeefyCLStrategy"
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultInitialized } from "./entity/vault"
@@ -13,7 +14,15 @@ import { ZERO_BI } from "./utils/decimal"
 import { VAULT_SNAPSHOT_PERIODS } from "./utils/time"
 import { fetchVaultLatestData } from "./utils/vault-data"
 
-export function handleClmStrategyHarvest(event: CLMHarvestEvent): void {
+export function handleClmStrategyHarvestAmounts(event: CLMHarvestEvent): void {
+  handleClmStrategyHarvest(event, event.params.fee0, event.params.fee1, ZERO_BI)
+}
+
+export function handleClmStrategyHarvestRewards(event: CLMHarvestRewardsEvent): void {
+  handleClmStrategyHarvest(event, ZERO_BI, ZERO_BI, event.params.fees)
+}
+
+function handleClmStrategyHarvest(event: ethereum.Event, compoundedAmount0: BigInt, compoundedAmount1: BigInt, compoundedOutput0: BigInt): void {
   let strategy = getBeefyCLStrategy(event.address)
   let vault = getBeefyCLVault(strategy.vault)
   if (!isVaultInitialized(vault)) {
@@ -43,10 +52,12 @@ export function handleClmStrategyHarvest(event: CLMHarvestEvent): void {
   harvest.underlyingAmount1 = vaultData.token1Balance
   harvest.totalSupply = vaultData.sharesTotalSupply
   harvest.rewardPoolTotalSupply = vaultData.rewardPoolTotalSupply
-  harvest.compoundedAmount0 = event.params.fee0
-  harvest.compoundedAmount1 = event.params.fee1
+  harvest.compoundedAmount0 = compoundedAmount0
+  harvest.compoundedAmount1 = compoundedAmount1
+  harvest.compoundedOutput0 = compoundedOutput0
   harvest.token0ToNativePrice = vaultData.token0ToNativePrice
   harvest.token1ToNativePrice = vaultData.token1ToNativePrice
+  harvest.output0ToNativePrice = vaultData.output0ToNativePrice
   harvest.nativeToUSDPrice = vaultData.nativeToUSDPrice
   harvest.save()
 }
@@ -67,7 +78,7 @@ function handleClmStrategyFees(
   event: ethereum.Event,
   collectedAmount0: BigInt,
   collectedAmount1: BigInt,
-  collectedEarned: BigInt,
+  collectedOutput0: BigInt,
 ): void {
   let strategy = getBeefyCLStrategy(event.address)
   let vault = getBeefyCLVault(strategy.vault)
@@ -100,8 +111,10 @@ function handleClmStrategyFees(
   collect.underlyingAltAmount1 = vaultData.token1PositionAltBalance
   collect.collectedAmount0 = collectedAmount0
   collect.collectedAmount1 = collectedAmount1
+  collect.collectedOutput0 = collectedOutput0
   collect.token0ToNativePrice = vaultData.token0ToNativePrice
   collect.token1ToNativePrice = vaultData.token1ToNativePrice
+  collect.output0ToNativePrice = vaultData.output0ToNativePrice
   collect.nativeToUSDPrice = vaultData.nativeToUSDPrice
   collect.save()
 
@@ -111,6 +124,7 @@ function handleClmStrategyFees(
   vault.rewardPoolTotalSupply = vaultData.rewardPoolTotalSupply
   vault.token0ToNativePrice = vaultData.token0ToNativePrice
   vault.token1ToNativePrice = vaultData.token1ToNativePrice
+  vault.output0ToNativePrice = vaultData.output0ToNativePrice
   vault.nativeToUSDPrice = vaultData.nativeToUSDPrice
   vault.priceOfToken0InToken1 = vaultData.priceOfToken0InToken1
   vault.priceRangeMin1 = vaultData.priceRangeMin1
@@ -127,6 +141,7 @@ function handleClmStrategyFees(
     snapshot.rewardPoolTotalSupply = vault.rewardPoolTotalSupply
     snapshot.token0ToNativePrice = vault.token0ToNativePrice
     snapshot.token1ToNativePrice = vault.token1ToNativePrice
+    snapshot.output0ToNativePrice = vault.output0ToNativePrice
     snapshot.nativeToUSDPrice = vault.nativeToUSDPrice
     snapshot.priceOfToken0InToken1 = vault.priceOfToken0InToken1
     snapshot.priceRangeMin1 = vault.priceRangeMin1

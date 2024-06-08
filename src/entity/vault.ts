@@ -45,6 +45,7 @@ export function getBeefyCLVault(vaultAddress: Bytes): BeefyCLVault {
 
     vault.token0ToNativePrice = ZERO_BI
     vault.token1ToNativePrice = ZERO_BI
+    vault.output0ToNativePrice = ZERO_BI
     vault.nativeToUSDPrice = ZERO_BI
 
     vault.priceOfToken0InToken1 = ZERO_BI
@@ -96,6 +97,7 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
 
     snapshot.token0ToNativePrice = ZERO_BI
     snapshot.token1ToNativePrice = ZERO_BI
+    snapshot.output0ToNativePrice = ZERO_BI
     snapshot.nativeToUSDPrice = ZERO_BI
 
     snapshot.priceOfToken0InToken1 = ZERO_BI
@@ -115,6 +117,7 @@ export function getBeefyCLVaultSnapshot(vault: BeefyCLVault, timestamp: BigInt, 
       snapshot.rewardPoolTotalSupply = previousSnapshot.rewardPoolTotalSupply
       snapshot.token0ToNativePrice = previousSnapshot.token0ToNativePrice
       snapshot.token1ToNativePrice = previousSnapshot.token1ToNativePrice
+      snapshot.output0ToNativePrice = previousSnapshot.output0ToNativePrice
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
       snapshot.priceOfToken0InToken1 = previousSnapshot.priceOfToken0InToken1
       snapshot.priceRangeMin1 = previousSnapshot.priceRangeMin1
