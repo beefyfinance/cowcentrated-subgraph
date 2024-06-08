@@ -31,13 +31,14 @@ export function handleClmVaultTransfer(event: CLMVaultShareTransferEvent): void 
   }
 
   const vault = getBeefyCLVault(event.address)
+  const rewardPoolAddress = vault.rewardPoolToken 
 
   // don't store transfers to/from the share token mint address
-  if (!event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.from.equals(BURN_ADDRESS)) {
+  if (!event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.from.equals(BURN_ADDRESS) && !event.params.from.equals(rewardPoolAddress)) {
     updateUserPosition(vault, event, event.params.from, event.params.value.neg(), ZERO_BI)
   }
 
-  if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.to.equals(BURN_ADDRESS)) {
+  if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.to.equals(BURN_ADDRESS) && !event.params.to.equals(rewardPoolAddress)) {
     updateUserPosition(vault, event, event.params.to, event.params.value, ZERO_BI)
   }
 }
