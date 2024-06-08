@@ -17,7 +17,7 @@ import { getInvestorPosition } from "./entity/position"
 import { fetchVaultLatestData } from "./utils/vault-data"
 import { BeefyCLVault, InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
-import { SHARE_TOKEN_MINT_ADDRESS } from "./config"
+import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "./config"
 
 export function handleClmVaultTransfer(event: CLMVaultShareTransferEvent): void {
   // sending to self
@@ -33,11 +33,11 @@ export function handleClmVaultTransfer(event: CLMVaultShareTransferEvent): void 
   const vault = getBeefyCLVault(event.address)
 
   // don't store transfers to/from the share token mint address
-  if (!event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS)) {
+  if (!event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.from.equals(BURN_ADDRESS)) {
     updateUserPosition(vault, event, event.params.from, event.params.value.neg(), ZERO_BI)
   }
 
-  if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS)) {
+  if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.to.equals(BURN_ADDRESS)) {
     updateUserPosition(vault, event, event.params.to, event.params.value, ZERO_BI)
   }
 }
@@ -56,12 +56,12 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
   const rewardPool = getBeefyCLRewardPool(event.address)
   const vault = getBeefyCLVault(rewardPool.vault)
 
-  // don't store transfers to/from the share token mint address
-  if (!event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.from.equals(rewardPool.id)) {
+  // don't store transfers to/from the share token mint address or to self
+  if (!event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.from.equals(rewardPool.id) && !event.params.from.equals(BURN_ADDRESS)) {
     updateUserPosition(vault, event, event.params.from, ZERO_BI, event.params.value.neg())
   }
 
-  if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.to.equals(rewardPool.id)) {
+  if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.to.equals(rewardPool.id) && !event.params.to.equals(BURN_ADDRESS)) {
     updateUserPosition(vault, event, event.params.to, ZERO_BI, event.params.value)
   }
 }
