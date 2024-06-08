@@ -19,7 +19,7 @@ import { BeefyCLVault, InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { SHARE_TOKEN_MINT_ADDRESS } from "./config"
 
-export function handleVaultTransfer(event: VaultShareTransferEvent): void {
+export function handleClmVaultTransfer(event: VaultShareTransferEvent): void {
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return

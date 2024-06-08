@@ -4,12 +4,14 @@
   "multicall3Address": "0xcA11bde05977b3631167028862bE2a173976CA11",
   "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
 
-  "vaultFactoryAddress": "0xB45B92C318277d57328fE09DD5cF6Bd53F4F269B",
-  "vaultFactoryStartBlock": 198239651,
+  "clmVaultFactoryAddress": "0xB45B92C318277d57328fE09DD5cF6Bd53F4F269B",
+  "clmVaultFactoryStartBlock": 198239651,
   "strategyFactoryAddress": "0xB37c7C935CcE547Eb858Fc8F2d8C3B48597f4aE9",
   "strategyFactoryStartBlock": 197959279,
   "rewardPoolFactoryAddress": "0x26eb26e0aadd5fa70331219c5cec0166114ce71e",
   "rewardPoolFactoryStartBlock": 206875840,
+  "classicVaultFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "classicVaultFactoryStartBlock": 206875840,
   "clockTickBlocks": 1300,
 
   "wrappedNativeAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",

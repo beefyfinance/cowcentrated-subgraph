@@ -1,6 +1,6 @@
 specVersion: 1.0.0
 description: Beefy Finance Automated Liquidity Manager Subgraph
-repository: https://github.com/beefyfinance/subgraphs
+repository: https://github.com/beefyfinance/cowcentrated-subgraph
 schema:
   file: ./schema.graphql
 indexerHints:
@@ -10,9 +10,9 @@ dataSources:
     name: BeefyCLVaultFactory
     network: {{network}}
     source:
-      address: "{{vaultFactoryAddress}}"
+      address: "{{clmVaultFactoryAddress}}"
       abi: BeefyVaultConcLiqFactory
-      startBlock: {{vaultFactoryStartBlock}}
+      startBlock: {{clmVaultFactoryStartBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
@@ -54,7 +54,7 @@ dataSources:
           file: ./abis/multicall/Multicall3.json
       eventHandlers:
         - event: ProxyCreated(address)
-          handler: handleVaultCreated
+          handler: handleClmVaultCreated
           
   - kind: ethereum/contract
     name: BeefyCLStrategyFactory
@@ -89,16 +89,16 @@ dataSources:
       entities: *entities
       abis: *abis
       eventHandlers:
-        - event: ProxyCreated(address)
+        - event: ProxyCreated(string,address)
           handler: handleRewardPoolCreated
 
   - kind: ethereum/contract
     name: Clock
     network: {{network}}
     source:
-      address: "{{vaultFactoryAddress}}"
+      address: "{{clmVaultFactoryAddress}}"
       abi: BeefyVaultConcLiqFactory
-      startBlock: {{vaultFactoryStartBlock}} # same as BeefyCLVaultFactory
+      startBlock: {{clmVaultFactoryStartBlock}} # same as BeefyCLVaultFactory
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version

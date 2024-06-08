@@ -1,5 +1,7 @@
 [
+  { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
   { "inputs": [], "name": "NoShares", "type": "error" },
+  { "inputs": [], "name": "NotEnoughTokens", "type": "error" },
   { "inputs": [], "name": "TooMuchSlippage", "type": "error" },
   {
     "anonymous": false,
@@ -17,11 +19,14 @@
       { "indexed": true, "internalType": "address", "name": "user", "type": "address" },
       { "indexed": false, "internalType": "uint256", "name": "shares", "type": "uint256" },
       { "indexed": false, "internalType": "uint256", "name": "amount0", "type": "uint256" },
-      { "indexed": false, "internalType": "uint256", "name": "amount1", "type": "uint256" }
+      { "indexed": false, "internalType": "uint256", "name": "amount1", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "fee0", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "fee1", "type": "uint256" }
     ],
     "name": "Deposit",
     "type": "event"
   },
+  { "anonymous": false, "inputs": [], "name": "EIP712DomainChanged", "type": "event" },
   {
     "anonymous": false,
     "inputs": [{ "indexed": false, "internalType": "uint8", "name": "version", "type": "uint8" }],
@@ -59,6 +64,13 @@
     "type": "event"
   },
   {
+    "inputs": [],
+    "name": "DOMAIN_SEPARATOR",
+    "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       { "internalType": "address", "name": "owner", "type": "address" },
       { "internalType": "address", "name": "spender", "type": "address" }
@@ -76,16 +88,6 @@
     "name": "approve",
     "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "available",
-    "outputs": [
-      { "internalType": "uint256", "name": "", "type": "uint256" },
-      { "internalType": "uint256", "name": "", "type": "uint256" }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -134,10 +136,18 @@
     "type": "function"
   },
   {
-    "inputs": [{ "internalType": "uint256", "name": "_minShares", "type": "uint256" }],
-    "name": "depositAll",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "inputs": [],
+    "name": "eip712Domain",
+    "outputs": [
+      { "internalType": "bytes1", "name": "fields", "type": "bytes1" },
+      { "internalType": "string", "name": "name", "type": "string" },
+      { "internalType": "string", "name": "version", "type": "string" },
+      { "internalType": "uint256", "name": "chainId", "type": "uint256" },
+      { "internalType": "address", "name": "verifyingContract", "type": "address" },
+      { "internalType": "bytes32", "name": "salt", "type": "bytes32" },
+      { "internalType": "uint256[]", "name": "extensions", "type": "uint256[]" }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -170,8 +180,22 @@
   },
   {
     "inputs": [],
+    "name": "isCalm",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "name",
     "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "owner", "type": "address" }],
+    "name": "nonces",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
     "type": "function"
   },
@@ -184,11 +208,32 @@
   },
   {
     "inputs": [
+      { "internalType": "address", "name": "owner", "type": "address" },
+      { "internalType": "address", "name": "spender", "type": "address" },
+      { "internalType": "uint256", "name": "value", "type": "uint256" },
+      { "internalType": "uint256", "name": "deadline", "type": "uint256" },
+      { "internalType": "uint8", "name": "v", "type": "uint8" },
+      { "internalType": "bytes32", "name": "r", "type": "bytes32" },
+      { "internalType": "bytes32", "name": "s", "type": "bytes32" }
+    ],
+    "name": "permit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       { "internalType": "uint256", "name": "_amount0", "type": "uint256" },
       { "internalType": "uint256", "name": "_amount1", "type": "uint256" }
     ],
     "name": "previewDeposit",
-    "outputs": [{ "internalType": "uint256", "name": "shares", "type": "uint256" }],
+    "outputs": [
+      { "internalType": "uint256", "name": "shares", "type": "uint256" },
+      { "internalType": "uint256", "name": "amount0", "type": "uint256" },
+      { "internalType": "uint256", "name": "amount1", "type": "uint256" },
+      { "internalType": "uint256", "name": "fee0", "type": "uint256" },
+      { "internalType": "uint256", "name": "fee1", "type": "uint256" }
+    ],
     "stateMutability": "view",
     "type": "function"
   },
@@ -207,6 +252,13 @@
     "inputs": [],
     "name": "strategy",
     "outputs": [{ "internalType": "contract IStrategyConcLiq", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "swapFee",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "stateMutability": "view",
     "type": "function"
   },

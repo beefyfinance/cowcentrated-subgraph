@@ -1,1 +1,1 @@
-export { handleVaultCreated, handleRewardPoolCreated } from "../vault-lifecycle"
+export { handleClmVaultCreated, handleRewardPoolCreated } from "../vault-lifecycle"

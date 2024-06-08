@@ -2,7 +2,7 @@ import { Address } from "@graphprotocol/graph-ts"
 import { BeefyCLVault, BeefyCLRewardPool } from "../generated/schema"
 import {
   BeefyVaultConcLiq as BeefyCLVaultContract,
-  Initialized as VaultInitialized,
+  Initialized as CLMVaultInitialized,
 } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
 import {
   BEEFY_CL_VAULT_LIFECYCLE_PAUSED,
@@ -24,7 +24,7 @@ import {
   Paused as PausedEvent,
   Unpaused as UnpausedEvent,
 } from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
-import { ProxyCreated as VaultCreatedEvent } from "../generated/BeefyCLVaultFactory/BeefyVaultConcLiqFactory"
+import { ProxyCreated as CLMVaultCreatedEvent } from "../generated/BeefyCLVaultFactory/BeefyVaultConcLiqFactory"
 import { ProxyCreated as RewardPoolCreatedEvent } from "../generated/BeefyRewardPoolFactory/BeefyRewardPoolFactory"
 import {
   Initialized as RewardPoolInitialized,
@@ -35,7 +35,7 @@ import { getTransaction } from "./entity/transaction"
 import { fetchAndSaveTokenData } from "./utils/token"
 import { getBeefyCLProtocol } from "./entity/protocol"
 
-export function handleVaultCreated(event: VaultCreatedEvent): void {
+export function handleClmVaultCreated(event: CLMVaultCreatedEvent): void {
   const tx = getTransaction(event.block, event.transaction)
   tx.save()
 
@@ -47,13 +47,13 @@ export function handleVaultCreated(event: VaultCreatedEvent): void {
   // start indexing the new vault
   BeefyCLVaultTemplate.create(vaultAddress)
 
-  log.info("handleVaultCreated: Vault was {} created on block {}", [
+  log.info("handleClmVaultCreated: Vault was {} created on block {}", [
     vault.id.toHexString(),
     event.block.number.toString(),
   ])
 }
 
-export function handleVaultInitialized(event: VaultInitialized): void {
+export function handleClmVaultInitialized(event: CLMVaultInitialized): void {
   const vaultAddress = event.address
 
   const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
@@ -75,7 +75,7 @@ export function handleVaultInitialized(event: VaultInitialized): void {
   // we start watching strategy events
   BeefyCLStrategyTemplate.create(strategyAddress)
 
-  log.info("handleVaultInitialized: Vault {} initialized with strategy {} on block {}", [
+  log.info("handleClmVaultInitialized: Vault {} initialized with strategy {} on block {}", [
     vault.id.toHexString(),
     vault.strategy.toHexString(),
     event.block.number.toString(),

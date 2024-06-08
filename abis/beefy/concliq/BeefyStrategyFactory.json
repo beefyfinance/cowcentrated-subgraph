@@ -65,6 +65,15 @@
   },
   {
     "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "address", "name": "rebalancer", "type": "address" },
+      { "indexed": false, "internalType": "bool", "name": "isRebalancer", "type": "bool" }
+    ],
+    "name": "RebalancerChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
     "inputs": [{ "indexed": false, "internalType": "address", "name": "beefyFeeConfig", "type": "address" }],
     "name": "SetBeefyFeeConfig",
     "type": "event"
@@ -80,6 +89,13 @@
     "inputs": [{ "indexed": false, "internalType": "address", "name": "keeper", "type": "address" }],
     "name": "SetKeeper",
     "type": "event"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "_rebalancer", "type": "address" }],
+    "name": "addRebalancer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [
@@ -162,6 +178,20 @@
     "type": "function"
   },
   { "inputs": [], "name": "pauseAllStrats", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  {
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "rebalancers",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "_rebalancer", "type": "address" }],
+    "name": "removeRebalancer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
   { "inputs": [], "name": "renounceOwnership", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
   {
     "inputs": [{ "internalType": "address", "name": "_beefyFeeConfig", "type": "address" }],
