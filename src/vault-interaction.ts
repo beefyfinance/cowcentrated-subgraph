@@ -1,5 +1,5 @@
 import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
-import { Transfer as VaultShareTransferEvent } from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
+import { Transfer as CLMVaultShareTransferEvent } from "../generated/templates/BeefyCLVault/BeefyCLVault"
 import { Transfer as RewardPoolTransferEvent } from "../generated/templates/BeefyCLRewardPool/BeefyRewardPool"
 import {
   getBeefyCLRewardPool,
@@ -19,7 +19,7 @@ import { BeefyCLVault, InvestorPositionInteraction } from "../generated/schema"
 import { getEventIdentifier } from "./utils/event"
 import { SHARE_TOKEN_MINT_ADDRESS } from "./config"
 
-export function handleClmVaultTransfer(event: VaultShareTransferEvent): void {
+export function handleClmVaultTransfer(event: CLMVaultShareTransferEvent): void {
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return

@@ -1,9 +1,9 @@
 import { Address } from "@graphprotocol/graph-ts"
 import { BeefyCLVault, BeefyCLRewardPool } from "../generated/schema"
 import {
-  BeefyVaultConcLiq as BeefyCLVaultContract,
+  BeefyCLVault as BeefyCLVaultContract,
   Initialized as CLMVaultInitialized,
-} from "../generated/templates/BeefyCLVault/BeefyVaultConcLiq"
+} from "../generated/templates/BeefyCLVault/BeefyCLVault"
 import {
   BEEFY_CL_VAULT_LIFECYCLE_PAUSED,
   BEEFY_CL_VAULT_LIFECYCLE_RUNNING,
@@ -20,17 +20,17 @@ import {
 import { ADDRESS_ZERO } from "./utils/address"
 import {
   Initialized as StrategyInitializedEvent,
-  BeefyStrategy as BeefyCLStrategyContract,
+  BeefyCLStrategy as BeefyCLStrategyContract,
   Paused as PausedEvent,
   Unpaused as UnpausedEvent,
-} from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
-import { ProxyCreated as CLMVaultCreatedEvent } from "../generated/BeefyCLVaultFactory/BeefyVaultConcLiqFactory"
+} from "../generated/templates/BeefyCLStrategy/BeefyCLStrategy"
+import { ProxyCreated as CLMVaultCreatedEvent } from "../generated/BeefyCLVaultFactory/BeefyCLVaultFactory"
 import { ProxyCreated as RewardPoolCreatedEvent } from "../generated/BeefyRewardPoolFactory/BeefyRewardPoolFactory"
 import {
   Initialized as RewardPoolInitialized,
   BeefyRewardPool as BeefyCLRewardPoolContract,
 } from "../generated/BeefyRewardPoolFactory/BeefyRewardPool"
-import { GlobalPause as GlobalPauseEvent } from "../generated/BeefyCLStrategyFactory/BeefyStrategyFactory"
+import { GlobalPause as GlobalPauseEvent } from "../generated/BeefyCLStrategyFactory/BeefyCLStrategyFactory"
 import { getTransaction } from "./entity/transaction"
 import { fetchAndSaveTokenData } from "./utils/token"
 import { getBeefyCLProtocol } from "./entity/protocol"
@@ -96,12 +96,12 @@ export function handleClmVaultInitialized(event: CLMVaultInitialized): void {
   strategy.isInitialized = !strategyPool.value.equals(ADDRESS_ZERO)
 
   if (strategy.isInitialized) {
-    vault = fetchInitialVaultData(vault)
+    vault = fetchInitialClmVaultData(vault)
     vault.save()
   }
 }
 
-export function handleStrategyInitialized(event: StrategyInitializedEvent): void {
+export function handleClmStrategyInitialized(event: StrategyInitializedEvent): void {
   const strategyAddress = event.address
 
   const strategyContract = BeefyCLStrategyContract.bind(strategyAddress)
@@ -128,7 +128,7 @@ export function handleStrategyInitialized(event: StrategyInitializedEvent): void
 
   let vault = getBeefyCLVault(vaultAddress)
   if (vault.isInitialized) {
-    vault = fetchInitialVaultData(vault)
+    vault = fetchInitialClmVaultData(vault)
     vault.save()
   }
 }
@@ -137,7 +137,7 @@ export function handleStrategyInitialized(event: StrategyInitializedEvent): void
  * Initialize the vault data.
  * Call this when both the vault and the strategy are initialized.
  */
-function fetchInitialVaultData(vault: BeefyCLVault): BeefyCLVault {
+function fetchInitialClmVaultData(vault: BeefyCLVault): BeefyCLVault {
   const vaultAddress = Address.fromBytes(vault.id)
   const vaultContract = BeefyCLVaultContract.bind(vaultAddress)
 
@@ -167,7 +167,7 @@ function fetchInitialVaultData(vault: BeefyCLVault): BeefyCLVault {
   return vault
 }
 
-export function handleGlobalStrategyPause(event: GlobalPauseEvent): void {
+export function handleGlobalClmStrategyPause(event: GlobalPauseEvent): void {
   const protocol = getBeefyCLProtocol()
   const vaults = protocol.vaults.load()
   for (let i = 0; i < vaults.length; i++) {
@@ -178,14 +178,14 @@ export function handleGlobalStrategyPause(event: GlobalPauseEvent): void {
   }
 }
 
-export function handleStrategyPaused(event: PausedEvent): void {
+export function handleClmStrategyPaused(event: PausedEvent): void {
   const strategy = getBeefyCLStrategy(event.address)
   const vault = getBeefyCLVault(strategy.vault)
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_PAUSED
   vault.save()
 }
 
-export function handleStrategyUnpaused(event: UnpausedEvent): void {
+export function handleClmStrategyUnpaused(event: UnpausedEvent): void {
   const strategy = getBeefyCLStrategy(event.address)
   const vault = getBeefyCLVault(strategy.vault)
   vault.lifecycle = BEEFY_CL_VAULT_LIFECYCLE_RUNNING

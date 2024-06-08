@@ -1,9 +1,9 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts"
 import {
-  ClaimedFees as ClaimedFeesEvent,
-  Harvest as HarvestEvent,
-  ClaimedOutput as ClaimedOutputEvent,
-} from "../generated/templates/BeefyCLStrategy/BeefyStrategy"
+  ClaimedFees as CLMClaimedFeesEvent,
+  Harvest as CLMHarvestEvent,
+  ClaimedRewards as CLMClaimedRewardsEvent,
+} from "../generated/templates/BeefyCLStrategy/BeefyCLStrategy"
 import { getBeefyCLStrategy, getBeefyCLVault, getBeefyCLVaultSnapshot, isVaultInitialized } from "./entity/vault"
 import { getTransaction } from "./entity/transaction"
 import { BeefyCLVaultHarvestEvent, BeefyCLVaultUnderlyingFeesCollectedEvent } from "../generated/schema"
@@ -13,7 +13,7 @@ import { ZERO_BI } from "./utils/decimal"
 import { VAULT_SNAPSHOT_PERIODS } from "./utils/time"
 import { fetchVaultLatestData } from "./utils/vault-data"
 
-export function handleStrategyHarvest(event: HarvestEvent): void {
+export function handleClmStrategyHarvest(event: CLMHarvestEvent): void {
   let strategy = getBeefyCLStrategy(event.address)
   let vault = getBeefyCLVault(strategy.vault)
   if (!isVaultInitialized(vault)) {
@@ -51,19 +51,19 @@ export function handleStrategyHarvest(event: HarvestEvent): void {
   harvest.save()
 }
 
-export function handleStrategyClaimedFees(event: ClaimedFeesEvent): void {
-  handleStrategyFees(
+export function handleClmStrategyClaimedFees(event: CLMClaimedFeesEvent): void {
+  handleClmStrategyFees(
     event,
     event.params.feeAlt0.plus(event.params.feeMain0),
     event.params.feeAlt1.plus(event.params.feeMain1),
     ZERO_BI,
   )
 }
-export function handleStrategyClaimedOutput(event: ClaimedOutputEvent): void {
-  handleStrategyFees(event, ZERO_BI, ZERO_BI, event.params.fees)
+export function handleClmStrategyClaimedRewards(event: CLMClaimedRewardsEvent): void {
+  handleClmStrategyFees(event, ZERO_BI, ZERO_BI, event.params.fees)
 }
 
-function handleStrategyFees(
+function handleClmStrategyFees(
   event: ethereum.Event,
   collectedAmount0: BigInt,
   collectedAmount1: BigInt,

@@ -133,8 +133,9 @@ yarn test:lint # run prettier linter
 - strategy: Paused(address)
 - strategy: Unpaused(address)
 - strategy: Harvest(uint256,uint256)
+- strategy: HarvestRewards(uint256)
 - strategy: ClaimedFees(uint256,uint256,uint256,uint256)
-- strategy: ClaimedOutput(uint256)
+- strategy: ClaimedRewards(uint256)
 
 - rewardPoolFactory: ProxyCreated(address)
 - rewardPool.stakedToken()

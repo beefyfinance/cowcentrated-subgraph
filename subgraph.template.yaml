@@ -11,7 +11,7 @@ dataSources:
     network: {{network}}
     source:
       address: "{{clmVaultFactoryAddress}}"
-      abi: BeefyVaultConcLiqFactory
+      abi: BeefyCLVaultFactory
       startBlock: {{clmVaultFactoryStartBlock}}
     mapping:
       kind: ethereum/events
@@ -36,14 +36,14 @@ dataSources:
         - InvestorPositionSnapshot
         - InvestorPositionInteraction
       abis: &abis
-        - name: BeefyVaultConcLiqFactory
-          file: ./abis/beefy/concliq/BeefyVaultConcLiqFactory.json
-        - name: BeefyVaultConcLiq
-          file: ./abis/beefy/concliq/BeefyVaultConcLiq.json
-        - name: BeefyStrategyFactory
-          file: ./abis/beefy/concliq/BeefyStrategyFactory.json
-        - name: BeefyStrategy
-          file: ./abis/beefy/concliq/BeefyStrategy.json
+        - name: BeefyCLVaultFactory
+          file: ./abis/beefy/concliq/BeefyCLVaultFactory.json
+        - name: BeefyCLVault
+          file: ./abis/beefy/concliq/BeefyCLVault.json
+        - name: BeefyCLStrategyFactory
+          file: ./abis/beefy/concliq/BeefyCLStrategyFactory.json
+        - name: BeefyCLStrategy
+          file: ./abis/beefy/concliq/BeefyCLStrategy.json
         - name: BeefyRewardPoolFactory
           file: ./abis/beefy/concliq/BeefyRewardPoolFactory.json
         - name: BeefyRewardPool
@@ -61,7 +61,7 @@ dataSources:
     network: {{network}}
     source:
       address: "{{strategyFactoryAddress}}"
-      abi: BeefyStrategyFactory
+      abi: BeefyCLStrategyFactory
       startBlock: {{strategyFactoryStartBlock}}
     mapping:
       kind: ethereum/events
@@ -97,7 +97,7 @@ dataSources:
     network: {{network}}
     source:
       address: "{{clmVaultFactoryAddress}}"
-      abi: BeefyVaultConcLiqFactory
+      abi: BeefyCLVaultFactory
       startBlock: {{clmVaultFactoryStartBlock}} # same as BeefyCLVaultFactory
     mapping:
       kind: ethereum/events
@@ -117,7 +117,7 @@ templates:
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: BeefyVaultConcLiq
+      abi: BeefyCLVault
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
@@ -135,12 +135,12 @@ templates:
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: BeefyStrategy
+      abi: BeefyCLStrategy
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/mapping/strategy.ts
+      file: ./src/mapping/clm-strategy.ts
       entities: *entities
       abis: *abis
       eventHandlers:
@@ -154,8 +154,8 @@ templates:
           handler: handleHarvest
         - event: ClaimedFees(uint256,uint256,uint256,uint256)
           handler: handleClaimedFees
-        - event: ClaimedOutput(uint256)
-          handler: handleClaimedOutput
+        - event: ClaimedRewards(uint256)
+          handler: handleClaimedRewards
 
   
   - name: BeefyCLRewardPool
