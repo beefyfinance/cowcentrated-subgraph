@@ -9,7 +9,7 @@ import {
   YEAR,
   getIntervalFromTimestamp,
   getPreviousIntervalFromTimestamp,
-} from "../../src/utils/time"
+} from "../../src/common/utils/time"
 
 describe("time.getIntervalFromTimestamp", () => {
   test("Support all the different periods", () => {
