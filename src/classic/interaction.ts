@@ -11,6 +11,7 @@ import { getClassicPosition } from "./entity/position"
 import { fetchClassicData, updateClassicDataAndSnapshots } from "./utils/classic-data"
 
 export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
+
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
@@ -103,6 +104,7 @@ function updateUserPosition(
   interaction.vaultBalanceDelta = vaultBalanceDelta
   interaction.boostBalanceDelta = boostBalanceDelta
 
+  interaction.underlyingToNativePrice = ZERO_BI // TODO: get underlying price
   interaction.nativeToUSDPrice = classicData.nativeToUSDPrice
   interaction.save()
 }
