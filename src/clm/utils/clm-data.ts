@@ -29,7 +29,7 @@ export function fetchCLMData(clm: CLM): CLMData {
       "latestRoundData()",
       "(uint80,int256,uint256,uint256,uint80)",
     ),
-    new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256", true), // only some vaults have a reward pool token
+    new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256", true), // only some clms have a reward pool token
   ]
 
   const results = multicall(signatures)
@@ -138,7 +138,7 @@ class CLMData {
 }
 
 export function updateCLMDataAndSnapshots(clm: CLM, clmData: CLMData, nowTimestamp: BigInt): CLM {
-  // update vault data
+  // update CLM data
   clm.managerTotalSupply = clmData.managerTotalSupply
   clm.rewardPoolTotalSupply = clmData.rewardPoolTotalSupply
   clm.token0ToNativePrice = clmData.token0ToNativePrice

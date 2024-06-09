@@ -37,7 +37,7 @@ function handleClmStrategyHarvest(
 
   ///////
   // fetch data on chain
-  const vaultData = fetchCLMData(clm)
+  const clmData = fetchCLMData(clm)
 
   ///////
   // store the raw harvest event
@@ -46,17 +46,17 @@ function handleClmStrategyHarvest(
   harvest.strategy = strategy.id
   harvest.createdWith = tx.id
   harvest.timestamp = event.block.timestamp
-  harvest.underlyingAmount0 = vaultData.token0Balance
-  harvest.underlyingAmount1 = vaultData.token1Balance
+  harvest.underlyingAmount0 = clmData.token0Balance
+  harvest.underlyingAmount1 = clmData.token1Balance
   harvest.compoundedAmount0 = compoundedAmount0
   harvest.compoundedAmount1 = compoundedAmount1
   harvest.collectedRewards = collectedRewards
-  harvest.managerTotalSupply = vaultData.managerTotalSupply
-  harvest.rewardPoolTotalSupply = vaultData.rewardPoolTotalSupply
-  harvest.token0ToNativePrice = vaultData.token0ToNativePrice
-  harvest.token1ToNativePrice = vaultData.token1ToNativePrice
-  harvest.rewardToNativePrice = vaultData.rewardToNativePrice
-  harvest.nativeToUSDPrice = vaultData.nativeToUSDPrice
+  harvest.managerTotalSupply = clmData.managerTotalSupply
+  harvest.rewardPoolTotalSupply = clmData.rewardPoolTotalSupply
+  harvest.token0ToNativePrice = clmData.token0ToNativePrice
+  harvest.token1ToNativePrice = clmData.token1ToNativePrice
+  harvest.rewardToNativePrice = clmData.rewardToNativePrice
+  harvest.nativeToUSDPrice = clmData.nativeToUSDPrice
   harvest.save()
 }
 
@@ -89,7 +89,7 @@ function handleClmStrategyFees(
 
   ///////
   // fetch data on chain
-  const vaultData = fetchCLMData(clm)
+  const clmData = fetchCLMData(clm)
 
   ///////
   // store the raw collect event
@@ -98,20 +98,20 @@ function handleClmStrategyFees(
   collect.strategy = strategy.id
   collect.createdWith = tx.id
   collect.timestamp = event.block.timestamp
-  collect.underlyingMainAmount0 = vaultData.token0PositionMainBalance
-  collect.underlyingMainAmount1 = vaultData.token1PositionMainBalance
-  collect.underlyingAltAmount0 = vaultData.token0PositionAltBalance
-  collect.underlyingAltAmount1 = vaultData.token1PositionAltBalance
+  collect.underlyingMainAmount0 = clmData.token0PositionMainBalance
+  collect.underlyingMainAmount1 = clmData.token1PositionMainBalance
+  collect.underlyingAltAmount0 = clmData.token0PositionAltBalance
+  collect.underlyingAltAmount1 = clmData.token1PositionAltBalance
   collect.collectedAmount0 = collectedAmount0
   collect.collectedAmount1 = collectedAmount1
   collect.collectedRewardAmount = collectedRewardAmount
-  collect.token0ToNativePrice = vaultData.token0ToNativePrice
-  collect.token1ToNativePrice = vaultData.token1ToNativePrice
-  collect.rewardToNativePrice = vaultData.rewardToNativePrice
-  collect.nativeToUSDPrice = vaultData.nativeToUSDPrice
+  collect.token0ToNativePrice = clmData.token0ToNativePrice
+  collect.token1ToNativePrice = clmData.token1ToNativePrice
+  collect.rewardToNativePrice = clmData.rewardToNativePrice
+  collect.nativeToUSDPrice = clmData.nativeToUSDPrice
   collect.save()
 
   ///////
-  // update vault entity
-  updateCLMDataAndSnapshots(clm, vaultData, event.block.timestamp)
+  // update clm entity
+  updateCLMDataAndSnapshots(clm, clmData, event.block.timestamp)
 }
