@@ -1,7 +1,7 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import { getIntervalFromTimestamp } from "../utils/time"
 import { getSnapshotIdSuffix } from "../utils/snapshot"
-import { ClockTick } from "../../generated/schema"
+import { ClockTick } from "../../../generated/schema"
 
 export function getClockTick(timestamp: BigInt, period: BigInt): ClockRes {
   let interval = getIntervalFromTimestamp(timestamp, period)

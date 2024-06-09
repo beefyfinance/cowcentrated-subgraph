@@ -1,5 +1,5 @@
-import { IERC20 as IERC20Contract } from "../../generated/templates/BeefyCLVault/IERC20"
-import { Token } from "../../generated/schema"
+import { IERC20 as IERC20Contract } from "../../../generated/templates/CLManager/IERC20"
+import { Token } from "../../../generated/schema"
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import { getToken } from "../entity/token"
 

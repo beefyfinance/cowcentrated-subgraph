@@ -1,5 +1,5 @@
 import { ethereum } from "@graphprotocol/graph-ts"
-import { Transaction } from "../../generated/schema"
+import { Transaction } from "../../../generated/schema"
 import { ADDRESS_ZERO } from "../utils/address"
 
 export function getTransaction(block: ethereum.Block, transaction: ethereum.Transaction): Transaction {

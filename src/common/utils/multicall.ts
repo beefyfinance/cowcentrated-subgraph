@@ -1,6 +1,6 @@
 import { Bytes, ethereum, log, crypto, ByteArray, Address } from "@graphprotocol/graph-ts"
-import { Multicall3 as Multicall3Contract } from "../../generated/templates/BeefyCLStrategy/Multicall3"
-import { MULTICALL3_ADDRESS } from "../config"
+import { Multicall3 as Multicall3Contract } from "../../../generated/templates/CLStrategy/Multicall3"
+import { MULTICALL3_ADDRESS } from "../../config"
 
 export class Multicall3Params {
   constructor(

@@ -1,9 +1,7 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
-import { Token } from "../../generated/schema"
+import { Token } from "../../../generated/schema"
 import { ADDRESS_ZERO } from "../utils/address"
 
-
-@inline
 export function isNullToken(token: Token): boolean {
   return token.id.equals(ADDRESS_ZERO)
 }
@@ -20,8 +18,6 @@ export function getNullToken(): Token {
   return token
 }
 
-
-@inline
 export function getToken(tokenAddress: Bytes): Token {
   if (tokenAddress == ADDRESS_ZERO) {
     return getNullToken()

@@ -8,10 +8,7 @@ export const WEEK = BigInt.fromI32(60 * 60 * 24 * 7)
 export const MONTH = BigInt.fromI32(60 * 60 * 24 * 30)
 export const QUARTER = BigInt.fromI32(60 * 60 * 24 * 30 * 3)
 export const YEAR = BigInt.fromI32(60 * 60 * 24 * 365)
-export const VAULT_SNAPSHOT_PERIODS = [HOUR, DAY, WEEK]
 
-
-@inline
 export function getIntervalFromTimestamp(timestamp: BigInt, period: BigInt): BigInt {
   // if the period is not stable, use date math to calculate the interval
   if (period.ge(WEEK)) {
@@ -43,8 +40,6 @@ export function getIntervalFromTimestamp(timestamp: BigInt, period: BigInt): Big
   return timestamp.div(period).times(period)
 }
 
-
-@inline
 export function getPreviousIntervalFromTimestamp(timestamp: BigInt, period: BigInt): BigInt {
   const truncated = getIntervalFromTimestamp(timestamp, period)
   return getIntervalFromTimestamp(truncated.minus(BigInt.fromI32(10)), period)

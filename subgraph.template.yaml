@@ -7,85 +7,83 @@ indexerHints:
   prune: auto # we have our own snapshotting mechanism
 dataSources:
   - kind: ethereum/contract
-    name: BeefyCLVaultFactory
+    name: CLManagerFactory
     network: {{network}}
     source:
-      address: "{{clmVaultFactoryAddress}}"
-      abi: BeefyCLVaultFactory
-      startBlock: {{clmVaultFactoryStartBlock}}
+      address: "{{clManagerFactoryAddress}}"
+      abi: CLManagerFactory
+      startBlock: {{clManagerFactoryStartBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/mapping/factory.ts
+      file: ./src/clm/mapping/manager-factory.ts
       entities: &entities
+        - CLHarvestEvent
+        - CLM
+        - CLMPosition
+        - CLMPositionInteraction
+        - CLMSnapshot
+        - CLManager
+        - CLManagerCollectionEvent
+        - CLRewardPool
+        - CLStrategy
+        - ClockTick
+        - Investor
+        - Protocol
         - Token
         - Transaction
-        - ClockTick
-        - Protocol
-        - ProtocolSnapshot
-        - BeefyCLVault
-        - BeefyCLVaultSnapshot
-        - BeefyCLRewardPool
-        - BeefyCLStrategy
-        - BeefyCLVaultHarvestEvent
-        - BeefyCLVaultUnderlyingFeesCollectedEvent
-        - Investor
-        - InvestorSnapshot
-        - InvestorPosition
-        - InvestorPositionSnapshot
-        - InvestorPositionInteraction
       abis: &abis
-        - name: BeefyCLVaultFactory
-          file: ./abis/beefy/concliq/BeefyCLVaultFactory.json
-        - name: BeefyCLVault
-          file: ./abis/beefy/concliq/BeefyCLVault.json
-        - name: BeefyCLStrategyFactory
-          file: ./abis/beefy/concliq/BeefyCLStrategyFactory.json
-        - name: BeefyCLStrategy
-          file: ./abis/beefy/concliq/BeefyCLStrategy.json
-        - name: BeefyRewardPoolFactory
-          file: ./abis/beefy/concliq/BeefyRewardPoolFactory.json
-        - name: BeefyRewardPool
-          file: ./abis/beefy/concliq/BeefyRewardPool.json
+        - name: CLManagerFactory
+          file: ./abis/beefy/clm/CLManagerFactory.json
+        - name: CLManager
+          file: ./abis/beefy/clm/CLManager.json
+        - name: CLStrategyFactory
+          file: ./abis/beefy/clm/CLStrategyFactory.json
+        - name: CLStrategy
+          file: ./abis/beefy/clm/CLStrategy.json
+        - name: RewardPoolFactory
+          file: ./abis/beefy/clm/RewardPoolFactory.json
+        - name: RewardPool
+          file: ./abis/beefy/clm/RewardPool.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
         - name: Multicall3
           file: ./abis/multicall/Multicall3.json
       eventHandlers:
         - event: ProxyCreated(address)
-          handler: handleClmVaultCreated
+          handler: handleCLManagerCreated
           
   - kind: ethereum/contract
-    name: BeefyCLStrategyFactory
+    name: CLStrategyFactory
     network: {{network}}
     source:
-      address: "{{strategyFactoryAddress}}"
-      abi: BeefyCLStrategyFactory
-      startBlock: {{strategyFactoryStartBlock}}
+      address: "{{clStrategyFactoryAddress}}"
+      abi: CLStrategyFactory
+      startBlock: {{clStrategyFactoryStartBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/mapping/factory.ts
+      file: ./src/clm/mapping/strategy-factory.ts
       entities: *entities
       abis: *abis
       eventHandlers:
         - event: GlobalPause(bool)
-          handler: handleGlobalStrategyPause
+          handler: handleCLStrategyGlobalPause
           
   - kind: ethereum/contract
-    name: BeefyRewardPoolFactory
+    name: RewardPoolFactory
     network: {{network}}
     source:
       address: "{{rewardPoolFactoryAddress}}"
-      abi: BeefyRewardPoolFactory
+      abi: RewardPoolFactory
       startBlock: {{rewardPoolFactoryStartBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/mapping/factory.ts
+      file: ./src/clm/mapping/reward-pool-factory.ts
       entities: *entities
       abis: *abis
       eventHandlers:
@@ -96,14 +94,14 @@ dataSources:
     name: Clock
     network: {{network}}
     source:
-      address: "{{clmVaultFactoryAddress}}"
-      abi: BeefyCLVaultFactory
-      startBlock: {{clmVaultFactoryStartBlock}} # same as BeefyCLVaultFactory
+      address: "{{clManagerFactoryAddress}}"
+      abi: CLManagerFactory
+      startBlock: {{clManagerFactoryStartBlock}}
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/mapping/clock.ts
+      file: ./src/clm/mapping/clock.ts
       entities: *entities
       abis: *abis
       blockHandlers:
@@ -113,67 +111,67 @@ dataSources:
             every: {{clockTickBlocks}}
   
 templates:
-  - name: BeefyCLVault
+  - name: CLManager
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: BeefyCLVault
+      abi: CLManager
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/mapping/vault.ts
+      file: ./src/clm/mapping/manager.ts
       entities: *entities
       abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
-          handler: handleInitialized
+          handler: handleCLManagerInitialized
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
+          handler: handleCLManagerTransfer
 
-  - name: BeefyCLStrategy
+  - name: CLStrategy
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: BeefyCLStrategy
+      abi: CLStrategy
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/mapping/clm-strategy.ts
+      file: ./src/clm/mapping/strategy.ts
       entities: *entities
       abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
-          handler: handleInitialized
+          handler: handleCLStrategyInitialized
         - event: Paused(address)
-          handler: handlePaused
+          handler: handleCLStrategyPaused
         - event: Unpaused(address)
-          handler: handleUnpaused
+          handler: handleCLStrategyUnpaused
         - event: Harvest(uint256,uint256)
-          handler: handleHarvestAmounts
+          handler: handleCLStrategyHarvestAmounts
         - event: HarvestRewards(uint256)
-          handler: handleHarvestRewards
+          handler: handleCLStrategyHarvestRewards
         - event: ClaimedFees(uint256,uint256,uint256,uint256)
-          handler: handleClaimedFees
+          handler: handleCLStrategyClaimedFees
         - event: ClaimedRewards(uint256)
-          handler: handleClaimedRewards
+          handler: handleCLStrategyClaimedRewards
 
   
-  - name: BeefyCLRewardPool
+  - name: CLRewardPool
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: BeefyRewardPool
+      abi: RewardPool
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/mapping/reward-pool.ts
+      file: ./src/clm/mapping/reward-pool.ts
       entities: *entities
       abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
-          handler: handleInitialized
+          handler: handleRewardPoolInitialized
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
+          handler: handleRewardPoolTransfer

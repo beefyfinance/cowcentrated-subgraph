@@ -1,9 +1,9 @@
 import { Bytes } from "@graphprotocol/graph-ts"
-import { Protocol } from "../../generated/schema"
+import { Protocol } from "../../../generated/schema"
 import { ONE_BI } from "../utils/decimal"
 
 export type ProtocolId = String
-export const PROTOCOL_BEEFY_CL: ProtocolId = "BeefyCL"
+export const PROTOCOL_BEEFY_CL: ProtocolId = "CLM"
 export const PROTOCOL_BEEFY_CL_ID: Bytes = Bytes.fromByteArray(Bytes.fromBigInt(ONE_BI))
 
 export function getBeefyCLProtocol(): Protocol {

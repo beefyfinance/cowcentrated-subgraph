@@ -1,0 +1,1 @@
+export { handleCLStrategyGlobalPause } from "../lifecycle"

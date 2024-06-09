@@ -119,7 +119,7 @@ yarn test:lint # run prettier linter
 - vault: Initialized(uint8)
 - vault: Transfer(indexed address,indexed address,uint256)
 
-- strategyFactory: GlobalPause(bool)
+- clStrategyFactory: GlobalPause(bool)
 - strategy.pool()
 - strategy.vault()
 - strategy.output()

@@ -1,6 +1,6 @@
-##################################
-##### Common dimensions ##########
-##################################
+################################
+##### Common Entities ##########
+################################
 
 """
 A token is a representation of a fungible asset on the blockchain
@@ -68,63 +68,63 @@ This is where all stats and data about the protocol is stored.
 type Protocol @entity {
   """
   The protocol identifier:
-  - 1: BeefyCL
+  - 1: Beefy
+  - 2: CLM
   """
   id: Bytes!
 
   "Protocol name"
   name: String!
 
-  "All vaults in the protocol"
-  vaults: [BeefyCLVault!]! @derivedFrom(field: "protocol")
+  "All CLM in the protocol"
+  clms: [CLM!]! @derivedFrom(field: "protocol")
 }
 
-#############################
-##### CL Vault Contracts ####
-#############################
+#######################
+##### CLM Contracts ###
+#######################
 
-enum VaultLifecycle {
-  "The vault is in the process of being initialized"
+enum CLMLifecycle {
+  "The CLM is in the process of being initialized"
   INITIALIZING
-  "The vault is able to accept deposits and earn yield"
+  "The CLM is able to accept deposits and earn yield"
   RUNNING
-  "A vault can be paused for a variety of reasons, this is always to protect investors funds"
+  "A CLM can be paused for a variety of reasons, this is always to protect investors funds"
   PAUSED
 }
 
-type BeefyCLVault @entity {
-  "The vault address"
+type CLM @entity {
+  "The CL Manager address"
   id: Bytes!
 
-  "The protocol the vault belongs to"
+  "The protocol the CLM belongs to"
   protocol: Protocol!
-  "The transaction that created the vault"
-  createdWith: Transaction!
-  "The strategy of the vault. The strategy is responsible for managing the vault's assets."
-  strategy: BeefyCLStrategy!
-  "The reward pool of the vault. The reward pool is where the vault's earnings are sent if the vault does not automatically compound."
-  rewardPool: BeefyCLRewardPool
-  "Technical field to remember if the vault was already initialized"
-  isInitialized: Boolean!
-  "The current lifecycle status of the vault"
-  lifecycle: VaultLifecycle!
+  "The manager of the CLM. The manager is responsible for accounting of a CLM."
+  manager: CLManager!
+  "The strategy of the CLM. The strategy is responsible for managing the CLM's assets."
+  strategy: CLStrategy!
+  "The reward pool of the CLM. The reward pool is where the CLM's earnings are sent if the CLManager does not automatically compound."
+  rewardPool: CLRewardPool
 
-  "The token data of the vault. The vault is also an ERC20 token. This tokens represents the shares of the vault."
-  sharesToken: Token!
-  "The reward pool token of the vault. This is where the vault's earnings are sent if the vault does not automatically compound."
+  "The current lifecycle status of the CLM"
+  lifecycle: CLMLifecycle!
+
+  "The manager token data of the CLM. The CLManager is also an ERC20 token. This tokens represents the shares of the manager."
+  managerToken: Token!
+  "The reward pool token of the CLM. This is where the CLM's earnings are sent if the CLM does not automatically compound."
   rewardPoolToken: Token!
 
-  "The underlying tokens contained in the vault. This is the first token."
+  "The underlying tokens contained in the CLM. This is the first token."
   underlyingToken0: Token!
-  "The underlying tokens contained in the vault. This is the second token."
+  "The underlying tokens contained in the CLM. This is the second token."
   underlyingToken1: Token!
-  "The first output token of the vault. This is the token that is minted when the vault earns yield."
-  outputToken0: Token!
+  "The reward token of the CLM. This is the token that is minted when the CLM earns non-compounding yield."
+  rewardToken: Token!
 
   # ----- PRICES & STATS -----
 
-  "The total supply of the shares token in circulation. Express with `sharesToken.decimals` decimals."
-  totalSupply: BigInt!
+  "The total supply of the CLM shares token in circulation. Express with `managerToken.decimals` decimals."
+  managerTotalSupply: BigInt!
   "Total supply of the reward pool token. Express with `rewardPoolToken.decimals` decimals."
   rewardPoolTotalSupply: BigInt!
 
@@ -132,59 +132,59 @@ type BeefyCLVault @entity {
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
-  "Output token 0 price in native at the time of the interaction. Expressed with 18 decimals."
-  output0ToNativePrice: BigInt!
+  "Reward token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  rewardToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
   """
   The current price of the token zero expressed as a token1 value.
-  For example, if the vault is a BTC/ETH vault, this is the price of 1 BTC in ETH.
+  For example, if the CLM is a BTC/ETH CLM, this is the price of 1 BTC in ETH.
   This is expressed in token1 decimals.
   """
   priceOfToken0InToken1: BigInt!
-  "Price range start this vault is currently configured to operate in, in token 1"
+  "Price range start this CLM is currently configured to operate in, in token 1"
   priceRangeMin1: BigInt!
-  "Price range end this vault is currently configured to operate in, in token 1"
+  "Price range end this CLM is currently configured to operate in, in token 1"
   priceRangeMax1: BigInt!
 
-  "Amount of underlying tokens in the vault assigned to the main position in the first token."
+  "Amount of underlying tokens in the CLM assigned to the main position in the first token."
   underlyingMainAmount0: BigInt!
-  "Amount of underlying tokens in the vault assigned to the main position in the second token."
+  "Amount of underlying tokens in the CLM assigned to the main position in the second token."
   underlyingMainAmount1: BigInt!
-  "Amount of underlying tokens in the vault assigned to the alt position in the first token."
+  "Amount of underlying tokens in the CLM assigned to the alt position in the first token."
   underlyingAltAmount0: BigInt!
-  "Amount of underlying tokens in the vault assigned to the alt position in the second token."
+  "Amount of underlying tokens in the CLM assigned to the alt position in the second token."
   underlyingAltAmount1: BigInt!
 
-  "All investors positions in the vault"
-  positions: [InvestorPosition!]! @derivedFrom(field: "vault")
+  "All positions in the CLM"
+  positions: [CLMPosition!]! @derivedFrom(field: "clm")
 
-  "All underlying fees collected by the vault"
-  collectedFees: [BeefyCLVaultUnderlyingFeesCollectedEvent!]! @derivedFrom(field: "vault")
+  "All collections events by the CLM"
+  collections: [CLManagerCollectionEvent!]! @derivedFrom(field: "clm")
 
-  "All harvest events of the vault"
-  harvests: [BeefyCLVaultHarvestEvent!]! @derivedFrom(field: "vault")
+  "All harvest events of the CLM"
+  harvests: [CLHarvestEvent!]! @derivedFrom(field: "clm")
 
-  "Snapshot of the vault's stats"
-  snapshots: [BeefyCLVaultSnapshot!]! @derivedFrom(field: "vault")
+  "Snapshot of the CLM's stats"
+  snapshots: [CLMSnapshot!]! @derivedFrom(field: "clm")
 
-  "All vault interactions for this vault"
-  interactions: [InvestorPositionInteraction!]! @derivedFrom(field: "vault")
+  "All CLM interactions for this CLM"
+  interactions: [CLMPositionInteraction!]! @derivedFrom(field: "clm")
 }
 
 """
-A snapshot of the vault's stats.
-Any event that happens in the vault is recorded in a snapshot.
+A snapshot of the CLM's stats.
+Any event that happens in the CLM is recorded in a snapshot.
 We keep multiple snapshots time frames as noted by the "period" field.
 Snapshots include: daily, weekly, yearly.
 """
-type BeefyCLVaultSnapshot @entity {
-  "vault.id + period + timestamp"
+type CLMSnapshot @entity {
+  "CLM.id + period + timestamp"
   id: Bytes!
 
-  "The vault the snapshot is for"
-  vault: BeefyCLVault!
+  "The CLM the snapshot is for"
+  clm: CLM!
 
   """
   Duration of the snapshot period in seconds.
@@ -199,8 +199,8 @@ type BeefyCLVaultSnapshot @entity {
   "Actual timestamp snapshot was initiated at"
   timestamp: BigInt!
 
-  "The total supply of the shares token in circulation. Express with `sharesToken.decimals` decimals."
-  totalSupply: BigInt!
+  "The total supply of the manager token in circulation. Express with `sharesToken.decimals` decimals."
+  managerTotalSupply: BigInt!
   "Total supply of the reward pool token. Express with `rewardPoolToken.decimals` decimals."
   rewardPoolTotalSupply: BigInt!
 
@@ -208,72 +208,93 @@ type BeefyCLVaultSnapshot @entity {
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
-  "Output token 0 price in native at the time of the interaction. Expressed with 18 decimals."
-  output0ToNativePrice: BigInt!
+  "Reward token price in native at the time of the interaction. Expressed with 18 decimals."
+  rewardToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
   """
   The current price of the token zero expressed as a token1 value.
-  For example, if the vault is a BTC/ETH vault, this is the price of 1 BTC in ETH.
+  For example, if the CLM is a BTC/ETH CLM, this is the price of 1 BTC in ETH.
   This is expressed in token1 decimals.
   """
   priceOfToken0InToken1: BigInt!
-  "Price range start this vault is currently configured to operate in, in token 1"
+  "Price range start this CLM is currently configured to operate in, in token 1"
   priceRangeMin1: BigInt!
-  "Price range end this vault is currently configured to operate in, in token 1"
+  "Price range end this CLM is currently configured to operate in, in token 1"
   priceRangeMax1: BigInt!
 
-  "Amount of underlying tokens in the vault assigned to the main position in the first token."
+  "Amount of underlying tokens in the CLM assigned to the main position in the first token."
   underlyingMainAmount0: BigInt!
-  "Amount of underlying tokens in the vault assigned to the main position in the second token."
+  "Amount of underlying tokens in the CLM assigned to the main position in the second token."
   underlyingMainAmount1: BigInt!
-  "Amount of underlying tokens in the vault assigned to the alt position in the first token."
+  "Amount of underlying tokens in the CLM assigned to the alt position in the first token."
   underlyingAltAmount0: BigInt!
-  "Amount of underlying tokens in the vault assigned to the alt position in the second token."
+  "Amount of underlying tokens in the CLM assigned to the alt position in the second token."
   underlyingAltAmount1: BigInt!
 }
 
 """
-A strategy is a contract that manages the assets of a vault.
-This entity is mostly used to start tracking the events and link them to the vault on new event
+A CLManager handles the accounting of a CLM.
 """
-type BeefyCLStrategy @entity {
+type CLManager @entity {
+  "The CL Manager address"
+  id: Bytes!
+  "The CLM this manager belongs to"
+  clm: CLM!
+  "The transaction that created the manager"
+  createdWith: Transaction!
+  "Technical field to remember if the CLM was already initialized"
+  isInitialized: Boolean!
+}
+
+"""
+A strategy is a contract that manages the assets of a CLM.
+This entity is mostly used to start tracking the events and link them to the CLM on new event
+"""
+type CLStrategy @entity {
   "The strategy address"
   id: Bytes!
-  "The vault the strategy is managing"
-  vault: BeefyCLVault!
+  "The CLM the strategy is managing"
+  clm: CLM!
+  "The manager of the strategy"
+  manager: CLManager!
+  "The transaction that created the strategy"
+  createdWith: Transaction!
   "Technical field to remember if the strategy was already initialized"
   isInitialized: Boolean!
 }
 
 """
-Some vaults do not automatically compound their earnings. Those earnings are sent to the reward pool instead.
-
-This entit is mostly used to start tracking the events and link them to the vault on new event
+Some CLManager do not automatically compound their earnings. Those earnings are sent to the reward pool instead.
+This entity is mostly used to start tracking the events and link them to the CLM on new event
 """
-type BeefyCLRewardPool @entity {
+type CLRewardPool @entity {
   "The strategy address"
   id: Bytes!
-  "The vault the strategy is managing"
-  vault: BeefyCLVault!
+  "The CLM the reward pool is for"
+  clm: CLM!
+  "The manager that this reward pool is linked to"
+  manager: CLManager!
+  "The transaction that created the reward pool"
+  createdWith: Transaction!
   "Technical field to remember if the strategy was already initialized"
   isInitialized: Boolean!
 }
 
 """
-Vault are harvested by the strategy. This event is emitted when the strategy harvests the vault.
+CLManagers are harvested by the strategy. This event is emitted when the strategy harvests the manager.
 """
-type BeefyCLVaultHarvestEvent @entity(immutable: true) {
+type CLHarvestEvent @entity(immutable: true) {
   "transaction hash + log index"
   id: Bytes!
 
-  "The vault the harvest event is for"
-  vault: BeefyCLVault!
-  "The strategy that harvested the vault"
-  strategy: BeefyCLStrategy!
+  "The CLM the harvest event is for"
+  clm: CLM!
+  "The strategy that harvested the Manager"
+  strategy: CLStrategy!
 
-  "The transaction that created the vault harvest event"
+  "The transaction that created the harvest event"
   createdWith: Transaction!
 
   "The timestamp of the harvest event so you can sort by time"
@@ -288,11 +309,11 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
   compoundedAmount0: BigInt!
   "The amount of second underlying tokens compounded"
   compoundedAmount1: BigInt!
-  "The amount of output tokens compounded"
-  compoundedOutput0: BigInt!
+  "The amount of reward tokens collected"
+  collectedRewards: BigInt!
 
-  "Total amount of liquidity at time of harvest"
-  totalSupply: BigInt!
+  "Total amount of liquidity in the manager at time of harvest"
+  managerTotalSupply: BigInt!
   "Total amount of reward pool shares at time of harvest"
   rewardPoolTotalSupply: BigInt!
 
@@ -300,8 +321,8 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
-  "Output token 0 price in native at the time of the interaction. Expressed with 18 decimals."
-  output0ToNativePrice: BigInt!
+  "Reward token price in native at the time of the interaction. Expressed with 18 decimals."
+  rewardToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }
@@ -309,43 +330,43 @@ type BeefyCLVaultHarvestEvent @entity(immutable: true) {
 """
 This event is emitted when we collect earned trading fees from the underlying pool.
 """
-type BeefyCLVaultUnderlyingFeesCollectedEvent @entity(immutable: true) {
+type CLManagerCollectionEvent @entity(immutable: true) {
   "transaction hash + log index"
   id: Bytes!
 
-  "The vault the collect event is for"
-  vault: BeefyCLVault!
-  "The strategy that collect for the vault"
-  strategy: BeefyCLStrategy!
+  "The CLM the collect event is for"
+  clm: CLM!
+  "The strategy that collect for the Manager"
+  strategy: CLStrategy!
 
-  "The transaction that created the vault collect event"
+  "The transaction that created the collect event"
   createdWith: Transaction!
 
   "The timestamp of the collect event so you can sort by time"
   timestamp: BigInt!
 
-  "Amount of underlying tokens in the vault assigned to the main position in the first token."
+  "Amount of underlying tokens in the CLM assigned to the main position in the first token."
   underlyingMainAmount0: BigInt!
-  "Amount of underlying tokens in the vault assigned to the main position in the second token."
+  "Amount of underlying tokens in the CLM assigned to the main position in the second token."
   underlyingMainAmount1: BigInt!
-  "Amount of underlying tokens in the vault assigned to the alt position in the first token."
+  "Amount of underlying tokens in the CLM assigned to the alt position in the first token."
   underlyingAltAmount0: BigInt!
-  "Amount of underlying tokens in the vault assigned to the alt position in the second token."
+  "Amount of underlying tokens in the CLM assigned to the alt position in the second token."
   underlyingAltAmount1: BigInt!
 
   "Amount of collected fees in the first token"
   collectedAmount0: BigInt!
   "Amount of collected fees in the second token"
   collectedAmount1: BigInt!
-  "Amount of collected fees in the output token"
-  collectedOutput0: BigInt!
+  "Amount of collected fees in the reward token"
+  collectedRewardAmount: BigInt!
 
   "Token 0 price in native at the time of the interaction. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
-  "Output token 0 price in native at the time of the interaction. Expressed with 18 decimals."
-  output0ToNativePrice: BigInt!
+  "Reward token price in native at the time of the interaction. Expressed with 18 decimals."
+  rewardToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }
@@ -358,57 +379,57 @@ type Investor @entity {
   "The investor address"
   id: Bytes!
   "All investor beefy positions"
-  positions: [InvestorPosition!]! @derivedFrom(field: "investor")
+  positions: [CLMPosition!]! @derivedFrom(field: "investor")
   "All investor interactions"
-  interactions: [InvestorPositionInteraction!]! @derivedFrom(field: "investor")
+  interactions: [CLMPositionInteraction!]! @derivedFrom(field: "investor")
 }
 
 """
-An investor position is a record of an investor's position in a vault.
+An investor position is a record of an investor's position in a CLM.
 """
-type InvestorPosition @entity {
-  "Vault address + investor address"
+type CLMPosition @entity {
+  "CLM.id + investor address"
   id: Bytes!
 
-  "The vault the investor has a position in"
-  vault: BeefyCLVault!
-  "The investor that has a position in the vault"
+  "The CLM the investor has a position in"
+  clm: CLM!
+  "The investor that has a position in the CLM"
   investor: Investor!
   "The transaction that created the investor position"
   createdWith: Transaction!
 
-  "The amount of shares the investor holds"
-  sharesBalance: BigInt!
+  "The amount of manager shares the investor holds"
+  managerBalance: BigInt!
   "Amount of reward pool shares the investor holds"
   rewardPoolBalance: BigInt!
 
   "All investor position interactions"
-  interactions: [InvestorPositionInteraction!]! @derivedFrom(field: "investorPosition")
+  interactions: [CLMPositionInteraction!]! @derivedFrom(field: "investorPosition")
 }
 
-enum InvestorPositionInteractionType {
-  "The investor deposited funds into the vault"
-  VAULT_DEPOSIT
-  "The investor withdrew funds from the vault"
-  VAULT_WITHDRAW
-  "The investor staked in the reward pool of the vault and received reward pool shares"
+enum CLMPositionInteractionType {
+  "The investor deposited funds into the CLM"
+  MANAGER_DEPOSIT
+  "The investor withdrew funds from the CLM"
+  MANAGER_WITHDRAW
+  "The investor staked in the reward pool of the CLM and received reward pool shares"
   REWARD_POOL_STAKE
-  "The investor unstaked from the reward pool of the vault and received underlying tokens"
+  "The investor unstaked from the reward pool of the CLM and received underlying tokens"
   REWARD_POOL_UNSTAKE
-  "The investor claimed their rewards from the reward pool of the vault"
+  "The investor claimed their rewards from the reward pool of the CLM"
   REWARD_POOL_CLAIM
 }
 
-type InvestorPositionInteraction @entity(immutable: true) {
+type CLMPositionInteraction @entity(immutable: true) {
   "transaction hash + event log index"
   id: Bytes!
 
-  "The vault the investor has a position in"
-  vault: BeefyCLVault!
-  "The investor that has a position in the vault"
+  "The CLM the investor has a position in"
+  clm: CLM!
+  "The investor that has a position in the CLM"
   investor: Investor!
   "The investor position the interaction is for"
-  investorPosition: InvestorPosition!
+  investorPosition: CLMPosition!
 
   "The transaction that created the investor position interaction"
   createdWith: Transaction!
@@ -419,10 +440,10 @@ type InvestorPositionInteraction @entity(immutable: true) {
   timestamp: BigInt!
 
   "The type of the interaction"
-  type: InvestorPositionInteractionType!
+  type: CLMPositionInteractionType!
 
-  "The amount of shares the investor holds at the time of the interaction"
-  sharesBalance: BigInt!
+  "The amount of manager shares the investor holds at the time of the interaction"
+  managerBalance: BigInt!
   "The amount of reward pool shares the investor holds at the time of the interaction"
   rewardPoolBalance: BigInt!
   "The amount of first underlying tokens the investor is entitled to at the time of the interaction"
@@ -430,8 +451,8 @@ type InvestorPositionInteraction @entity(immutable: true) {
   "The amount of second underlying tokens the investor is entitled to at the time of the interaction"
   underlyingBalance1: BigInt!
 
-  "Amount of shares change in the interaction"
-  sharesBalanceDelta: BigInt!
+  "Amount of manager shares change in the interaction"
+  managerBalanceDelta: BigInt!
   "Amount of reward pool shares change in the interaction"
   rewardPoolBalanceDelta: BigInt!
   "Amount of underlying token 0 change in the interaction"
@@ -443,8 +464,8 @@ type InvestorPositionInteraction @entity(immutable: true) {
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
-  "Output token 0 price in native at the time of the interaction. Expressed with 18 decimals."
-  output0ToNativePrice: BigInt!
+  "Reward token price in native at the time of the interaction. Expressed with 18 decimals."
+  rewardToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }

@@ -1,5 +1,5 @@
 import { Bytes } from "@graphprotocol/graph-ts"
-import { Investor } from "../../generated/schema"
+import { Investor } from "../../../generated/schema"
 
 export function getInvestor(accountAddress: Bytes): Investor {
   let investor = Investor.load(accountAddress)
