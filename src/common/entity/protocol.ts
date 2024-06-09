@@ -12,6 +12,7 @@ export function getBeefyCLProtocol(): Protocol {
   if (!protocol) {
     protocol = new Protocol(protocolId)
     protocol.name = "Beefy CL"
+    protocol.save()
   }
   return protocol
 }
