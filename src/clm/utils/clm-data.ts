@@ -23,14 +23,22 @@ export function fetchCLMData(clm: CLM): CLMData {
     new Multicall3Params(strategyAddress, "range()", "(uint256,uint256)", true), // this can revert when the liquidity is 0
     new Multicall3Params(strategyAddress, "lpToken0ToNativePrice()", "uint256"),
     new Multicall3Params(strategyAddress, "lpToken1ToNativePrice()", "uint256"),
-    new Multicall3Params(strategyAddress, "rewardToNativePrice()", "uint256", true), // only some strategies have this
     new Multicall3Params(
       CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
       "latestRoundData()",
       "(uint80,int256,uint256,uint256,uint80)",
     ),
-    new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256", true), // only some clms have a reward pool token
   ]
+
+  const hasRewardPool = !isNullToken(rewardPoolToken)
+  if (hasRewardPool) {
+    signatures.push(
+      new Multicall3Params(strategyAddress, "rewardToNativePrice()", "uint256", true), // only some strategies have this
+    )
+    signatures.push(
+      new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256", true), // only some clms have a reward pool token
+    )
+  }
 
   const results = multicall(signatures)
   const totalSupplyRes = results[0]
@@ -40,9 +48,9 @@ export function fetchCLMData(clm: CLM): CLMData {
   const rangeRes = results[4]
   const token0ToNativePriceRes = results[5]
   const token1ToNativePriceRes = results[6]
-  const rewardToNativePriceRes = results[7]
-  const chainLinkAnswerRes = results[8]
-  const rewardPoolTotalSupplyRes = results[9]
+  const chainLinkAnswerRes = results[7]
+  const rewardToNativePriceRes = hasRewardPool ? results[8] : null
+  const rewardPoolTotalSupplyRes = hasRewardPool ? results[9] : null
 
   const managerTotalSupply = totalSupplyRes.value.toBigInt()
   const balances = balanceRes.value.toTuple()
@@ -75,7 +83,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   const token0ToNativePrice = token0ToNativePriceRes.value.toBigInt()
   const token1ToNativePrice = token1ToNativePriceRes.value.toBigInt()
   let rewardToNativePrice = ZERO_BI
-  if (!rewardToNativePriceRes.reverted) {
+  if (rewardToNativePriceRes != null && !rewardToNativePriceRes.reverted) {
     rewardToNativePrice = rewardToNativePriceRes.value.toBigInt()
   }
 
@@ -88,7 +96,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   )
 
   let rewardPoolTotalSupply = ZERO_BI
-  if (!isNullToken(rewardPoolToken)) {
+  if (rewardPoolTotalSupplyRes != null && !rewardPoolTotalSupplyRes.reverted) {
     rewardPoolTotalSupply = rewardPoolTotalSupplyRes.value.toBigInt()
   }
 

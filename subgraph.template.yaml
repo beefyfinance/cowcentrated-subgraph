@@ -240,6 +240,8 @@ templates:
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleClassicVaultInitialized
+        - event: UpgradeStrat(address)
+          handler: handleClassicVaultUpgradeStrategy
         #- event: Transfer(indexed address,indexed address,uint256)
         #  handler: handleClManagerTransfer
 
@@ -258,10 +260,10 @@ templates:
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleClassicStrategyInitialized
-        #- event: Paused(address)
-        #  handler: handleClStrategyPaused
-        #- event: Unpaused(address)
-        #  handler: handleClStrategyUnpaused
+        - event: Paused(address)
+          handler: handleClassicStrategyPaused
+        - event: Unpaused(address)
+          handler: handleClassicStrategyUnpaused
         #- event: Harvest(uint256,uint256)
         #  handler: handleClStrategyHarvestAmounts
         #- event: HarvestRewards(uint256)

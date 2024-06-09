@@ -3,10 +3,13 @@ import { ProxyCreated as VaultOrStrategyCreated } from "../../generated/ClassicV
 import {
   ClassicVault as ClassicVaultContract,
   Initialized as ClassicVaultInitialized,
+  UpgradeStrat as ClassicVaultUpgradeStrategy,
 } from "../../generated/ClassicVaultFactory/ClassicVault"
 import {
   ClassicStrategy as ClassicStrategyContract,
   Initialized as ClassicStrategyInitialized,
+  Paused as ClassicStrategyPaused,
+  Unpaused as ClassicStrategyUnpaused,
 } from "../../generated/ClassicVaultFactory/ClassicStrategy"
 import {
   ClassicVault as ClassicVaultTemplate,
@@ -16,7 +19,8 @@ import { getClassic, getClassicStrategy, getClassicVault } from "./entity/classi
 import { Classic } from "../../generated/schema"
 import { getTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
-import { PRODUCT_LIFECYCLE_RUNNING } from "../common/entity/lifecycle"
+import { PRODUCT_LIFECYCLE_PAUSED, PRODUCT_LIFECYCLE_RUNNING } from "../common/entity/lifecycle"
+import { ADDRESS_ZERO } from "../common/utils/address"
 
 export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreated): void {
   const address = event.params.proxy
@@ -126,4 +130,51 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
   classic.underlyingToken = underlyingToken.id
   classic.lifecycle = PRODUCT_LIFECYCLE_RUNNING
   classic.save()
+}
+
+export function handleClassicStrategyPaused(event: ClassicStrategyPaused): void {
+  const strategyAddress = event.address
+  log.debug("Strategy paused: {}", [strategyAddress.toHexString()])
+
+  const strategy = getClassicStrategy(strategyAddress)
+  let classic = getClassic(strategy.vault)
+  classic.lifecycle = PRODUCT_LIFECYCLE_PAUSED
+  classic.save()
+}
+
+export function handleClassicStrategyUnpaused(event: ClassicStrategyUnpaused): void {
+  const strategyAddress = event.address
+  log.debug("Strategy unpaused: {}", [strategyAddress.toHexString()])
+
+  const strategy = getClassicStrategy(strategyAddress)
+  let classic = getClassic(strategy.vault)
+  classic.lifecycle = PRODUCT_LIFECYCLE_RUNNING
+  classic.save()
+}
+
+export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStrategy): void {
+  const vaultAddress = event.address
+  const classic = getClassic(vaultAddress)
+  const newStrategyAddress = event.params.implementation
+  const oldStrategyAddress = classic.strategy
+  classic.strategy = newStrategyAddress
+  classic.save()
+
+  // create the new strategy entity
+  const newStrategy = getClassicStrategy(newStrategyAddress)
+  newStrategy.isInitialized = true // once the vault is upgraded, the strategy is initialized
+  newStrategy.vault = classic.id
+  newStrategy.classic = classic.id
+  newStrategy.save()
+
+  // we start watching the new strategy events
+  ClassicStrategyTemplate.create(newStrategyAddress)
+
+  // make sure we deprecated the old strategy
+  // so events are ignored
+  const oldStrategy = getClassicStrategy(oldStrategyAddress)
+  oldStrategy.isInitialized = false
+  oldStrategy.vault = ADDRESS_ZERO
+  oldStrategy.classic = ADDRESS_ZERO
+  oldStrategy.save()
 }
