@@ -11,6 +11,7 @@ import {
   getClManager,
   CLM_LIFECYCLE_RUNNING,
   CLM_LIFECYCLE_PAUSED,
+  CLM_LIFECYCLE_INITIALIZING,
 } from "./entity/clm"
 import { log } from "@graphprotocol/graph-ts"
 import {
@@ -41,7 +42,10 @@ export function handleClManagerCreated(event: CLMManagerCreatedEvent): void {
   tx.save()
 
   const managerAddress = event.params.proxy
+
   const clm = getCLM(managerAddress)
+  clm.manager = managerAddress
+  clm.lifecycle = CLM_LIFECYCLE_INITIALIZING
   clm.save()
 
   const manager = getClManager(managerAddress)
@@ -65,13 +69,25 @@ export function handleClManagerInitialized(event: ClManagerInitialized): void {
   const managerContract = ClManagerContract.bind(managerAddress)
   const strategyAddress = managerContract.strategy()
 
+  let clm = getCLM(managerAddress)
+  clm.strategy = strategyAddress
+  clm.save()
+
   let manager = getClManager(managerAddress)
   manager.isInitialized = true
   manager.save()
 
-  let clm = getCLM(managerAddress)
-  clm.strategy = strategyAddress
-  clm.save() // needs to be saved before we can use it in the strategy events
+  let strategy = getClStrategy(strategyAddress)
+  strategy.clm = clm.id
+  strategy.manager = manager.id
+
+  // the strategy may or may not be initialized
+  // this is a test to know if that is the case
+  const strategyContract = ClStrategyContract.bind(strategyAddress)
+  const strategyPool = strategyContract.pool()
+  strategy.isInitialized = !strategyPool.equals(ADDRESS_ZERO)
+
+  strategy.save()
 
   // we start watching strategy events
   ClStrategyTemplate.create(strategyAddress)
@@ -81,13 +97,6 @@ export function handleClManagerInitialized(event: ClManagerInitialized): void {
     clm.strategy.toHexString(),
     event.block.number.toString(),
   ])
-
-  const strategy = getClStrategy(strategyAddress)
-  // the strategy may or may not be initialized
-  // this is a test to know if that is the case
-  const strategyContract = ClStrategyContract.bind(strategyAddress)
-  const strategyPool = strategyContract.pool()
-  strategy.isInitialized = !strategyPool.equals(ADDRESS_ZERO)
 
   if (strategy.isInitialized && manager.isInitialized) {
     fetchInitialCLMDataAndSave(clm)
@@ -101,6 +110,8 @@ export function handleClStrategyInitialized(event: ClStrategyInitializedEvent): 
   const managerAddress = strategyContract.vault()
 
   const clm = getCLM(managerAddress)
+  clm.strategy = strategyAddress
+  clm.save()
 
   const strategy = getClStrategy(strategyAddress)
   strategy.manager = managerAddress
