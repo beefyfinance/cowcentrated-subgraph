@@ -264,11 +264,5 @@ templates:
           handler: handleClassicStrategyPaused
         - event: Unpaused(address)
           handler: handleClassicStrategyUnpaused
-        #- event: Harvest(uint256,uint256)
-        #  handler: handleClmStrategyHarvestAmounts
-        #- event: HarvestRewards(uint256)
-        #  handler: handleClmStrategyHarvestRewards
-        #- event: ClaimedFees(uint256,uint256,uint256,uint256)
-        #  handler: handleClmStrategyClaimedFees
-        #- event: ClaimedRewards(uint256)
-        #  handler: handleClmStrategyClaimedRewards
+        - event: StratHarvest(indexed address, uint256, uint256)
+          handler: handleClassicStrategyHarvest
