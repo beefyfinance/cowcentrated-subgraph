@@ -264,5 +264,5 @@ templates:
           handler: handleClassicStrategyPaused
         - event: Unpaused(address)
           handler: handleClassicStrategyUnpaused
-        - event: StratHarvest(indexed address, uint256, uint256)
+        - event: StratHarvest(indexed address,uint256,uint256)
           handler: handleClassicStrategyHarvest
