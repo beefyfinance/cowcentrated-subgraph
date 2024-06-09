@@ -11,8 +11,8 @@
   "clStrategyFactoryStartBlock": 15530283,
   "rewardPoolFactoryAddress": "0x13F518Aa15CA3296E51CEAFB44A8D86660E97B3a",
   "rewardPoolFactoryStartBlock": 15530276,
-  "classicVaultFactoryAddress": "0xBC4a342B0c057501E081484A2d24e576E854F823",
-  "classicVaultFactoryStartBlock": 15530276,
+  "beefyClassicVaultFactoryAddress": "0xBC4a342B0c057501E081484A2d24e576E854F823",
+  "beefyClassicVaultFactoryStartBlock": 15530276,
   "clockTickBlocks": 150,
 
   "wrappedNativeAddress": "0x4200000000000000000000000000000000000006",

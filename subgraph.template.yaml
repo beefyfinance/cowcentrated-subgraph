@@ -18,7 +18,7 @@ dataSources:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/clm/mapping/manager-factory.ts
-      entities: &entities
+      entities: &clmEntities
         - ClHarvestEvent
         - CLM
         - ClmPosition
@@ -33,7 +33,7 @@ dataSources:
         - Protocol
         - Token
         - Transaction
-      abis: &abis
+      abis: &clmAbis
         - name: ClManagerFactory
           file: ./abis/beefy/clm/ClManagerFactory.json
         - name: ClManager
@@ -66,8 +66,8 @@ dataSources:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/clm/mapping/strategy-factory.ts
-      entities: *entities
-      abis: *abis
+      entities: *clmEntities
+      abis: *clmAbis
       eventHandlers:
         - event: GlobalPause(bool)
           handler: handleClStrategyGlobalPause
@@ -84,8 +84,8 @@ dataSources:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/clm/mapping/reward-pool-factory.ts
-      entities: *entities
-      abis: *abis
+      entities: *clmEntities
+      abis: *clmAbis
       eventHandlers:
         - event: ProxyCreated(string,address)
           handler: handleRewardPoolCreated
@@ -102,14 +102,61 @@ dataSources:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/clm/mapping/clock.ts
-      entities: *entities
-      abis: *abis
+      entities: *clmEntities
+      abis: *clmAbis
       blockHandlers:
         - handler: handleClockTick
           filter:
             kind: polling
             every: {{clockTickBlocks}}
   
+
+  - kind: ethereum/contract
+    name: ClassicVaultFactory
+    network: {{network}}
+    source:
+      address: "{{beefyClassicVaultFactoryAddress}}"
+      abi: ClassicVaultFactory
+      startBlock: {{beefyClassicVaultFactoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/vault-and-strategy-factory.ts
+      entities: &classicEntities
+        - Classic
+        - ClassicBoost
+        - ClassicHarvestEvent
+        - ClassicPosition
+        - ClassicPositionInteraction
+        - ClassicSnapshot
+        - ClassicStrategy
+        - ClassicVault
+        - ClockTick
+        - Investor
+        - Protocol
+        - Token
+        - Transaction
+      abis: &classicAbis
+        - name: ClassicVaultFactory
+          file: ./abis/beefy/classic/ClassicVaultFactory.json
+        - name: ClassicVault
+          file: ./abis/beefy/classic/ClassicVault.json
+        - name: ClassicStrategy
+          file: ./abis/beefy/classic/ClassicStrategy.json
+        #- name: ClassicBoostFactory
+        #  file: ./abis/beefy/classic/ClassicBoostFactory.json
+        #- name: ClassicBoost
+        #  file: ./abis/beefy/classic/ClassicBoost.json
+        - name: IERC20
+          file: ./abis/IERC20/IERC20.json
+        - name: Multicall3
+          file: ./abis/multicall/Multicall3.json
+      eventHandlers:
+        - event: ProxyCreated(address)
+          handler: handleClassicVaultOrStrategyCreated
+          
+
 templates:
   - name: ClManager
     kind: ethereum/contract
@@ -121,8 +168,8 @@ templates:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/clm/mapping/manager.ts
-      entities: *entities
-      abis: *abis
+      entities: *clmEntities
+      abis: *clmAbis
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleClManagerInitialized
@@ -139,8 +186,8 @@ templates:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/clm/mapping/strategy.ts
-      entities: *entities
-      abis: *abis
+      entities: *clmEntities
+      abis: *clmAbis
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleClStrategyInitialized
@@ -168,10 +215,58 @@ templates:
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
       file: ./src/clm/mapping/reward-pool.ts
-      entities: *entities
-      abis: *abis
+      entities: *clmEntities
+      abis: *clmAbis
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleRewardPoolInitialized
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleRewardPoolTransfer
+
+
+
+  - name: ClassicVault
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: ClassicVault
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/vault.ts
+      entities: *classicEntities
+      abis: *classicAbis
+      eventHandlers:
+        - event: Initialized(uint8)
+          handler: handleClassicVaultInitialized
+        #- event: Transfer(indexed address,indexed address,uint256)
+        #  handler: handleClManagerTransfer
+
+  - name: ClassicStrategy
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: ClassicStrategy
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/strategy.ts
+      entities: *classicEntities
+      abis: *classicAbis
+      eventHandlers:
+        - event: Initialized(uint8)
+          handler: handleClassicStrategyInitialized
+        #- event: Paused(address)
+        #  handler: handleClStrategyPaused
+        #- event: Unpaused(address)
+        #  handler: handleClStrategyUnpaused
+        #- event: Harvest(uint256,uint256)
+        #  handler: handleClStrategyHarvestAmounts
+        #- event: HarvestRewards(uint256)
+        #  handler: handleClStrategyHarvestRewards
+        #- event: ClaimedFees(uint256,uint256,uint256,uint256)
+        #  handler: handleClStrategyClaimedFees
+        #- event: ClaimedRewards(uint256)
+        #  handler: handleClStrategyClaimedRewards

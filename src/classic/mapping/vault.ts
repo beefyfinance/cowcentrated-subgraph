@@ -1,0 +1,1 @@
+export { handleClassicVaultInitialized } from "../lifecycle"

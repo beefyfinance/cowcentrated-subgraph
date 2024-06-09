@@ -6,13 +6,10 @@ import { getIntervalFromTimestamp } from "../../common/utils/time"
 import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from "../../common/utils/snapshot"
 import { getBeefyCLProtocol } from "../../common/entity/protocol"
 import { getNullToken } from "../../common/entity/token"
-
-export const CLM_LIFECYCLE_INITIALIZING = "INITIALIZING"
-export const CLM_LIFECYCLE_RUNNING = "RUNNING"
-export const CLM_LIFECYCLE_PAUSED = "PAUSED"
+import { PRODUCT_LIFECYCLE_INITIALIZING } from "../../common/entity/lifecycle"
 
 export function isClmInitialized(clm: CLM): boolean {
-  return clm.lifecycle != CLM_LIFECYCLE_INITIALIZING
+  return clm.lifecycle != PRODUCT_LIFECYCLE_INITIALIZING
 }
 
 export function getCLM(managerAddress: Bytes): CLM {
@@ -24,7 +21,7 @@ export function getCLM(managerAddress: Bytes): CLM {
     clm.manager = managerAddress
     clm.strategy = ADDRESS_ZERO
     clm.rewardPool = null
-    clm.lifecycle = CLM_LIFECYCLE_INITIALIZING
+    clm.lifecycle = PRODUCT_LIFECYCLE_INITIALIZING
 
     clm.managerToken = managerAddress
     clm.rewardPoolToken = getNullToken().id

@@ -2,6 +2,15 @@
 ##### Common Entities ##########
 ################################
 
+enum ProductLifecycle {
+  "The product is in the process of being initialized"
+  INITIALIZING
+  "The product is able to accept deposits and earn yield"
+  RUNNING
+  "A product can be paused for a variety of reasons, this is always to protect investors funds"
+  PAUSED
+}
+
 """
 A token is a representation of a fungible asset on the blockchain
 as specified by the ERC20 standard.
@@ -56,9 +65,14 @@ type ClockTick @entity(immutable: true) {
   timestamp: BigInt!
 }
 
-#########################
-##### Protocol Data #####
-#########################
+type Investor @entity {
+  "The investor address"
+  id: Bytes!
+  "All investor beefy positions"
+  positions: [ClmPosition!]! @derivedFrom(field: "investor")
+  "All investor interactions"
+  interactions: [ClmPositionInteraction!]! @derivedFrom(field: "investor")
+}
 
 """
 The Protocol entity is the main entity of the Beefy Finance subgraph.
@@ -78,20 +92,253 @@ type Protocol @entity {
 
   "All CLM in the protocol"
   clms: [CLM!]! @derivedFrom(field: "protocol")
+
+  "All Classic in the protocol"
+  classics: [Classic!]! @derivedFrom(field: "protocol")
+}
+
+#################################
+##### Beefy Classic Contracts ###
+#################################
+
+"""
+Beefy classic products are the original vaults and strategies.
+Those are building on top of another prodocol like PancakeSwap, SushiSwap, etc.
+
+TODO: find a better name for this entity
+"""
+type Classic @entity {
+  "The vault address"
+  id: Bytes!
+  "The protocol the vault belongs to"
+  protocol: Protocol!
+  "The vault"
+  vault: ClassicVault!
+  "The vault strategy"
+  strategy: ClassicStrategy!
+  "The vault boosts"
+  boosts: [ClassicBoost!]! @derivedFrom(field: "classic")
+
+  "The current lifecycle status of the vault"
+  lifecycle: ProductLifecycle!
+
+  "The vault's share token"
+  vaultSharesToken: Token!
+  "The vault's underlying LP token"
+  underlyingToken: Token!
+
+  "The total supply of the vault shares token in circulation. Express with `sharesToken.decimals` decimals."
+  vaultSharesTotalSupply: BigInt!
+
+  "LP token price in native at the time of the interaction. Expressed with 18 decimals."
+  underlyingToNativePrice: BigInt!
+  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  nativeToUSDPrice: BigInt!
+
+  "All positions in the Classic"
+  positions: [ClassicPosition!]! @derivedFrom(field: "classic")
+
+  "All harvest events of the Classic"
+  harvests: [ClassicHarvestEvent!]! @derivedFrom(field: "classic")
+
+  "Snapshot of the Classic's stats"
+  snapshots: [ClassicSnapshot!]! @derivedFrom(field: "classic")
+
+  "All Classic interactions for this Classic"
+  interactions: [ClassicPositionInteraction!]! @derivedFrom(field: "classic")
+}
+
+"""
+A snapshot of the Classic's stats.
+Any event that happens in the Classic is recorded in a snapshot.
+We keep multiple snapshots time frames as noted by the "period" field.
+Snapshots include: daily, weekly, yearly.
+"""
+type ClassicSnapshot @entity {
+  "Classic.id + period + timestamp"
+  id: Bytes!
+
+  "The Classic the snapshot is for"
+  classic: Classic!
+
+  """
+  Duration of the snapshot period in seconds.
+  Available periods:
+  - 1 day: 86400
+  - 1 week: 604800
+  - 1 year: 31536000
+  """
+  period: BigInt!
+  "Timestamp the snapshot was initiated at, rounded to period"
+  roundedTimestamp: BigInt!
+  "Actual timestamp snapshot was initiated at"
+  timestamp: BigInt!
+
+  "The total supply of the vault shares token in circulation. Express with `sharesToken.decimals` decimals."
+  vaultSharesTotalSupply: BigInt!
+
+  "LP token price in native at the time of the interaction. Expressed with 18 decimals."
+  underlyingToNativePrice: BigInt!
+  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  nativeToUSDPrice: BigInt!
+}
+
+"""
+A vault is a contract that manages the assets of a Beefy product.
+This entity is mostly used to start tracking the events and link them to the Beefy product on new event
+"""
+type ClassicVault @entity {
+  "The strategy address"
+  id: Bytes!
+  "The classic product the vault belongs to"
+  classic: Classic!
+  "The transaction that created the strategy"
+  createdWith: Transaction!
+  "Technical field to remember if the strategy was already initialized"
+  isInitialized: Boolean!
+}
+
+"""
+A strategy is a contract that manages the assets of a Beefy product.
+This entity is mostly used to start tracking the events and link them to the Beefy product on new event
+"""
+type ClassicStrategy @entity {
+  "The strategy address"
+  id: Bytes!
+  "The classic product the strategy belongs to"
+  classic: Classic!
+  "The vault the strategy is managing"
+  vault: ClassicVault!
+  "The transaction that created the strategy"
+  createdWith: Transaction!
+  "Technical field to remember if the strategy was already initialized"
+  isInitialized: Boolean!
+}
+
+"""
+A boost is a contract that manages the assets of a Beefy product.
+This entity is mostly used to start tracking the events and link them to the Beefy product on new event
+"""
+type ClassicBoost @entity {
+  "The boost address"
+  id: Bytes!
+  "The classic product the strategy belongs to"
+  classic: Classic!
+  "The vault the boost is managing"
+  vault: ClassicVault!
+  "The transaction that created the strategy"
+  createdWith: Transaction!
+  "Technical field to remember if the strategy was already initialized"
+  isInitialized: Boolean!
+}
+
+"""
+Classic products are harvested by the strategy. This event is emitted when the strategy harvests the vault.
+"""
+type ClassicHarvestEvent @entity(immutable: true) {
+  "transaction hash + log index"
+  id: Bytes!
+
+  "The Classic the harvest event is for"
+  classic: Classic!
+  "The strategy that harvested the vault"
+  strategy: ClassicStrategy!
+
+  "The transaction that created the harvest event"
+  createdWith: Transaction!
+
+  "The timestamp of the harvest event so you can sort by time"
+  timestamp: BigInt!
+
+  "Underlying balance after the harvest"
+  underlyingAmount: BigInt!
+  "The amount of underlying tokens compounded"
+  compoundedAmount: BigInt!
+
+  "Total amount of liquidity in the vault at time of harvest"
+  vaultSharesTotalSupply: BigInt!
+
+  "LP token price in native at the time of the interaction. Expressed with 18 decimals."
+  underlyingToNativePrice: BigInt!
+  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  nativeToUSDPrice: BigInt!
+}
+
+"""
+This event is emitted when we collect earned trading fees from the underlying pool.
+"""
+type ClassicPosition @entity {
+  "Classic.id + investor address"
+  id: Bytes!
+
+  "The Classic the investor has a position in"
+  classic: Classic!
+  "The investor that has a position in the Classic"
+  investor: Investor!
+  "The transaction that created the investor position"
+  createdWith: Transaction!
+
+  "The amount of vault shares the investor holds directly"
+  vaultBalance: BigInt!
+  "The amount of vault shares the investor holds in a boost"
+  boostBalance: BigInt!
+
+  "All investor position interactions"
+  interactions: [ClassicPositionInteraction!]! @derivedFrom(field: "investorPosition")
+}
+
+enum ClassicPositionInteractionType {
+  "The investor deposited funds into the vault"
+  VAULT_DEPOSIT
+  "The investor withdrew funds from the vault"
+  VAULT_WITHDRAW
+  "The investor staked in the boost of the vault and received boost shares"
+  BOOST_STAKE
+  "The investor unstaked from the boost of the vault and received vault shares"
+  BOOST_UNSTAKE
+}
+
+type ClassicPositionInteraction @entity(immutable: true) {
+  "transaction hash + event log index"
+  id: Bytes!
+
+  "The Classic the investor has a position in"
+  classic: Classic!
+  "The investor that has a position in the Classic"
+  investor: Investor!
+  "The investor position the interaction is for"
+  investorPosition: ClassicPosition!
+
+  "The transaction that created the investor position interaction"
+  createdWith: Transaction!
+
+  "Block number of the interaction"
+  blockNumber: BigInt!
+  "The timestamp of the interaction"
+  timestamp: BigInt!
+
+  "The type of the interaction"
+  type: ClassicPositionInteractionType!
+
+  "The amount of vault shares the investor holds directly at the time of the interaction"
+  vaultBalance: BigInt!
+  "The amount of vault shares the investor holds in a boost at the time of the interaction"
+  boostBalance: BigInt!
+
+  "Amount of vault shares change in the interaction"
+  vaultBalanceDelta: BigInt!
+  "Amount of boost shares change in the interaction"
+  boostBalanceDelta: BigInt!
+
+  "LP token price in native at the time of the interaction. Expressed with 18 decimals."
+  underlyingToNativePrice: BigInt!
+  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  nativeToUSDPrice: BigInt!
 }
 
 #######################
 ##### CLM Contracts ###
 #######################
-
-enum ClmLifecycle {
-  "The CLM is in the process of being initialized"
-  INITIALIZING
-  "The CLM is able to accept deposits and earn yield"
-  RUNNING
-  "A CLM can be paused for a variety of reasons, this is always to protect investors funds"
-  PAUSED
-}
 
 type CLM @entity {
   "The CL Manager address"
@@ -107,7 +354,7 @@ type CLM @entity {
   rewardPool: ClRewardPool
 
   "The current lifecycle status of the CLM"
-  lifecycle: ClmLifecycle!
+  lifecycle: ProductLifecycle!
 
   "The manager token data of the CLM. The ClManager is also an ERC20 token. This tokens represents the shares of the manager."
   managerToken: Token!
@@ -369,19 +616,6 @@ type ClManagerCollectionEvent @entity(immutable: true) {
   rewardToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
-}
-
-############################
-##### Investor Position ####
-############################
-
-type Investor @entity {
-  "The investor address"
-  id: Bytes!
-  "All investor beefy positions"
-  positions: [ClmPosition!]! @derivedFrom(field: "investor")
-  "All investor interactions"
-  interactions: [ClmPositionInteraction!]! @derivedFrom(field: "investor")
 }
 
 """

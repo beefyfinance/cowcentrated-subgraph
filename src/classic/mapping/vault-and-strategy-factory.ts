@@ -1,0 +1,1 @@
+export { handleClassicVaultOrStrategyCreated } from "../lifecycle"

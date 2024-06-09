@@ -18,7 +18,8 @@
     "prepare:arbitrum": "./bin/prepare.sh arbitrum",
     "prepare:base": "./bin/prepare.sh base",
     "prepare:optimism": "./bin/prepare.sh optimism",
-    "prepare:optimism-tmp": "./bin/prepare.sh optimism-tmp"
+    "prepare:optimism-tmp": "./bin/prepare.sh optimism-tmp",
+    "prepare:arbitrum-beta": "./bin/prepare.sh arbitrum-beta"
   },
   "main": "./bin/index.js",
   "bin": {

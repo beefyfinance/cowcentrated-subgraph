@@ -4,15 +4,7 @@ import {
   ClManager as ClManagerContract,
   Initialized as ClManagerInitialized,
 } from "../../generated/templates/ClManager/ClManager"
-import {
-  getClRewardPool,
-  getClStrategy,
-  getCLM,
-  getClManager,
-  CLM_LIFECYCLE_RUNNING,
-  CLM_LIFECYCLE_PAUSED,
-  CLM_LIFECYCLE_INITIALIZING,
-} from "./entity/clm"
+import { getClRewardPool, getClStrategy, getCLM, getClManager } from "./entity/clm"
 import { log } from "@graphprotocol/graph-ts"
 import {
   ClStrategy as ClStrategyTemplate,
@@ -36,6 +28,11 @@ import {
 import { getTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { getBeefyCLProtocol } from "../common/entity/protocol"
+import {
+  PRODUCT_LIFECYCLE_INITIALIZING,
+  PRODUCT_LIFECYCLE_PAUSED,
+  PRODUCT_LIFECYCLE_RUNNING,
+} from "../common/entity/lifecycle"
 
 export function handleClManagerCreated(event: CLMManagerCreatedEvent): void {
   const tx = getTransaction(event.block, event.transaction)
@@ -45,7 +42,7 @@ export function handleClManagerCreated(event: CLMManagerCreatedEvent): void {
 
   const clm = getCLM(managerAddress)
   clm.manager = managerAddress
-  clm.lifecycle = CLM_LIFECYCLE_INITIALIZING
+  clm.lifecycle = PRODUCT_LIFECYCLE_INITIALIZING
   clm.save()
 
   const manager = getClManager(managerAddress)
@@ -159,7 +156,7 @@ function fetchInitialCLMDataAndSave(clm: CLM): void {
   clm.managerToken = managerToken.id
   clm.underlyingToken0 = underlyingToken0.id
   clm.underlyingToken1 = underlyingToken1.id
-  clm.lifecycle = CLM_LIFECYCLE_RUNNING
+  clm.lifecycle = PRODUCT_LIFECYCLE_RUNNING
   clm.save()
 
   log.info("fetchInitialCLMDataAndSave: CLM {} now running with strategy {}.", [
@@ -173,8 +170,8 @@ export function handleClStrategyGlobalPause(event: ClStrategyFactoryGlobalPauseE
   const clms = protocol.clms.load()
   for (let i = 0; i < clms.length; i++) {
     const clm = clms[i]
-    if (event.params.paused) clm.lifecycle = CLM_LIFECYCLE_PAUSED
-    if (!event.params.paused) clm.lifecycle = CLM_LIFECYCLE_RUNNING
+    if (event.params.paused) clm.lifecycle = PRODUCT_LIFECYCLE_PAUSED
+    if (!event.params.paused) clm.lifecycle = PRODUCT_LIFECYCLE_RUNNING
     clm.save()
   }
 }
@@ -182,14 +179,14 @@ export function handleClStrategyGlobalPause(event: ClStrategyFactoryGlobalPauseE
 export function handleClStrategyPaused(event: ClStrategyPausedEvent): void {
   const strategy = getClStrategy(event.address)
   const clm = getCLM(strategy.clm)
-  clm.lifecycle = CLM_LIFECYCLE_PAUSED
+  clm.lifecycle = PRODUCT_LIFECYCLE_PAUSED
   clm.save()
 }
 
 export function handleClStrategyUnpaused(event: ClStrategyUnpausedEvent): void {
   const strategy = getClStrategy(event.address)
   const clm = getCLM(strategy.clm)
-  clm.lifecycle = CLM_LIFECYCLE_RUNNING
+  clm.lifecycle = PRODUCT_LIFECYCLE_RUNNING
   clm.save()
 }
 
