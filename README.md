@@ -109,6 +109,30 @@ yarn test:lint # run prettier linter
 
 # Dependecies on the underlying contracts
 
+## Beefy Classic contracts
+
+```text
+- classicVaultFactory: ProxyCreated(address)
+- classicVault: strategy()
+- classicVault: want()
+- classicVault: balance()
+- classicVault: totalSupply()
+- classicVault: Transfer(indexed address,indexed address,uint256)
+- classicVault: Initialized(uint8)
+- classicVault: UpgradeStrat(address)
+- classicVault: Transfer(indexed address,indexed address,uint256)
+
+- classicStrategy: Transfer(indexed address,indexed address,uint256)
+- classicStrategy.vault()
+- classicStrategy: Initialized(uint8)
+- classicStrategy: Paused(address)
+- classicStrategy: Unpaused(address)
+- classicStrategy: StratHarvest(indexed address,uint256,uint256)
+
+```
+
+## Beefy CLM contracts
+
 ```text
 - clmManagerFactory: ProxyCreated(address)
 - clmManager.balances()
