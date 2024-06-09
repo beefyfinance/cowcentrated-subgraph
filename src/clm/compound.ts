@@ -4,19 +4,19 @@ import {
   HarvestRewards as CLMHarvestRewardsEvent,
   ClaimedFees as CLMClaimedFeesEvent,
   ClaimedRewards as CLMClaimedRewardsEvent,
-} from "../../generated/templates/CLStrategy/CLStrategy"
-import { getCLStrategy, getCLM, isClmInitialized } from "./entity/clm"
+} from "../../generated/templates/ClStrategy/ClStrategy"
+import { getClStrategy, getCLM, isClmInitialized } from "./entity/clm"
 import { getTransaction } from "../common/entity/transaction"
-import { CLHarvestEvent, CLManagerCollectionEvent } from "../../generated/schema"
+import { ClHarvestEvent, ClManagerCollectionEvent } from "../../generated/schema"
 import { ZERO_BI } from "../common/utils/decimal"
 import { getEventIdentifier } from "../common/utils/event"
 import { updateCLMDataAndSnapshots, fetchCLMData } from "./utils/clm-data"
 
-export function handleCLStrategyHarvestAmounts(event: CLMHarvestEvent): void {
+export function handleClStrategyHarvestAmounts(event: CLMHarvestEvent): void {
   handleClmStrategyHarvest(event, event.params.fee0, event.params.fee1, ZERO_BI)
 }
 
-export function handleCLStrategyHarvestRewards(event: CLMHarvestRewardsEvent): void {
+export function handleClStrategyHarvestRewards(event: CLMHarvestRewardsEvent): void {
   handleClmStrategyHarvest(event, ZERO_BI, ZERO_BI, event.params.fees)
 }
 
@@ -26,7 +26,7 @@ function handleClmStrategyHarvest(
   compoundedAmount1: BigInt,
   collectedRewards: BigInt,
 ): void {
-  let strategy = getCLStrategy(event.address)
+  let strategy = getClStrategy(event.address)
   let clm = getCLM(strategy.clm)
   if (!isClmInitialized(clm)) {
     return
@@ -41,7 +41,7 @@ function handleClmStrategyHarvest(
 
   ///////
   // store the raw harvest event
-  let harvest = new CLHarvestEvent(getEventIdentifier(event))
+  let harvest = new ClHarvestEvent(getEventIdentifier(event))
   harvest.clm = clm.id
   harvest.strategy = strategy.id
   harvest.createdWith = tx.id
@@ -60,7 +60,7 @@ function handleClmStrategyHarvest(
   harvest.save()
 }
 
-export function handleCLStrategyClaimedFees(event: CLMClaimedFeesEvent): void {
+export function handleClStrategyClaimedFees(event: CLMClaimedFeesEvent): void {
   handleClmStrategyFees(
     event,
     event.params.feeAlt0.plus(event.params.feeMain0),
@@ -68,7 +68,7 @@ export function handleCLStrategyClaimedFees(event: CLMClaimedFeesEvent): void {
     ZERO_BI,
   )
 }
-export function handleCLStrategyClaimedRewards(event: CLMClaimedRewardsEvent): void {
+export function handleClStrategyClaimedRewards(event: CLMClaimedRewardsEvent): void {
   handleClmStrategyFees(event, ZERO_BI, ZERO_BI, event.params.fees)
 }
 
@@ -78,7 +78,7 @@ function handleClmStrategyFees(
   collectedAmount1: BigInt,
   collectedRewardAmount: BigInt,
 ): void {
-  let strategy = getCLStrategy(event.address)
+  let strategy = getClStrategy(event.address)
   let clm = getCLM(strategy.clm)
   if (!isClmInitialized(clm)) {
     return
@@ -93,7 +93,7 @@ function handleClmStrategyFees(
 
   ///////
   // store the raw collect event
-  let collect = new CLManagerCollectionEvent(getEventIdentifier(event))
+  let collect = new ClManagerCollectionEvent(getEventIdentifier(event))
   collect.clm = clm.id
   collect.strategy = strategy.id
   collect.createdWith = tx.id

@@ -7,11 +7,11 @@ indexerHints:
   prune: auto # we have our own snapshotting mechanism
 dataSources:
   - kind: ethereum/contract
-    name: CLManagerFactory
+    name: ClManagerFactory
     network: {{network}}
     source:
       address: "{{clManagerFactoryAddress}}"
-      abi: CLManagerFactory
+      abi: ClManagerFactory
       startBlock: {{clManagerFactoryStartBlock}}
     mapping:
       kind: ethereum/events
@@ -19,29 +19,29 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/clm/mapping/manager-factory.ts
       entities: &entities
-        - CLHarvestEvent
+        - ClHarvestEvent
         - CLM
-        - CLMPosition
-        - CLMPositionInteraction
-        - CLMSnapshot
-        - CLManager
-        - CLManagerCollectionEvent
-        - CLRewardPool
-        - CLStrategy
+        - ClmPosition
+        - ClmPositionInteraction
+        - ClmSnapshot
+        - ClManager
+        - ClManagerCollectionEvent
+        - ClRewardPool
+        - ClStrategy
         - ClockTick
         - Investor
         - Protocol
         - Token
         - Transaction
       abis: &abis
-        - name: CLManagerFactory
-          file: ./abis/beefy/clm/CLManagerFactory.json
-        - name: CLManager
-          file: ./abis/beefy/clm/CLManager.json
-        - name: CLStrategyFactory
-          file: ./abis/beefy/clm/CLStrategyFactory.json
-        - name: CLStrategy
-          file: ./abis/beefy/clm/CLStrategy.json
+        - name: ClManagerFactory
+          file: ./abis/beefy/clm/ClManagerFactory.json
+        - name: ClManager
+          file: ./abis/beefy/clm/ClManager.json
+        - name: ClStrategyFactory
+          file: ./abis/beefy/clm/ClStrategyFactory.json
+        - name: ClStrategy
+          file: ./abis/beefy/clm/ClStrategy.json
         - name: RewardPoolFactory
           file: ./abis/beefy/clm/RewardPoolFactory.json
         - name: RewardPool
@@ -52,14 +52,14 @@ dataSources:
           file: ./abis/multicall/Multicall3.json
       eventHandlers:
         - event: ProxyCreated(address)
-          handler: handleCLManagerCreated
+          handler: handleClManagerCreated
           
   - kind: ethereum/contract
-    name: CLStrategyFactory
+    name: ClStrategyFactory
     network: {{network}}
     source:
       address: "{{clStrategyFactoryAddress}}"
-      abi: CLStrategyFactory
+      abi: ClStrategyFactory
       startBlock: {{clStrategyFactoryStartBlock}}
     mapping:
       kind: ethereum/events
@@ -70,7 +70,7 @@ dataSources:
       abis: *abis
       eventHandlers:
         - event: GlobalPause(bool)
-          handler: handleCLStrategyGlobalPause
+          handler: handleClStrategyGlobalPause
           
   - kind: ethereum/contract
     name: RewardPoolFactory
@@ -95,7 +95,7 @@ dataSources:
     network: {{network}}
     source:
       address: "{{clManagerFactoryAddress}}"
-      abi: CLManagerFactory
+      abi: ClManagerFactory
       startBlock: {{clManagerFactoryStartBlock}}
     mapping:
       kind: ethereum/events
@@ -111,11 +111,11 @@ dataSources:
             every: {{clockTickBlocks}}
   
 templates:
-  - name: CLManager
+  - name: ClManager
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: CLManager
+      abi: ClManager
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
@@ -125,15 +125,15 @@ templates:
       abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
-          handler: handleCLManagerInitialized
+          handler: handleClManagerInitialized
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleCLManagerTransfer
+          handler: handleClManagerTransfer
 
-  - name: CLStrategy
+  - name: ClStrategy
     kind: ethereum/contract
     network: {{network}}
     source:
-      abi: CLStrategy
+      abi: ClStrategy
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
@@ -143,22 +143,22 @@ templates:
       abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
-          handler: handleCLStrategyInitialized
+          handler: handleClStrategyInitialized
         - event: Paused(address)
-          handler: handleCLStrategyPaused
+          handler: handleClStrategyPaused
         - event: Unpaused(address)
-          handler: handleCLStrategyUnpaused
+          handler: handleClStrategyUnpaused
         - event: Harvest(uint256,uint256)
-          handler: handleCLStrategyHarvestAmounts
+          handler: handleClStrategyHarvestAmounts
         - event: HarvestRewards(uint256)
-          handler: handleCLStrategyHarvestRewards
+          handler: handleClStrategyHarvestRewards
         - event: ClaimedFees(uint256,uint256,uint256,uint256)
-          handler: handleCLStrategyClaimedFees
+          handler: handleClStrategyClaimedFees
         - event: ClaimedRewards(uint256)
-          handler: handleCLStrategyClaimedRewards
+          handler: handleClStrategyClaimedRewards
 
   
-  - name: CLRewardPool
+  - name: ClRewardPool
     kind: ethereum/contract
     network: {{network}}
     source:

@@ -5,7 +5,7 @@ import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, PRICE_STORE_D
 import { Multicall3Params, multicall } from "../../common/utils/multicall"
 import { getToken, isNullToken } from "../../common/entity/token"
 import { CLM_SNAPSHOT_PERIODS } from "./snapshot"
-import { getCLMSnapshot } from "../entity/clm"
+import { getClmSnapshot } from "../entity/clm"
 
 export function fetchCLMData(clm: CLM): CLMData {
   const managerAddress = clm.id
@@ -155,7 +155,7 @@ export function updateCLMDataAndSnapshots(clm: CLM, clmData: CLMData, nowTimesta
   clm.save()
   for (let i = 0; i < CLM_SNAPSHOT_PERIODS.length; i++) {
     const period = CLM_SNAPSHOT_PERIODS[i]
-    const snapshot = getCLMSnapshot(clm, nowTimestamp, period)
+    const snapshot = getClmSnapshot(clm, nowTimestamp, period)
     snapshot.managerTotalSupply = clm.managerTotalSupply
     snapshot.rewardPoolTotalSupply = clm.rewardPoolTotalSupply
     snapshot.token0ToNativePrice = clm.token0ToNativePrice

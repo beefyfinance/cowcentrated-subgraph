@@ -1,5 +1,5 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
-import { CLRewardPool, CLStrategy, CLManager, CLMSnapshot, CLM } from "../../../generated/schema"
+import { ClRewardPool, ClStrategy, ClManager, ClmSnapshot, CLM } from "../../../generated/schema"
 import { ADDRESS_ZERO } from "../../common/utils/address"
 import { ZERO_BI } from "../../common/utils/decimal"
 import { getIntervalFromTimestamp } from "../../common/utils/time"
@@ -53,10 +53,10 @@ export function getCLM(managerAddress: Bytes): CLM {
   return clm
 }
 
-export function getCLManager(managerAddress: Bytes): CLManager {
-  let manager = CLManager.load(managerAddress)
+export function getClManager(managerAddress: Bytes): ClManager {
+  let manager = ClManager.load(managerAddress)
   if (!manager) {
-    manager = new CLManager(managerAddress)
+    manager = new ClManager(managerAddress)
     manager.clm = managerAddress
     manager.createdWith = ADDRESS_ZERO
     manager.isInitialized = false
@@ -64,10 +64,10 @@ export function getCLManager(managerAddress: Bytes): CLManager {
   return manager
 }
 
-export function getCLStrategy(strategyAddress: Bytes): CLStrategy {
-  let strategy = CLStrategy.load(strategyAddress)
+export function getClStrategy(strategyAddress: Bytes): ClStrategy {
+  let strategy = ClStrategy.load(strategyAddress)
   if (!strategy) {
-    strategy = new CLStrategy(strategyAddress)
+    strategy = new ClStrategy(strategyAddress)
     strategy.clm = ADDRESS_ZERO
     strategy.manager = ADDRESS_ZERO
     strategy.createdWith = ADDRESS_ZERO
@@ -76,10 +76,10 @@ export function getCLStrategy(strategyAddress: Bytes): CLStrategy {
   return strategy
 }
 
-export function getCLRewardPool(rewardPoolAddress: Bytes): CLRewardPool {
-  let rewardPool = CLRewardPool.load(rewardPoolAddress)
+export function getClRewardPool(rewardPoolAddress: Bytes): ClRewardPool {
+  let rewardPool = ClRewardPool.load(rewardPoolAddress)
   if (!rewardPool) {
-    rewardPool = new CLRewardPool(rewardPoolAddress)
+    rewardPool = new ClRewardPool(rewardPoolAddress)
     rewardPool.clm = ADDRESS_ZERO
     rewardPool.manager = ADDRESS_ZERO
     rewardPool.createdWith = ADDRESS_ZERO
@@ -88,12 +88,12 @@ export function getCLRewardPool(rewardPoolAddress: Bytes): CLRewardPool {
   return rewardPool
 }
 
-export function getCLMSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): CLMSnapshot {
+export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): ClmSnapshot {
   const interval = getIntervalFromTimestamp(timestamp, period)
   const snapshotId = clm.id.concat(getSnapshotIdSuffix(period, interval))
-  let snapshot = CLMSnapshot.load(snapshotId)
+  let snapshot = ClmSnapshot.load(snapshotId)
   if (!snapshot) {
-    snapshot = new CLMSnapshot(snapshotId)
+    snapshot = new ClmSnapshot(snapshotId)
     snapshot.clm = clm.id
 
     snapshot.period = period
@@ -119,7 +119,7 @@ export function getCLMSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): CLM
 
     // copy non-reseting values from the previous snapshot to the new snapshot
     const previousSnapshotId = clm.id.concat(getPreviousSnapshotIdSuffix(period, interval))
-    const previousSnapshot = CLMSnapshot.load(previousSnapshotId)
+    const previousSnapshot = ClmSnapshot.load(previousSnapshotId)
     if (previousSnapshot) {
       snapshot.managerTotalSupply = previousSnapshot.managerTotalSupply
       snapshot.rewardPoolTotalSupply = previousSnapshot.rewardPoolTotalSupply

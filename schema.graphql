@@ -84,7 +84,7 @@ type Protocol @entity {
 ##### CLM Contracts ###
 #######################
 
-enum CLMLifecycle {
+enum ClmLifecycle {
   "The CLM is in the process of being initialized"
   INITIALIZING
   "The CLM is able to accept deposits and earn yield"
@@ -100,16 +100,16 @@ type CLM @entity {
   "The protocol the CLM belongs to"
   protocol: Protocol!
   "The manager of the CLM. The manager is responsible for accounting of a CLM."
-  manager: CLManager!
+  manager: ClManager!
   "The strategy of the CLM. The strategy is responsible for managing the CLM's assets."
-  strategy: CLStrategy!
-  "The reward pool of the CLM. The reward pool is where the CLM's earnings are sent if the CLManager does not automatically compound."
-  rewardPool: CLRewardPool
+  strategy: ClStrategy!
+  "The reward pool of the CLM. The reward pool is where the CLM's earnings are sent if the ClManager does not automatically compound."
+  rewardPool: ClRewardPool
 
   "The current lifecycle status of the CLM"
-  lifecycle: CLMLifecycle!
+  lifecycle: ClmLifecycle!
 
-  "The manager token data of the CLM. The CLManager is also an ERC20 token. This tokens represents the shares of the manager."
+  "The manager token data of the CLM. The ClManager is also an ERC20 token. This tokens represents the shares of the manager."
   managerToken: Token!
   "The reward pool token of the CLM. This is where the CLM's earnings are sent if the CLM does not automatically compound."
   rewardPoolToken: Token!
@@ -158,19 +158,19 @@ type CLM @entity {
   underlyingAltAmount1: BigInt!
 
   "All positions in the CLM"
-  positions: [CLMPosition!]! @derivedFrom(field: "clm")
+  positions: [ClmPosition!]! @derivedFrom(field: "clm")
 
   "All collections events by the CLM"
-  collections: [CLManagerCollectionEvent!]! @derivedFrom(field: "clm")
+  collections: [ClManagerCollectionEvent!]! @derivedFrom(field: "clm")
 
   "All harvest events of the CLM"
-  harvests: [CLHarvestEvent!]! @derivedFrom(field: "clm")
+  harvests: [ClHarvestEvent!]! @derivedFrom(field: "clm")
 
   "Snapshot of the CLM's stats"
-  snapshots: [CLMSnapshot!]! @derivedFrom(field: "clm")
+  snapshots: [ClmSnapshot!]! @derivedFrom(field: "clm")
 
   "All CLM interactions for this CLM"
-  interactions: [CLMPositionInteraction!]! @derivedFrom(field: "clm")
+  interactions: [ClmPositionInteraction!]! @derivedFrom(field: "clm")
 }
 
 """
@@ -179,7 +179,7 @@ Any event that happens in the CLM is recorded in a snapshot.
 We keep multiple snapshots time frames as noted by the "period" field.
 Snapshots include: daily, weekly, yearly.
 """
-type CLMSnapshot @entity {
+type ClmSnapshot @entity {
   "CLM.id + period + timestamp"
   id: Bytes!
 
@@ -235,9 +235,9 @@ type CLMSnapshot @entity {
 }
 
 """
-A CLManager handles the accounting of a CLM.
+A ClManager handles the accounting of a CLM.
 """
-type CLManager @entity {
+type ClManager @entity {
   "The CL Manager address"
   id: Bytes!
   "The CLM this manager belongs to"
@@ -252,13 +252,13 @@ type CLManager @entity {
 A strategy is a contract that manages the assets of a CLM.
 This entity is mostly used to start tracking the events and link them to the CLM on new event
 """
-type CLStrategy @entity {
+type ClStrategy @entity {
   "The strategy address"
   id: Bytes!
   "The CLM the strategy is managing"
   clm: CLM!
   "The manager of the strategy"
-  manager: CLManager!
+  manager: ClManager!
   "The transaction that created the strategy"
   createdWith: Transaction!
   "Technical field to remember if the strategy was already initialized"
@@ -266,16 +266,16 @@ type CLStrategy @entity {
 }
 
 """
-Some CLManager do not automatically compound their earnings. Those earnings are sent to the reward pool instead.
+Some ClManager do not automatically compound their earnings. Those earnings are sent to the reward pool instead.
 This entity is mostly used to start tracking the events and link them to the CLM on new event
 """
-type CLRewardPool @entity {
+type ClRewardPool @entity {
   "The strategy address"
   id: Bytes!
   "The CLM the reward pool is for"
   clm: CLM!
   "The manager that this reward pool is linked to"
-  manager: CLManager!
+  manager: ClManager!
   "The transaction that created the reward pool"
   createdWith: Transaction!
   "Technical field to remember if the strategy was already initialized"
@@ -283,16 +283,16 @@ type CLRewardPool @entity {
 }
 
 """
-CLManagers are harvested by the strategy. This event is emitted when the strategy harvests the manager.
+ClManagers are harvested by the strategy. This event is emitted when the strategy harvests the manager.
 """
-type CLHarvestEvent @entity(immutable: true) {
+type ClHarvestEvent @entity(immutable: true) {
   "transaction hash + log index"
   id: Bytes!
 
   "The CLM the harvest event is for"
   clm: CLM!
   "The strategy that harvested the Manager"
-  strategy: CLStrategy!
+  strategy: ClStrategy!
 
   "The transaction that created the harvest event"
   createdWith: Transaction!
@@ -330,14 +330,14 @@ type CLHarvestEvent @entity(immutable: true) {
 """
 This event is emitted when we collect earned trading fees from the underlying pool.
 """
-type CLManagerCollectionEvent @entity(immutable: true) {
+type ClManagerCollectionEvent @entity(immutable: true) {
   "transaction hash + log index"
   id: Bytes!
 
   "The CLM the collect event is for"
   clm: CLM!
   "The strategy that collect for the Manager"
-  strategy: CLStrategy!
+  strategy: ClStrategy!
 
   "The transaction that created the collect event"
   createdWith: Transaction!
@@ -379,15 +379,15 @@ type Investor @entity {
   "The investor address"
   id: Bytes!
   "All investor beefy positions"
-  positions: [CLMPosition!]! @derivedFrom(field: "investor")
+  positions: [ClmPosition!]! @derivedFrom(field: "investor")
   "All investor interactions"
-  interactions: [CLMPositionInteraction!]! @derivedFrom(field: "investor")
+  interactions: [ClmPositionInteraction!]! @derivedFrom(field: "investor")
 }
 
 """
 An investor position is a record of an investor's position in a CLM.
 """
-type CLMPosition @entity {
+type ClmPosition @entity {
   "CLM.id + investor address"
   id: Bytes!
 
@@ -404,10 +404,10 @@ type CLMPosition @entity {
   rewardPoolBalance: BigInt!
 
   "All investor position interactions"
-  interactions: [CLMPositionInteraction!]! @derivedFrom(field: "investorPosition")
+  interactions: [ClmPositionInteraction!]! @derivedFrom(field: "investorPosition")
 }
 
-enum CLMPositionInteractionType {
+enum ClmPositionInteractionType {
   "The investor deposited funds into the CLM"
   MANAGER_DEPOSIT
   "The investor withdrew funds from the CLM"
@@ -420,7 +420,7 @@ enum CLMPositionInteractionType {
   REWARD_POOL_CLAIM
 }
 
-type CLMPositionInteraction @entity(immutable: true) {
+type ClmPositionInteraction @entity(immutable: true) {
   "transaction hash + event log index"
   id: Bytes!
 
@@ -429,7 +429,7 @@ type CLMPositionInteraction @entity(immutable: true) {
   "The investor that has a position in the CLM"
   investor: Investor!
   "The investor position the interaction is for"
-  investorPosition: CLMPosition!
+  investorPosition: ClmPosition!
 
   "The transaction that created the investor position interaction"
   createdWith: Transaction!
@@ -440,7 +440,7 @@ type CLMPositionInteraction @entity(immutable: true) {
   timestamp: BigInt!
 
   "The type of the interaction"
-  type: CLMPositionInteractionType!
+  type: ClmPositionInteractionType!
 
   "The amount of manager shares the investor holds at the time of the interaction"
   managerBalance: BigInt!

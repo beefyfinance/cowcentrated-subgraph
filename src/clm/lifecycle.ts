@@ -1,42 +1,42 @@
 import { Address } from "@graphprotocol/graph-ts"
-import { CLM, CLManager } from "../../generated/schema"
+import { CLM } from "../../generated/schema"
 import {
-  CLManager as CLManagerContract,
-  Initialized as CLManagerInitialized,
-} from "../../generated/templates/CLManager/CLManager"
+  ClManager as ClManagerContract,
+  Initialized as ClManagerInitialized,
+} from "../../generated/templates/ClManager/ClManager"
 import {
-  getCLRewardPool,
-  getCLStrategy,
+  getClRewardPool,
+  getClStrategy,
   getCLM,
-  getCLManager,
+  getClManager,
   CLM_LIFECYCLE_RUNNING,
   CLM_LIFECYCLE_PAUSED,
 } from "./entity/clm"
 import { log } from "@graphprotocol/graph-ts"
 import {
-  CLStrategy as CLStrategyTemplate,
-  CLManager as CLManagerTemplate,
-  CLRewardPool as CLRewardPoolTemplate,
+  ClStrategy as ClStrategyTemplate,
+  ClManager as ClManagerTemplate,
+  ClRewardPool as ClRewardPoolTemplate,
 } from "../../generated/templates"
 import { ADDRESS_ZERO } from "../common/utils/address"
 import {
-  Initialized as CLStrategyInitializedEvent,
-  CLStrategy as CLStrategyContract,
-  Paused as CLStrategyPausedEvent,
-  Unpaused as CLStrategyUnpausedEvent,
-} from "../../generated/templates/CLStrategy/CLStrategy"
-import { ProxyCreated as CLMManagerCreatedEvent } from "../../generated/CLManagerFactory/CLManagerFactory"
-import { GlobalPause as CLStrategyFactoryGlobalPauseEvent } from "../../generated/CLStrategyFactory/CLStrategyFactory"
+  Initialized as ClStrategyInitializedEvent,
+  ClStrategy as ClStrategyContract,
+  Paused as ClStrategyPausedEvent,
+  Unpaused as ClStrategyUnpausedEvent,
+} from "../../generated/templates/ClStrategy/ClStrategy"
+import { ProxyCreated as CLMManagerCreatedEvent } from "../../generated/ClManagerFactory/ClManagerFactory"
+import { GlobalPause as ClStrategyFactoryGlobalPauseEvent } from "../../generated/ClStrategyFactory/ClStrategyFactory"
 import { ProxyCreated as RewardPoolCreatedEvent } from "../../generated/RewardPoolFactory/RewardPoolFactory"
 import {
   Initialized as RewardPoolInitialized,
-  RewardPool as CLRewardPoolContract,
+  RewardPool as ClRewardPoolContract,
 } from "../../generated/RewardPoolFactory/RewardPool"
 import { getTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { getBeefyCLProtocol } from "../common/entity/protocol"
 
-export function handleCLManagerCreated(event: CLMManagerCreatedEvent): void {
+export function handleClManagerCreated(event: CLMManagerCreatedEvent): void {
   const tx = getTransaction(event.block, event.transaction)
   tx.save()
 
@@ -44,28 +44,28 @@ export function handleCLManagerCreated(event: CLMManagerCreatedEvent): void {
   const clm = getCLM(managerAddress)
   clm.save()
 
-  const manager = getCLManager(managerAddress)
+  const manager = getClManager(managerAddress)
   manager.clm = clm.id
   manager.createdWith = tx.id
   manager.isInitialized = false
   manager.save()
 
   // start indexing the new manager
-  CLManagerTemplate.create(managerAddress)
+  ClManagerTemplate.create(managerAddress)
 
-  log.info("handleCLManagerCreated: CLM was {} created on block {}", [
+  log.info("handleClManagerCreated: CLM was {} created on block {}", [
     clm.id.toHexString(),
     event.block.number.toString(),
   ])
 }
 
-export function handleCLManagerInitialized(event: CLManagerInitialized): void {
+export function handleClManagerInitialized(event: ClManagerInitialized): void {
   const managerAddress = event.address
 
-  const managerContract = CLManagerContract.bind(managerAddress)
+  const managerContract = ClManagerContract.bind(managerAddress)
   const strategyAddress = managerContract.strategy()
 
-  let manager = getCLManager(managerAddress)
+  let manager = getClManager(managerAddress)
   manager.isInitialized = true
   manager.save()
 
@@ -74,18 +74,18 @@ export function handleCLManagerInitialized(event: CLManagerInitialized): void {
   clm.save() // needs to be saved before we can use it in the strategy events
 
   // we start watching strategy events
-  CLStrategyTemplate.create(strategyAddress)
+  ClStrategyTemplate.create(strategyAddress)
 
-  log.info("handleCLManagerInitialized: CLManager {} initialized with strategy {} on block {}", [
+  log.info("handleClManagerInitialized: ClManager {} initialized with strategy {} on block {}", [
     clm.id.toHexString(),
     clm.strategy.toHexString(),
     event.block.number.toString(),
   ])
 
-  const strategy = getCLStrategy(strategyAddress)
+  const strategy = getClStrategy(strategyAddress)
   // the strategy may or may not be initialized
   // this is a test to know if that is the case
-  const strategyContract = CLStrategyContract.bind(strategyAddress)
+  const strategyContract = ClStrategyContract.bind(strategyAddress)
   const strategyPool = strategyContract.pool()
   strategy.isInitialized = !strategyPool.equals(ADDRESS_ZERO)
 
@@ -94,20 +94,20 @@ export function handleCLManagerInitialized(event: CLManagerInitialized): void {
   }
 }
 
-export function handleCLStrategyInitialized(event: CLStrategyInitializedEvent): void {
+export function handleClStrategyInitialized(event: ClStrategyInitializedEvent): void {
   const strategyAddress = event.address
 
-  const strategyContract = CLStrategyContract.bind(strategyAddress)
+  const strategyContract = ClStrategyContract.bind(strategyAddress)
   const managerAddress = strategyContract.vault()
 
   const clm = getCLM(managerAddress)
 
-  const strategy = getCLStrategy(strategyAddress)
+  const strategy = getClStrategy(strategyAddress)
   strategy.manager = managerAddress
   strategy.isInitialized = true
   strategy.save()
 
-  const manager = getCLManager(managerAddress)
+  const manager = getClManager(managerAddress)
 
   log.info("handleStrategyInitialized: Strategy {} initialized for CLM {} on block {}", [
     strategy.id.toHexString(),
@@ -126,7 +126,7 @@ export function handleCLStrategyInitialized(event: CLStrategyInitializedEvent): 
  */
 function fetchInitialCLMDataAndSave(clm: CLM): void {
   const managerAddress = Address.fromBytes(clm.manager)
-  const managerContract = CLManagerContract.bind(managerAddress)
+  const managerContract = ClManagerContract.bind(managerAddress)
   const wants = managerContract.wants()
 
   const underlyingToken0Address = wants.value0
@@ -138,7 +138,7 @@ function fetchInitialCLMDataAndSave(clm: CLM): void {
 
   // maaaaybe we have a reward token
   const strategyAddress = Address.fromBytes(clm.strategy)
-  const strategyContract = CLStrategyContract.bind(strategyAddress)
+  const strategyContract = ClStrategyContract.bind(strategyAddress)
   const outputTokenRes = strategyContract.try_output()
   if (!outputTokenRes.reverted) {
     const rewardToken = fetchAndSaveTokenData(outputTokenRes.value)
@@ -149,6 +149,7 @@ function fetchInitialCLMDataAndSave(clm: CLM): void {
   clm.underlyingToken0 = underlyingToken0.id
   clm.underlyingToken1 = underlyingToken1.id
   clm.lifecycle = CLM_LIFECYCLE_RUNNING
+  clm.save()
 
   log.info("fetchInitialCLMDataAndSave: CLM {} now running with strategy {}.", [
     clm.id.toHexString(),
@@ -156,7 +157,7 @@ function fetchInitialCLMDataAndSave(clm: CLM): void {
   ])
 }
 
-export function handleCLStrategyGlobalPause(event: CLStrategyFactoryGlobalPauseEvent): void {
+export function handleClStrategyGlobalPause(event: ClStrategyFactoryGlobalPauseEvent): void {
   const protocol = getBeefyCLProtocol()
   const clms = protocol.clms.load()
   for (let i = 0; i < clms.length; i++) {
@@ -167,15 +168,15 @@ export function handleCLStrategyGlobalPause(event: CLStrategyFactoryGlobalPauseE
   }
 }
 
-export function handleCLStrategyPaused(event: CLStrategyPausedEvent): void {
-  const strategy = getCLStrategy(event.address)
+export function handleClStrategyPaused(event: ClStrategyPausedEvent): void {
+  const strategy = getClStrategy(event.address)
   const clm = getCLM(strategy.clm)
   clm.lifecycle = CLM_LIFECYCLE_PAUSED
   clm.save()
 }
 
-export function handleCLStrategyUnpaused(event: CLStrategyUnpausedEvent): void {
-  const strategy = getCLStrategy(event.address)
+export function handleClStrategyUnpaused(event: ClStrategyUnpausedEvent): void {
+  const strategy = getClStrategy(event.address)
   const clm = getCLM(strategy.clm)
   clm.lifecycle = CLM_LIFECYCLE_RUNNING
   clm.save()
@@ -184,23 +185,23 @@ export function handleCLStrategyUnpaused(event: CLStrategyUnpausedEvent): void {
 export function handleRewardPoolCreated(event: RewardPoolCreatedEvent): void {
   const rewardPoolAddress = event.params.proxy
 
-  const rewardPool = getCLRewardPool(rewardPoolAddress)
+  const rewardPool = getClRewardPool(rewardPoolAddress)
   rewardPool.isInitialized = false
   rewardPool.save()
 
   // start indexing the new reward pool
-  CLRewardPoolTemplate.create(rewardPoolAddress)
+  ClRewardPoolTemplate.create(rewardPoolAddress)
 }
 
 export function handleRewardPoolInitialized(event: RewardPoolInitialized): void {
   const rewardPoolAddress = event.address
-  const rewardPoolContract = CLRewardPoolContract.bind(rewardPoolAddress)
+  const rewardPoolContract = ClRewardPoolContract.bind(rewardPoolAddress)
   const managerAddress = rewardPoolContract.stakedToken()
 
   const tx = getTransaction(event.block, event.transaction)
   tx.save()
 
-  const rewardPool = getCLRewardPool(rewardPoolAddress)
+  const rewardPool = getClRewardPool(rewardPoolAddress)
   rewardPool.isInitialized = true
   rewardPool.clm = managerAddress
   rewardPool.manager = managerAddress

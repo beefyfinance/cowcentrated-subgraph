@@ -1,17 +1,17 @@
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
-import { Transfer as CLManagerTransferEvent } from "../../generated/templates/CLManager/CLManager"
-import { Transfer as RewardPoolTransferEvent } from "../../generated/templates/CLRewardPool/RewardPool"
-import { getCLRewardPool, getCLM, isClmInitialized } from "./entity/clm"
+import { Transfer as ClManagerTransferEvent } from "../../generated/templates/ClManager/ClManager"
+import { Transfer as RewardPoolTransferEvent } from "../../generated/templates/ClRewardPool/RewardPool"
+import { getClRewardPool, getCLM, isClmInitialized } from "./entity/clm"
 import { getTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
-import { getCLMPosition } from "./entity/position"
-import { CLM, CLMPositionInteraction } from "../../generated/schema"
+import { getClmPosition } from "./entity/position"
+import { CLM, ClmPositionInteraction } from "../../generated/schema"
 import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
 import { ZERO_BI } from "../common/utils/decimal"
 import { fetchCLMData, updateCLMDataAndSnapshots } from "./utils/clm-data"
 import { getEventIdentifier } from "../common/utils/event"
 
-export function handleCLManagerTransfer(event: CLManagerTransferEvent): void {
+export function handleClManagerTransfer(event: ClManagerTransferEvent): void {
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
@@ -57,7 +57,7 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
     return
   }
 
-  const rewardPool = getCLRewardPool(event.address)
+  const rewardPool = getClRewardPool(event.address)
   const clm = getCLM(rewardPool.clm)
   const managerAddress = clm.manager
   const rewardPoolAddress = clm.rewardPoolToken
@@ -94,7 +94,7 @@ function updateUserPosition(
   }
 
   const investor = getInvestor(investorAddress)
-  const position = getCLMPosition(clm, investor)
+  const position = getClmPosition(clm, investor)
 
   let tx = getTransaction(event.block, event.transaction)
   tx.save()
@@ -129,7 +129,7 @@ function updateUserPosition(
   } else if (isRewardPoolTransfer) {
     interactionId = interactionId.concat(Bytes.fromI32(1))
   }
-  const interaction = new CLMPositionInteraction(interactionId)
+  const interaction = new ClmPositionInteraction(interactionId)
   interaction.clm = clm.id
   interaction.investor = investor.id
   interaction.investorPosition = position.id
