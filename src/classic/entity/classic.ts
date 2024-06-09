@@ -1,11 +1,5 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
-import {
-  Classic,
-  ClassicVault,
-  ClassicStrategy,
-  ClassicBoost,
-  ClassicSnapshot,
-} from "../../../generated/schema"
+import { Classic, ClassicVault, ClassicStrategy, ClassicBoost, ClassicSnapshot } from "../../../generated/schema"
 import { ADDRESS_ZERO } from "../../common/utils/address"
 import { ZERO_BI } from "../../common/utils/decimal"
 import { getIntervalFromTimestamp } from "../../common/utils/time"

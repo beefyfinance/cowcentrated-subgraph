@@ -35,11 +35,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
     PRICE_STORE_DECIMALS_USD,
   )
 
-  return new ClassicData(
-    vaultSharesTotalSupply,
-    underlyingAmount,
-    nativeToUSDPrice,
-  )
+  return new ClassicData(vaultSharesTotalSupply, underlyingAmount, nativeToUSDPrice)
 }
 
 class ClassicData {
@@ -50,7 +46,11 @@ class ClassicData {
   ) {}
 }
 
-export function updateClassicDataAndSnapshots(classic: Classic, classicData: ClassicData, nowTimestamp: BigInt): Classic {
+export function updateClassicDataAndSnapshots(
+  classic: Classic,
+  classicData: ClassicData,
+  nowTimestamp: BigInt,
+): Classic {
   // update CLM data
   classic.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
   classic.nativeToUSDPrice = classicData.nativeToUSDPrice

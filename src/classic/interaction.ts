@@ -11,7 +11,6 @@ import { getClassicPosition } from "./entity/position"
 import { fetchClassicData, updateClassicDataAndSnapshots } from "./utils/classic-data"
 
 export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
-
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
@@ -25,17 +24,11 @@ export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
   const classic = getClassic(event.address)
 
   // don't store transfers to/from the share token mint address
-  if (
-    !event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) &&
-    !event.params.from.equals(BURN_ADDRESS)
-  ) {
+  if (!event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.from.equals(BURN_ADDRESS)) {
     updateUserPosition(classic, event, event.params.from, event.params.value.neg(), ZERO_BI)
   }
 
-  if (
-    !event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) &&
-    !event.params.to.equals(BURN_ADDRESS) 
-  ) {
+  if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.to.equals(BURN_ADDRESS)) {
     updateUserPosition(classic, event, event.params.to, event.params.value, ZERO_BI)
   }
 }
