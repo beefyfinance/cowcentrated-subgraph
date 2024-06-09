@@ -144,10 +144,10 @@ dataSources:
           file: ./abis/beefy/classic/ClassicVault.json
         - name: ClassicStrategy
           file: ./abis/beefy/classic/ClassicStrategy.json
-        #- name: ClassicBoostFactory
-        #  file: ./abis/beefy/classic/ClassicBoostFactory.json
-        #- name: ClassicBoost
-        #  file: ./abis/beefy/classic/ClassicBoost.json
+        - name: ClassicBoostFactory
+          file: ./abis/beefy/classic/ClassicBoostFactory.json
+        - name: ClassicBoost
+          file: ./abis/beefy/classic/ClassicBoost.json
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
         - name: Multicall3
@@ -242,8 +242,8 @@ templates:
           handler: handleClassicVaultInitialized
         - event: UpgradeStrat(address)
           handler: handleClassicVaultUpgradeStrategy
-        #- event: Transfer(indexed address,indexed address,uint256)
-        #  handler: handleClManagerTransfer
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleClassicVaultTransfer
 
   - name: ClassicStrategy
     kind: ethereum/contract

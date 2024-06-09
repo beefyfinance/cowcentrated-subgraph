@@ -1,0 +1,48 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_factory", "type": "address" },
+      { "internalType": "address", "name": "_boostImpl", "type": "address" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "anonymous": false,
+    "inputs": [{ "indexed": true, "internalType": "address", "name": "boost", "type": "address" }],
+    "name": "BoostDeployed",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "mooToken", "type": "address" },
+      { "internalType": "address", "name": "rewardToken", "type": "address" },
+      { "internalType": "uint256", "name": "duration_in_sec", "type": "uint256" }
+    ],
+    "name": "booooost",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "boostImpl",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "deployer",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "factory",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

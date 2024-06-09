@@ -1,10 +1,5 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
 import {
-  ClRewardPool,
-  ClStrategy,
-  ClManager,
-  ClmSnapshot,
-  CLM,
   Classic,
   ClassicVault,
   ClassicStrategy,
@@ -16,7 +11,6 @@ import { ZERO_BI } from "../../common/utils/decimal"
 import { getIntervalFromTimestamp } from "../../common/utils/time"
 import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from "../../common/utils/snapshot"
 import { getBeefyClassicProtocol } from "../../common/entity/protocol"
-import { getNullToken } from "../../common/entity/token"
 import { PRODUCT_LIFECYCLE_INITIALIZING } from "../../common/entity/lifecycle"
 
 export function isClassicInitialized(classic: Classic): boolean {
@@ -41,6 +35,8 @@ export function getClassic(vaultAddress: Bytes): Classic {
 
     classic.underlyingToNativePrice = ZERO_BI
     classic.nativeToUSDPrice = ZERO_BI
+
+    classic.underlyingAmount = ZERO_BI
   }
   return classic
 }
@@ -97,6 +93,8 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
     snapshot.underlyingToNativePrice = ZERO_BI
     snapshot.nativeToUSDPrice = ZERO_BI
 
+    snapshot.underlyingAmount = ZERO_BI
+
     // copy non-reseting values from the previous snapshot to the new snapshot
     const previousSnapshotId = classic.id.concat(getPreviousSnapshotIdSuffix(period, interval))
     const previousSnapshot = ClassicSnapshot.load(previousSnapshotId)
@@ -104,6 +102,7 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
       snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
+      snapshot.underlyingAmount = previousSnapshot.underlyingAmount
     }
   }
 

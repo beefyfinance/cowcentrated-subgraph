@@ -135,6 +135,9 @@ type Classic @entity {
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
+  "Amount of underlying tokens in the vault"
+  underlyingAmount: BigInt!
+
   "All positions in the Classic"
   positions: [ClassicPosition!]! @derivedFrom(field: "classic")
 
@@ -181,6 +184,9 @@ type ClassicSnapshot @entity {
   underlyingToNativePrice: BigInt!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
+
+  "Amount of underlying tokens in the vault"
+  underlyingAmount: BigInt!
 }
 
 """
