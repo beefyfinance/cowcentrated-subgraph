@@ -1,7 +1,7 @@
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
-import { Transfer as ClManagerTransferEvent } from "../../generated/templates/ClManager/ClManager"
-import { Transfer as RewardPoolTransferEvent } from "../../generated/templates/ClRewardPool/RewardPool"
-import { getClRewardPool, getCLM, isClmInitialized } from "./entity/clm"
+import { Transfer as ClmManagerTransferEvent } from "../../generated/templates/ClmManager/ClmManager"
+import { Transfer as RewardPoolTransferEvent } from "../../generated/templates/ClmRewardPool/RewardPool"
+import { getClmRewardPool, getCLM, isClmInitialized } from "./entity/clm"
 import { getTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
 import { getClmPosition } from "./entity/position"
@@ -11,7 +11,7 @@ import { ZERO_BI } from "../common/utils/decimal"
 import { fetchCLMData, updateCLMDataAndSnapshots } from "./utils/clm-data"
 import { getEventIdentifier } from "../common/utils/event"
 
-export function handleClManagerTransfer(event: ClManagerTransferEvent): void {
+export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
@@ -57,7 +57,7 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
     return
   }
 
-  const rewardPool = getClRewardPool(event.address)
+  const rewardPool = getClmRewardPool(event.address)
   const clm = getCLM(rewardPool.clm)
   const managerAddress = clm.manager
   const rewardPoolAddress = clm.rewardPoolToken

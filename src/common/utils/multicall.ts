@@ -1,5 +1,5 @@
 import { Bytes, ethereum, log, crypto, ByteArray, Address } from "@graphprotocol/graph-ts"
-import { Multicall3 as Multicall3Contract } from "../../../generated/templates/ClStrategy/Multicall3"
+import { Multicall3 as Multicall3Contract } from "../../../generated/templates/ClmStrategy/Multicall3"
 import { MULTICALL3_ADDRESS } from "../../config"
 
 export class Multicall3Params {

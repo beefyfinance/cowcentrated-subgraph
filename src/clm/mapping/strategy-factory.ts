@@ -1,1 +1,1 @@
-export { handleClStrategyGlobalPause } from "../lifecycle"
+export { handleClmStrategyGlobalPause } from "../lifecycle"

@@ -202,7 +202,7 @@
   {
     "inputs": [],
     "name": "factory",
-    "outputs": [{ "internalType": "contract IclStrategyFactory", "name": "", "type": "address" }],
+    "outputs": [{ "internalType": "contract IclmStrategyFactory", "name": "", "type": "address" }],
     "stateMutability": "view",
     "type": "function"
   },

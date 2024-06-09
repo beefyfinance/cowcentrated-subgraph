@@ -1,5 +1,5 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
-import { ClRewardPool, ClStrategy, ClManager, ClmSnapshot, CLM } from "../../../generated/schema"
+import { ClmRewardPool, ClmStrategy, ClmManager, ClmSnapshot, CLM } from "../../../generated/schema"
 import { ADDRESS_ZERO } from "../../common/utils/address"
 import { ZERO_BI } from "../../common/utils/decimal"
 import { getIntervalFromTimestamp } from "../../common/utils/time"
@@ -50,10 +50,10 @@ export function getCLM(managerAddress: Bytes): CLM {
   return clm
 }
 
-export function getClManager(managerAddress: Bytes): ClManager {
-  let manager = ClManager.load(managerAddress)
+export function getClmManager(managerAddress: Bytes): ClmManager {
+  let manager = ClmManager.load(managerAddress)
   if (!manager) {
-    manager = new ClManager(managerAddress)
+    manager = new ClmManager(managerAddress)
     manager.clm = managerAddress
     manager.createdWith = ADDRESS_ZERO
     manager.isInitialized = false
@@ -61,10 +61,10 @@ export function getClManager(managerAddress: Bytes): ClManager {
   return manager
 }
 
-export function getClStrategy(strategyAddress: Bytes): ClStrategy {
-  let strategy = ClStrategy.load(strategyAddress)
+export function getClmStrategy(strategyAddress: Bytes): ClmStrategy {
+  let strategy = ClmStrategy.load(strategyAddress)
   if (!strategy) {
-    strategy = new ClStrategy(strategyAddress)
+    strategy = new ClmStrategy(strategyAddress)
     strategy.clm = ADDRESS_ZERO
     strategy.manager = ADDRESS_ZERO
     strategy.createdWith = ADDRESS_ZERO
@@ -73,10 +73,10 @@ export function getClStrategy(strategyAddress: Bytes): ClStrategy {
   return strategy
 }
 
-export function getClRewardPool(rewardPoolAddress: Bytes): ClRewardPool {
-  let rewardPool = ClRewardPool.load(rewardPoolAddress)
+export function getClmRewardPool(rewardPoolAddress: Bytes): ClmRewardPool {
+  let rewardPool = ClmRewardPool.load(rewardPoolAddress)
   if (!rewardPool) {
-    rewardPool = new ClRewardPool(rewardPoolAddress)
+    rewardPool = new ClmRewardPool(rewardPoolAddress)
     rewardPool.clm = ADDRESS_ZERO
     rewardPool.manager = ADDRESS_ZERO
     rewardPool.createdWith = ADDRESS_ZERO

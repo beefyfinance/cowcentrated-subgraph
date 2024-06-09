@@ -1,1 +1,1 @@
-export { handleClManagerCreated } from "../lifecycle"
+export { handleClmManagerCreated } from "../lifecycle"

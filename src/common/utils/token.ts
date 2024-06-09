@@ -1,4 +1,4 @@
-import { IERC20 as IERC20Contract } from "../../../generated/templates/ClManager/IERC20"
+import { IERC20 as IERC20Contract } from "../../../generated/templates/ClmManager/IERC20"
 import { Token } from "../../../generated/schema"
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import { getToken } from "../entity/token"

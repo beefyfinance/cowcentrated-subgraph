@@ -353,16 +353,16 @@ type CLM @entity {
   "The protocol the CLM belongs to"
   protocol: Protocol!
   "The manager of the CLM. The manager is responsible for accounting of a CLM."
-  manager: ClManager!
+  manager: ClmManager!
   "The strategy of the CLM. The strategy is responsible for managing the CLM's assets."
-  strategy: ClStrategy!
-  "The reward pool of the CLM. The reward pool is where the CLM's earnings are sent if the ClManager does not automatically compound."
-  rewardPool: ClRewardPool
+  strategy: ClmStrategy!
+  "The reward pool of the CLM. The reward pool is where the CLM's earnings are sent if the ClmManager does not automatically compound."
+  rewardPool: ClmRewardPool
 
   "The current lifecycle status of the CLM"
   lifecycle: ProductLifecycle!
 
-  "The manager token data of the CLM. The ClManager is also an ERC20 token. This tokens represents the shares of the manager."
+  "The manager token data of the CLM. The ClmManager is also an ERC20 token. This tokens represents the shares of the manager."
   managerToken: Token!
   "The reward pool token of the CLM. This is where the CLM's earnings are sent if the CLM does not automatically compound."
   rewardPoolToken: Token!
@@ -414,10 +414,10 @@ type CLM @entity {
   positions: [ClmPosition!]! @derivedFrom(field: "clm")
 
   "All collections events by the CLM"
-  collections: [ClManagerCollectionEvent!]! @derivedFrom(field: "clm")
+  collections: [ClmManagerCollectionEvent!]! @derivedFrom(field: "clm")
 
   "All harvest events of the CLM"
-  harvests: [ClHarvestEvent!]! @derivedFrom(field: "clm")
+  harvests: [ClmHarvestEvent!]! @derivedFrom(field: "clm")
 
   "Snapshot of the CLM's stats"
   snapshots: [ClmSnapshot!]! @derivedFrom(field: "clm")
@@ -488,9 +488,9 @@ type ClmSnapshot @entity {
 }
 
 """
-A ClManager handles the accounting of a CLM.
+A ClmManager handles the accounting of a CLM.
 """
-type ClManager @entity {
+type ClmManager @entity {
   "The CL Manager address"
   id: Bytes!
   "The CLM this manager belongs to"
@@ -505,13 +505,13 @@ type ClManager @entity {
 A strategy is a contract that manages the assets of a CLM.
 This entity is mostly used to start tracking the events and link them to the CLM on new event
 """
-type ClStrategy @entity {
+type ClmStrategy @entity {
   "The strategy address"
   id: Bytes!
   "The CLM the strategy is managing"
   clm: CLM!
   "The manager of the strategy"
-  manager: ClManager!
+  manager: ClmManager!
   "The transaction that created the strategy"
   createdWith: Transaction!
   "Technical field to remember if the strategy was already initialized"
@@ -519,16 +519,16 @@ type ClStrategy @entity {
 }
 
 """
-Some ClManager do not automatically compound their earnings. Those earnings are sent to the reward pool instead.
+Some ClmManager do not automatically compound their earnings. Those earnings are sent to the reward pool instead.
 This entity is mostly used to start tracking the events and link them to the CLM on new event
 """
-type ClRewardPool @entity {
+type ClmRewardPool @entity {
   "The strategy address"
   id: Bytes!
   "The CLM the reward pool is for"
   clm: CLM!
   "The manager that this reward pool is linked to"
-  manager: ClManager!
+  manager: ClmManager!
   "The transaction that created the reward pool"
   createdWith: Transaction!
   "Technical field to remember if the strategy was already initialized"
@@ -536,16 +536,16 @@ type ClRewardPool @entity {
 }
 
 """
-ClManagers are harvested by the strategy. This event is emitted when the strategy harvests the manager.
+ClmManagers are harvested by the strategy. This event is emitted when the strategy harvests the manager.
 """
-type ClHarvestEvent @entity(immutable: true) {
+type ClmHarvestEvent @entity(immutable: true) {
   "transaction hash + log index"
   id: Bytes!
 
   "The CLM the harvest event is for"
   clm: CLM!
   "The strategy that harvested the Manager"
-  strategy: ClStrategy!
+  strategy: ClmStrategy!
 
   "The transaction that created the harvest event"
   createdWith: Transaction!
@@ -583,14 +583,14 @@ type ClHarvestEvent @entity(immutable: true) {
 """
 This event is emitted when we collect earned trading fees from the underlying pool.
 """
-type ClManagerCollectionEvent @entity(immutable: true) {
+type ClmManagerCollectionEvent @entity(immutable: true) {
   "transaction hash + log index"
   id: Bytes!
 
   "The CLM the collect event is for"
   clm: CLM!
   "The strategy that collect for the Manager"
-  strategy: ClStrategy!
+  strategy: ClmStrategy!
 
   "The transaction that created the collect event"
   createdWith: Transaction!

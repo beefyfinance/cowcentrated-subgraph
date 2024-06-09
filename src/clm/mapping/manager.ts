@@ -1,2 +1,2 @@
-export { handleClManagerInitialized } from "../lifecycle"
-export { handleClManagerTransfer } from "../interaction"
+export { handleClmManagerInitialized } from "../lifecycle"
+export { handleClmManagerTransfer } from "../interaction"
