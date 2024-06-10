@@ -27,17 +27,17 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@graphprotocol/graph-cli": "^0.69.2",
-    "@graphprotocol/graph-ts": "^0.34.0",
+    "@graphprotocol/graph-cli": "^0.73.0",
+    "@graphprotocol/graph-ts": "^0.35.1",
     "assemblyscript-prettier": "^3.0.1",
     "husky": "^9.0.11",
     "lint-staged": ">=10",
     "matchstick-as": "^0.6.0",
     "mustache": "^4.2.0",
     "prettier": "^3.2.5",
+    "source-map-support": "^0.5.21",
     "typescript": "^5.3.3"
   },
-  "dependencies": {},
   "lint-staged": {
     "*.--check": "prettier --write"
   }
