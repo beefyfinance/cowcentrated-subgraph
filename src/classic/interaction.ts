@@ -66,6 +66,7 @@ function updateUserPosition(
   }
   position.vaultBalance = position.vaultBalance.plus(vaultBalanceDelta)
   position.boostBalance = position.boostBalance.plus(boostBalanceDelta)
+  position.totalBalance = position.vaultBalance.plus(position.boostBalance)
   position.save()
 
   ///////
@@ -94,6 +95,7 @@ function updateUserPosition(
   }
   interaction.vaultBalance = position.vaultBalance
   interaction.boostBalance = position.boostBalance
+  interaction.totalBalance = position.totalBalance
   interaction.vaultBalanceDelta = vaultBalanceDelta
   interaction.boostBalanceDelta = boostBalanceDelta
 

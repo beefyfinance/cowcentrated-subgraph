@@ -288,6 +288,8 @@ type ClassicPosition @entity {
   vaultBalance: BigInt!
   "The amount of vault shares the investor holds in a boost"
   boostBalance: BigInt!
+  "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance. This is mostly used for filtering."
+  totalBalance: BigInt!
 
   "All investor position interactions"
   interactions: [ClassicPositionInteraction!]! @derivedFrom(field: "investorPosition")
@@ -330,6 +332,8 @@ type ClassicPositionInteraction @entity(immutable: true) {
   vaultBalance: BigInt!
   "The amount of vault shares the investor holds in a boost at the time of the interaction"
   boostBalance: BigInt!
+  "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance. This is mostly used for filtering."
+  totalBalance: BigInt!
 
   "Amount of vault shares change in the interaction"
   vaultBalanceDelta: BigInt!
@@ -642,6 +646,8 @@ type ClmPosition @entity {
   managerBalance: BigInt!
   "Amount of reward pool shares the investor holds"
   rewardPoolBalance: BigInt!
+  "Total amount of CLM shares the investor holds. Should always equal to managerBalance + rewardPoolBalance. This is mostly used for filtering."
+  totalBalance: BigInt!
 
   "All investor position interactions"
   interactions: [ClmPositionInteraction!]! @derivedFrom(field: "investorPosition")
@@ -686,6 +692,8 @@ type ClmPositionInteraction @entity(immutable: true) {
   managerBalance: BigInt!
   "The amount of reward pool shares the investor holds at the time of the interaction"
   rewardPoolBalance: BigInt!
+  "Total amount of CLM shares the investor holds. Should always equal to managerBalance + rewardPoolBalance. This is mostly used for filtering."
+  totalBalance: BigInt!
   "The amount of first underlying tokens the investor is entitled to at the time of the interaction"
   underlyingBalance0: BigInt!
   "The amount of second underlying tokens the investor is entitled to at the time of the interaction"

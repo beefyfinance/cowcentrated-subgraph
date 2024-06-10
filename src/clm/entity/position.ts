@@ -19,6 +19,7 @@ export function getClmPosition(clm: CLM, investor: Investor): ClmPosition {
     position.createdWith = ADDRESS_ZERO
     position.managerBalance = ZERO_BI
     position.rewardPoolBalance = ZERO_BI
+    position.totalBalance = ZERO_BI
   }
   return position
 }

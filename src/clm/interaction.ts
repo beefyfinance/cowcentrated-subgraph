@@ -115,6 +115,7 @@ function updateUserPosition(
   }
   position.managerBalance = position.managerBalance.plus(managerBalanceDelta)
   position.rewardPoolBalance = position.rewardPoolBalance.plus(rewardPoolBalanceDelta)
+  position.totalBalance = position.managerBalance.plus(position.rewardPoolBalance)
   position.save()
 
   ///////
@@ -143,6 +144,7 @@ function updateUserPosition(
   }
   interaction.managerBalance = position.managerBalance
   interaction.rewardPoolBalance = position.rewardPoolBalance
+  interaction.totalBalance = position.totalBalance
   interaction.managerBalanceDelta = managerBalanceDelta
   interaction.rewardPoolBalanceDelta = rewardPoolBalanceDelta
 

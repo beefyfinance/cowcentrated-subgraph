@@ -19,6 +19,7 @@ export function getClassicPosition(classic: Classic, investor: Investor): Classi
     position.createdWith = ADDRESS_ZERO
     position.vaultBalance = ZERO_BI
     position.boostBalance = ZERO_BI
+    position.totalBalance = ZERO_BI
   }
   return position
 }
