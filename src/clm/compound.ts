@@ -45,6 +45,7 @@ function handleClmStrategyHarvest(
   harvest.clm = clm.id
   harvest.strategy = strategy.id
   harvest.createdWith = tx.id
+  harvest.logIndex = event.logIndex
   harvest.timestamp = event.block.timestamp
   harvest.underlyingAmount0 = clmData.token0Balance
   harvest.underlyingAmount1 = clmData.token1Balance
@@ -97,6 +98,7 @@ function handleClmStrategyFees(
   collect.clm = clm.id
   collect.strategy = strategy.id
   collect.createdWith = tx.id
+  collect.logIndex = event.logIndex
   collect.timestamp = event.block.timestamp
   collect.underlyingMainAmount0 = clmData.token0PositionMainBalance
   collect.underlyingMainAmount1 = clmData.token1PositionMainBalance
