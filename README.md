@@ -17,7 +17,6 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 
 - [Arbitrum (beta)](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-arbitrum-beta/latest/gn)
 
-
 # Contributing
 
 ## Prerequisites
