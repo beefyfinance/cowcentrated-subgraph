@@ -54,7 +54,7 @@ export function handleClmManagerCreated(event: CLMManagerCreatedEvent): void {
   // start indexing the new manager
   ClmManagerTemplate.create(managerAddress)
 
-  log.info("handleClmManagerCreated: CLM was {} created on block {}", [
+  log.info("handleClmManagerCreated: CLM was {} created on block number {}", [
     clm.id.toHexString(),
     event.block.number.toString(),
   ])
