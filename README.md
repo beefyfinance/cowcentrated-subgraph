@@ -63,11 +63,30 @@ yarn test:lint # run prettier linter
 ### How to add a new network
 
 1. Add the network configuration [config/<network>.json](config/).
+   - `network` must match one of the networks in Goldsky's [supported networks list](https://docs.goldsky.com/chains/supported-networks).
    - `clockTickBlocks` is the number of blocks between each clock tick, aim for a clock tick every 5 minutes.
-   - Find the uniswap v3, QuoterV2 contract address [on uniswap's documentation](https://docs.uniswap.org/contracts/v3/reference/deployments)
-   - Find the <native>/USD price feed [on chainlink's documentation](https://docs.chain.link/data-feeds/price-feeds/addresses#networks). Verify that it's a ChainLink `AggregatorV3Interface` with the `latestRoundData()` method.
+   - Find the <native>/USD price feed [on chainlink's documentation](https://docs.chain.link/data-feeds/price-feeds/addresses#networks). Verify that it's a ChainLink `AggregatorV3Interface` with the `latestRoundData()` method. Put the address in `chainlinkNativePriceFeedAddress`.
 2. Add dev RPCs in graph-node config [docker/graph-node/config.toml](docker/graph-node/config.toml).
 3. Add a new `prepare:<network>` script in [package.json](package.json).
+4. Add the chain name in the Release script in [.github/workflows/Release.yml](.github/workflows/Release.yml).
+5. Release the first version of the subgraph for the new network using the [./bin/release.sh](./bin/release.sh) script.
+   - Must be logged in to goldsky with the provided cli.
+   - Only used to deploy the first version, see below for updating a subgraph.
+6. Tag the new version on Goldsky's UI as "latest" to create a stable endpoint.
+
+### Release a new version of the subgraph
+
+1. On github, create a [new release](https://github.com/beefyfinance/cowcentrated-subgraph/releases/new) with the new version number.
+  - The tag should be the version number, e.g. `1.0.0`.
+  - This will trigger the [Release workflow](.github/workflows/Release.yml) to deploy the subgraph to all networks.
+2. Wait for the workflow to finish, then check the [Goldsky dashboard](https://app.goldsky.com/project_clu2walwem1qm01w40v3yhw1f/dashboard/subgraphs), the new subgraph version should be indexing on all chains.
+3. Run some manual tests on the subgraph endpoints to verify that the new version is working as expected.
+4. If everything is working as expected, we need to move the goldsky tags to the new version. This process is manual as of now
+5. For each subgraph on Goldsky's UI
+   - Go to the old version and delete the tag
+   - Go to the new version and add the tag
+   - Go back to the old version and delete the subgraph
+
 
 ### How to update the schema
 
