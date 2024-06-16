@@ -10,6 +10,7 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 
 - [Arbitrum](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-arbitrum/latest/gn)
 - [Base](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-base/latest/gn)
+- [Linea](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-linea/latest/gn)
 - [Moonbeam](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-moonbeam/latest/gn)
 - [Optimism](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-optimism/latest/gn)
 
@@ -73,6 +74,7 @@ yarn test:lint # run prettier linter
    - Must be logged in to goldsky with the provided cli.
    - Only used to deploy the first version, see below for updating a subgraph.
 6. Tag the new version on Goldsky's UI as "latest" to create a stable endpoint.
+7. Add the endpoint link to the [README](README.md) in alphabetical order.
 
 ### Release a new version of the subgraph
 
