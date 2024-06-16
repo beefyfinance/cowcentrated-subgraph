@@ -79,8 +79,10 @@ yarn test:lint # run prettier linter
 ### Release a new version of the subgraph
 
 1. On github, create a [new release](https://github.com/beefyfinance/cowcentrated-subgraph/releases/new) with the new version number.
-  - The tag should be the version number, e.g. `1.0.0`.
-  - This will trigger the [Release workflow](.github/workflows/Release.yml) to deploy the subgraph to all networks.
+
+- The tag should be the version number, e.g. `1.0.0`.
+- This will trigger the [Release workflow](.github/workflows/Release.yml) to deploy the subgraph to all networks.
+
 2. Wait for the workflow to finish, then check the [Goldsky dashboard](https://app.goldsky.com/project_clu2walwem1qm01w40v3yhw1f/dashboard/subgraphs), the new subgraph version should be indexing on all chains.
 3. Run some manual tests on the subgraph endpoints to verify that the new version is working as expected.
 4. If everything is working as expected, we need to move the goldsky tags to the new version. This process is manual as of now
@@ -88,7 +90,6 @@ yarn test:lint # run prettier linter
    - Go to the old version and delete the tag
    - Go to the new version and add the tag
    - Go back to the old version and delete the subgraph
-
 
 ### How to update the schema
 
