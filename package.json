@@ -20,7 +20,8 @@
     "prepare:optimism": "./bin/prepare.sh optimism",
     "prepare:optimism-tmp": "./bin/prepare.sh optimism-tmp",
     "prepare:arbitrum-beta": "./bin/prepare.sh arbitrum-beta",
-    "prepare:moonbeam": "./bin/prepare.sh moonbeam"
+    "prepare:moonbeam": "./bin/prepare.sh moonbeam",
+    "prepare:linea": "./bin/prepare.sh linea"
   },
   "main": "./bin/index.js",
   "bin": {
