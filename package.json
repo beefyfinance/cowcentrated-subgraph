@@ -21,7 +21,8 @@
     "prepare:optimism-tmp": "./bin/prepare.sh optimism-tmp",
     "prepare:arbitrum-beta": "./bin/prepare.sh arbitrum-beta",
     "prepare:moonbeam": "./bin/prepare.sh moonbeam",
-    "prepare:linea": "./bin/prepare.sh linea"
+    "prepare:linea": "./bin/prepare.sh linea",
+    "prepare:polygon": "./bin/prepare.sh polygon"
   },
   "main": "./bin/index.js",
   "bin": {
