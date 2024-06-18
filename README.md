@@ -13,6 +13,7 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 - [Linea](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-linea/latest/gn)
 - [Moonbeam](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-moonbeam/latest/gn)
 - [Optimism](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-optimism/latest/gn)
+- [Polygon](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-polygon/latest/gn)
 
 ### Historical endpoints
 
