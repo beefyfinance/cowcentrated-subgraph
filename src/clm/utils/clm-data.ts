@@ -21,8 +21,11 @@ export function fetchCLMData(clm: CLM): CLMData {
     new Multicall3Params(strategyAddress, "balancesOfPool()", "(uint256,uint256,uint256,uint256,uint256,uint256)"),
     new Multicall3Params(strategyAddress, "price()", "uint256", true), // this can revert when the liquidity is 0
     new Multicall3Params(strategyAddress, "range()", "(uint256,uint256)", true), // this can revert when the liquidity is 0
-    new Multicall3Params(strategyAddress, "lpToken0ToNativePrice()", "uint256"),
-    new Multicall3Params(strategyAddress, "lpToken1ToNativePrice()", "uint256"),
+    // arbitrum: 0xc82dE35aAE01bC4caE24d226203b50e6f9044697
+    // this contract makes these calls fail at block 223528247
+    // due to a misconfigured quote path in the contract
+    new Multicall3Params(strategyAddress, "lpToken0ToNativePrice()", "uint256", true),
+    new Multicall3Params(strategyAddress, "lpToken1ToNativePrice()", "uint256", true),
     new Multicall3Params(
       CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
       "latestRoundData()",
@@ -80,8 +83,14 @@ export function fetchCLMData(clm: CLM): CLMData {
   }
 
   // and now the prices
-  const token0ToNativePrice = token0ToNativePriceRes.value.toBigInt()
-  const token1ToNativePrice = token1ToNativePriceRes.value.toBigInt()
+  let token0ToNativePrice = ZERO_BI
+  if (!token0ToNativePriceRes.reverted) {
+    token0ToNativePrice = token0ToNativePriceRes.value.toBigInt()
+  }
+  let token1ToNativePrice = ZERO_BI
+  if (!token1ToNativePriceRes.reverted) {
+    token1ToNativePrice = token1ToNativePriceRes.value.toBigInt()
+  }
   let rewardToNativePrice = ZERO_BI
   if (rewardToNativePriceRes != null && !rewardToNativePriceRes.reverted) {
     rewardToNativePrice = rewardToNativePriceRes.value.toBigInt()
