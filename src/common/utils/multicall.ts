@@ -67,7 +67,7 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
     const res = multiResults[i]
     const success = res[0].toBoolean()
     if (success) {
-      const value = ethereum.decode(callParam.resultType, res[1].toBytes())
+      const value = res[1]
       if (value == null) {
         log.error("Failed to decode result for {}", [callParam.functionSignature])
         results.push(new MulticallResult(ethereum.Value.fromI32(0), true))

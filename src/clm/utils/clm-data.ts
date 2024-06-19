@@ -58,7 +58,7 @@ export function fetchCLMData(clm: CLM): CLMData {
 
       const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, rewardToken.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
       signatures.push(
-        new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,addressn,uint256)", "uint256", [
+        new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
           ethereum.Value.fromAddress(rewardTokenAddress),
           ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
           ethereum.Value.fromUnsignedBigInt(amountIn),
