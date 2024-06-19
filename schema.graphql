@@ -378,8 +378,6 @@ type CLM @entity {
   underlyingToken0: Token!
   "The underlying tokens contained in the CLM. This is the second token."
   underlyingToken1: Token!
-  "The output token of the CLM's strategy. This will be tracked as an additional reward token."
-  outputToken: Token!
   "The reward tokens of the CLM's rewardpool. These will be rewarded to positions when the CLM earns non-compounding yield."
   rewardTokens: [Token!]!
 
