@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt, log } from "@graphprotocol/graph-ts"
 import { CLM } from "../../../generated/schema"
 import { ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
 import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD } from "../../config"
@@ -86,10 +86,14 @@ export function fetchCLMData(clm: CLM): CLMData {
   let token0ToNativePrice = ZERO_BI
   if (!token0ToNativePriceRes.reverted) {
     token0ToNativePrice = token0ToNativePriceRes.value.toBigInt()
+  } else {
+    log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toString()])
   }
   let token1ToNativePrice = ZERO_BI
   if (!token1ToNativePriceRes.reverted) {
     token1ToNativePrice = token1ToNativePriceRes.value.toBigInt()
+  } else {
+    log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toString()])
   }
   let rewardToNativePrice = ZERO_BI
   if (rewardToNativePriceRes != null && !rewardToNativePriceRes.reverted) {
