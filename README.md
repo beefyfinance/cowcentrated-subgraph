@@ -85,11 +85,10 @@ yarn test:lint # run prettier linter
 - This will trigger the [Release workflow](.github/workflows/Release.yml) to deploy the subgraph to all networks.
 
 2. Wait for the workflow to finish, then check the [Goldsky dashboard](https://app.goldsky.com/project_clu2walwem1qm01w40v3yhw1f/dashboard/subgraphs), the new subgraph version should be indexing on all chains.
-3. Run some manual tests on the subgraph endpoints to verify that the new version is working as expected.
+3. Run some manual tests on the subgraph endpoints using the `next` version tag to verify that the new version is working as expected.
 4. If everything is working as expected, we need to move the goldsky tags to the new version. This process is manual as of now
 5. For each subgraph on Goldsky's UI
-   - Go to the old version and delete the tag
-   - Go to the new version and add the tag
+   - Go to the new version and create the "latest" tag, this will in fact move the "latest" tag to the new version.
    - Go back to the old version and delete the subgraph
 
 ### How to update the schema
