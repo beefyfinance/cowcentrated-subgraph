@@ -1,6 +1,6 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import { Classic } from "../../../generated/schema"
-import { changeValueEncoding } from "../../common/utils/decimal"
+import { ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
 import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD } from "../../config"
 import { Multicall3Params, multicall } from "../../common/utils/multicall"
 import { CLASSIC_SNAPSHOT_PERIODS } from "./snapshot"
@@ -56,6 +56,13 @@ export function updateClassicDataAndSnapshots(
   classic.nativeToUSDPrice = classicData.nativeToUSDPrice
   classic.underlyingAmount = classicData.underlyingAmount
   classic.save()
+
+  // don't save a snapshot if we don't have a deposit yet
+  // or if the vault becomes empty
+  if (classic.vaultSharesTotalSupply.equals(ZERO_BI)) {
+    return classic
+  }
+
   for (let i = 0; i < CLASSIC_SNAPSHOT_PERIODS.length; i++) {
     const period = CLASSIC_SNAPSHOT_PERIODS[i]
     const snapshot = getClassicSnapshot(classic, nowTimestamp, period)

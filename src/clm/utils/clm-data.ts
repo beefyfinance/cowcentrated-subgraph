@@ -161,6 +161,13 @@ export function updateCLMDataAndSnapshots(clm: CLM, clmData: CLMData, nowTimesta
   clm.underlyingAltAmount0 = clmData.token0PositionAltBalance
   clm.underlyingAltAmount1 = clmData.token1PositionAltBalance
   clm.save()
+
+  // don't save a snapshot if we don't have a deposit yet
+  // or if the vault becomes empty
+  if (clmData.managerTotalSupply.equals(ZERO_BI)) {
+    return clm
+  }
+
   for (let i = 0; i < CLM_SNAPSHOT_PERIODS.length; i++) {
     const period = CLM_SNAPSHOT_PERIODS[i]
     const snapshot = getClmSnapshot(clm, nowTimestamp, period)
