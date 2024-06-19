@@ -13,18 +13,19 @@ import { getEventIdentifier } from "../common/utils/event"
 import { updateCLMDataAndSnapshots, fetchCLMData } from "./utils/clm-data"
 
 export function handleClmStrategyHarvestAmounts(event: CLMHarvestEvent): void {
-  handleClmStrategyHarvest(event, event.params.fee0, event.params.fee1, ZERO_BI)
+  handleClmStrategyHarvest(event, event.params.fee0, event.params.fee1, new Array<BigInt>(0))
 }
 
 export function handleClmStrategyHarvestRewards(event: CLMHarvestRewardsEvent): void {
-  handleClmStrategyHarvest(event, ZERO_BI, ZERO_BI, event.params.fees)
+  // TODO: handle output tokens and event.params.fees or remove this handler
+  handleClmStrategyHarvest(event, ZERO_BI, ZERO_BI, new Array<BigInt>(0))
 }
 
 function handleClmStrategyHarvest(
   event: ethereum.Event,
   compoundedAmount0: BigInt,
   compoundedAmount1: BigInt,
-  collectedRewards: BigInt,
+  collectedRewards: Array<BigInt>,
 ): void {
   let strategy = getClmStrategy(event.address)
   let clm = getCLM(strategy.clm)
@@ -56,7 +57,7 @@ function handleClmStrategyHarvest(
   harvest.rewardPoolTotalSupply = clmData.rewardPoolTotalSupply
   harvest.token0ToNativePrice = clmData.token0ToNativePrice
   harvest.token1ToNativePrice = clmData.token1ToNativePrice
-  harvest.rewardToNativePrice = clmData.rewardToNativePrice
+  harvest.rewardToNativePrices = clmData.rewardToNativePrices
   harvest.nativeToUSDPrice = clmData.nativeToUSDPrice
   harvest.save()
 }
@@ -66,18 +67,19 @@ export function handleClmStrategyClaimedFees(event: CLMClaimedFeesEvent): void {
     event,
     event.params.feeAlt0.plus(event.params.feeMain0),
     event.params.feeAlt1.plus(event.params.feeMain1),
-    ZERO_BI,
+    new Array<BigInt>(0),
   )
 }
 export function handleClmStrategyClaimedRewards(event: CLMClaimedRewardsEvent): void {
-  handleClmStrategyFees(event, ZERO_BI, ZERO_BI, event.params.fees)
+  // TODO: handle output tokens and event.params.fees or remove this handler
+  handleClmStrategyFees(event, ZERO_BI, ZERO_BI, new Array<BigInt>(0))
 }
 
 function handleClmStrategyFees(
   event: ethereum.Event,
   collectedAmount0: BigInt,
   collectedAmount1: BigInt,
-  collectedRewardAmount: BigInt,
+  collectedRewardAmounts: Array<BigInt>,
 ): void {
   let strategy = getClmStrategy(event.address)
   let clm = getCLM(strategy.clm)
@@ -106,10 +108,10 @@ function handleClmStrategyFees(
   collect.underlyingAltAmount1 = clmData.token1PositionAltBalance
   collect.collectedAmount0 = collectedAmount0
   collect.collectedAmount1 = collectedAmount1
-  collect.collectedRewardAmount = collectedRewardAmount
+  collect.collectedRewardAmounts = collectedRewardAmounts
   collect.token0ToNativePrice = clmData.token0ToNativePrice
   collect.token1ToNativePrice = clmData.token1ToNativePrice
-  collect.rewardToNativePrice = clmData.rewardToNativePrice
+  collect.rewardToNativePrices = clmData.rewardToNativePrices
   collect.nativeToUSDPrice = clmData.nativeToUSDPrice
   collect.save()
 

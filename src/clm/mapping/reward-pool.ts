@@ -1,2 +1,5 @@
 export { handleRewardPoolInitialized } from "../lifecycle"
 export { handleRewardPoolTransfer } from "../interaction"
+export { handleRewardPoolRewardPaid } from "../interaction"
+export { handleRewardPoolAddReward } from "../lifecycle"
+export { handleRewardPoolRemoveReward } from "../lifecycle"

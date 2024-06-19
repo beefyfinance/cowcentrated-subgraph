@@ -222,6 +222,12 @@ templates:
           handler: handleRewardPoolInitialized
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleRewardPoolTransfer
+        - event: RewardPaid(indexed address,indexed address,uint256)
+          handler: handleRewardPoolRewardPaid
+        - event: AddReward(address)
+          handler: handleRewardPoolAddReward
+        - event: RemoveReward(address,address)
+          handler: handleRewardPoolRemoveReward
 
 
 

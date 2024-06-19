@@ -165,13 +165,11 @@ yarn test:lint # run prettier linter
 - clmStrategyFactory: GlobalPause(bool)
 - clmStrategy.pool()
 - clmStrategy.vault()
-- clmStrategy.output()
 - clmStrategy.price()
 - clmStrategy.range()
 - clmStrategy.balanceOfPool()
 - clmStrategy.lpToken1ToNativePrice()
 - clmStrategy.lpToken0ToNativePrice()
-- clmStrategy.ouptutToNativePrice()
 - clmStrategy: Initialized(uint8)
 - clmStrategy: Paused(address)
 - clmStrategy: Unpaused(address)
@@ -182,5 +180,13 @@ yarn test:lint # run prettier linter
 
 - rewardPoolFactory: ProxyCreated(address)
 - rewardPool.stakedToken()
+- rewardPool.totalSupply()
 - rewardPool: Initialized(uint8)
+```
+
+## Other contracts
+
+```text
+beefySwapper: getAmountOut(address,address,uint256)
+beefyOracle: getFreshPrice(address)
 ```

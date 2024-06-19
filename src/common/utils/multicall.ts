@@ -7,6 +7,7 @@ export class Multicall3Params {
     public contractAddress: Bytes,
     public functionSignature: string,
     public resultType: string,
+    public args: Array<ethereum.Value> = [],
   ) {}
 }
 
@@ -23,13 +24,21 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
   let params: Array<ethereum.Tuple> = []
   for (let i = 0; i < callParams.length; i++) {
     const callParam = callParams[i]
-    const sig = Bytes.fromUint8Array(crypto.keccak256(ByteArray.fromUTF8(callParam.functionSignature)).slice(0, 4))
+    const functionSignature = Bytes.fromUint8Array(
+      crypto.keccak256(ByteArray.fromUTF8(callParam.functionSignature)).slice(0, 4),
+    )
+
+    let functionCallBytes = functionSignature
+    for (let j = 0; j < callParam.args.length; j++) {
+      functionCallBytes = functionCallBytes.concat(callParam.args[j].toBytes())
+    }
+
     params.push(
       // @ts-ignore
       changetype<ethereum.Tuple>([
         ethereum.Value.fromAddress(Address.fromBytes(callParam.contractAddress)),
         ethereum.Value.fromBoolean(true),
-        ethereum.Value.fromBytes(sig),
+        ethereum.Value.fromBytes(functionCallBytes),
       ]),
     )
   }
