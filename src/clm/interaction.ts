@@ -142,6 +142,7 @@ function updateUserPosition(
   } else if (isRewardPoolTransfer) {
     interaction.type = rewardPoolBalanceDelta.gt(ZERO_BI) ? "REWARD_POOL_STAKE" : "REWARD_POOL_UNSTAKE"
   }
+
   interaction.managerBalance = position.managerBalance
   interaction.rewardPoolBalance = position.rewardPoolBalance
   interaction.totalBalance = position.totalBalance
@@ -152,32 +153,23 @@ function updateUserPosition(
   interaction.underlyingBalance1 = ZERO_BI
   interaction.underlyingBalance0Delta = ZERO_BI
   interaction.underlyingBalance1Delta = ZERO_BI
+
+  // set the underlying balances at the time of the transaction
   if (!clmData.managerTotalSupply.equals(ZERO_BI)) {
     interaction.underlyingBalance0 = interaction.underlyingBalance0.plus(
-      clmData.token0Balance.times(position.managerBalance).div(clmData.managerTotalSupply),
+      clmData.token0Balance.times(position.totalBalance).div(clmData.managerTotalSupply),
     )
     interaction.underlyingBalance1 = interaction.underlyingBalance1.plus(
-      clmData.token1Balance.times(position.managerBalance).div(clmData.managerTotalSupply),
+      clmData.token1Balance.times(position.totalBalance).div(clmData.managerTotalSupply),
     )
+
+    // assumption: 1 rewardPool token === 1 manager token
+    const managerBalanceDeltaToAccountFor = isSharesTransfer ? managerBalanceDelta : rewardPoolBalanceDelta
     interaction.underlyingBalance0Delta = interaction.underlyingBalance0Delta.plus(
-      clmData.token0Balance.times(managerBalanceDelta).div(clmData.managerTotalSupply),
+      clmData.token0Balance.times(managerBalanceDeltaToAccountFor).div(clmData.managerTotalSupply),
     )
     interaction.underlyingBalance1Delta = interaction.underlyingBalance1Delta.plus(
-      clmData.token1Balance.times(managerBalanceDelta).div(clmData.managerTotalSupply),
-    )
-  }
-  if (!clmData.rewardPoolTotalSupply.equals(ZERO_BI)) {
-    interaction.underlyingBalance0 = interaction.underlyingBalance0.plus(
-      clmData.token0Balance.times(position.rewardPoolBalance).div(clmData.rewardPoolTotalSupply),
-    )
-    interaction.underlyingBalance1 = interaction.underlyingBalance1.plus(
-      clmData.token1Balance.times(position.rewardPoolBalance).div(clmData.rewardPoolTotalSupply),
-    )
-    interaction.underlyingBalance0Delta = interaction.underlyingBalance0Delta.plus(
-      clmData.token0Balance.times(rewardPoolBalanceDelta).div(clmData.rewardPoolTotalSupply),
-    )
-    interaction.underlyingBalance1Delta = interaction.underlyingBalance1Delta.plus(
-      clmData.token1Balance.times(rewardPoolBalanceDelta).div(clmData.rewardPoolTotalSupply),
+      clmData.token1Balance.times(managerBalanceDeltaToAccountFor).div(clmData.managerTotalSupply),
     )
   }
   interaction.token0ToNativePrice = clmData.token0ToNativePrice
