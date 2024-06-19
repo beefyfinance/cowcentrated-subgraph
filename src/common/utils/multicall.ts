@@ -66,6 +66,7 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
         results.push(new MulticallResult(value, false))
       }
     } else {
+      log.warning("Call failed for {}", [callParam.functionSignature])
       results.push(new MulticallResult(ethereum.Value.fromBytes(Bytes.fromI32(0)), true))
     }
   }
