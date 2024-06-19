@@ -46,7 +46,7 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
     log.error("Multicall aggregate3 call failed", [])
 
     for (let i = 0; i < callParams.length; i++) {
-      results.push(new MulticallResult(ethereum.Value.fromI32(0), false))
+      results.push(new MulticallResult(ethereum.Value.fromI32(0), true))
     }
 
     return results
@@ -61,12 +61,12 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
       const value = ethereum.decode(callParam.resultType, res[1].toBytes())
       if (value == null) {
         log.error("Failed to decode result for {}", [callParam.functionSignature])
-        results.push(new MulticallResult(ethereum.Value.fromI32(0), false))
+        results.push(new MulticallResult(ethereum.Value.fromI32(0), true))
       } else {
-        results.push(new MulticallResult(value, true))
+        results.push(new MulticallResult(value, false))
       }
     } else {
-      results.push(new MulticallResult(ethereum.Value.fromBytes(Bytes.fromI32(0)), false))
+      results.push(new MulticallResult(ethereum.Value.fromBytes(Bytes.fromI32(0)), true))
     }
   }
 
