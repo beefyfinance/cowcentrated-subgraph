@@ -19,13 +19,10 @@ export function fetchCLMData(clm: CLM): CLMData {
     new Multicall3Params(managerAddress, "totalSupply()", "uint256"),
     new Multicall3Params(managerAddress, "balances()", "(uint256,uint256)"),
     new Multicall3Params(strategyAddress, "balancesOfPool()", "(uint256,uint256,uint256,uint256,uint256,uint256)"),
-    new Multicall3Params(strategyAddress, "price()", "uint256", true), // this can revert when the liquidity is 0
-    new Multicall3Params(strategyAddress, "range()", "(uint256,uint256)", true), // this can revert when the liquidity is 0
-    // arbitrum: 0xc82dE35aAE01bC4caE24d226203b50e6f9044697
-    // this contract makes these calls fail at block 223528247
-    // due to a misconfigured quote path in the contract
-    new Multicall3Params(strategyAddress, "lpToken0ToNativePrice()", "uint256", true),
-    new Multicall3Params(strategyAddress, "lpToken1ToNativePrice()", "uint256", true),
+    new Multicall3Params(strategyAddress, "price()", "uint256"),
+    new Multicall3Params(strategyAddress, "range()", "(uint256,uint256)"),
+    new Multicall3Params(strategyAddress, "lpToken0ToNativePrice()", "uint256"),
+    new Multicall3Params(strategyAddress, "lpToken1ToNativePrice()", "uint256"),
     new Multicall3Params(
       CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
       "latestRoundData()",
@@ -35,12 +32,8 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   const hasRewardPool = !isNullToken(rewardPoolToken)
   if (hasRewardPool) {
-    signatures.push(
-      new Multicall3Params(strategyAddress, "rewardToNativePrice()", "uint256", true), // only some strategies have this
-    )
-    signatures.push(
-      new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256", true), // only some clms have a reward pool token
-    )
+    signatures.push(new Multicall3Params(strategyAddress, "rewardToNativePrice()", "uint256"))
+    signatures.push(new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256"))
   }
 
   const results = multicall(signatures)
@@ -55,34 +48,63 @@ export function fetchCLMData(clm: CLM): CLMData {
   const rewardToNativePriceRes = hasRewardPool ? results[8] : null
   const rewardPoolTotalSupplyRes = hasRewardPool ? results[9] : null
 
-  const managerTotalSupply = totalSupplyRes.value.toBigInt()
-  const balances = balanceRes.value.toTuple()
-  const token0Balance = balances[0].toBigInt()
-  const token1Balance = balances[1].toBigInt()
+  let managerTotalSupply = ZERO_BI
+  if (!totalSupplyRes.reverted) {
+    managerTotalSupply = totalSupplyRes.value.toBigInt()
+  } else {
+    log.error("Failed to fetch totalSupply for CLM {}", [clm.id.toString()])
+  }
 
-  const balanceOfPool = balanceOfPoolRes.value.toTuple()
-  const token0PositionMainBalance = balanceOfPool[2].toBigInt()
-  const token1PositionMainBalance = balanceOfPool[3].toBigInt()
-  const token0PositionAltBalance = balanceOfPool[4].toBigInt()
-  const token1PositionAltBalance = balanceOfPool[5].toBigInt()
+  let token0Balance = ZERO_BI
+  let token1Balance = ZERO_BI
+  if (!balanceRes.reverted) {
+    const balances = balanceRes.value.toTuple()
+    token0Balance = balances[0].toBigInt()
+    token1Balance = balances[1].toBigInt()
+  } else {
+    log.error("Failed to fetch balance for CLM {}", [clm.id.toString()])
+  }
+
+  let token0PositionMainBalance = ZERO_BI
+  let token1PositionMainBalance = ZERO_BI
+  let token0PositionAltBalance = ZERO_BI
+  let token1PositionAltBalance = ZERO_BI
+  if (!balanceOfPoolRes.reverted) {
+    const balanceOfPool = balanceOfPoolRes.value.toTuple()
+    token0PositionMainBalance = balanceOfPool[2].toBigInt()
+    token1PositionMainBalance = balanceOfPool[3].toBigInt()
+    token0PositionAltBalance = balanceOfPool[4].toBigInt()
+    token1PositionAltBalance = balanceOfPool[5].toBigInt()
+  } else {
+    log.error("Failed to fetch balanceOfPool for CLM {}", [clm.id.toString()])
+  }
 
   // price is the amount of token1 per token0, expressed with 36 decimals
+  // this can revert when the liquidity is 0
   const priceDecimals = BigInt.fromU32(36)
   let priceOfToken0InToken1 = ZERO_BI
   if (!priceRes.reverted) {
     priceOfToken0InToken1 = changeValueEncoding(priceRes.value.toBigInt(), priceDecimals, token1.decimals)
+  } else {
+    log.warning("Failed to fetch price for CLM {}", [clm.id.toString()])
   }
 
   // price range
+  // this can revert when the liquidity is 0
   let priceRangeMin1 = ZERO_BI
   let priceRangeMax1 = ZERO_BI
   if (!rangeRes.reverted) {
     const range = rangeRes.value.toTuple()
     priceRangeMin1 = changeValueEncoding(range[0].toBigInt(), priceDecimals, token1.decimals)
     priceRangeMax1 = changeValueEncoding(range[1].toBigInt(), priceDecimals, token1.decimals)
+  } else {
+    log.warning("Failed to fetch price range for CLM {}", [clm.id.toString()])
   }
 
   // and now the prices
+  // arbitrum: 0xc82dE35aAE01bC4caE24d226203b50e6f9044697
+  // this contract makes these calls fail at block 223528247
+  // due to a misconfigured quote path in the contract
   let token0ToNativePrice = ZERO_BI
   if (!token0ToNativePriceRes.reverted) {
     token0ToNativePrice = token0ToNativePriceRes.value.toBigInt()
@@ -95,22 +117,34 @@ export function fetchCLMData(clm: CLM): CLMData {
   } else {
     log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toString()])
   }
+
+  // only some strategies have this
   let rewardToNativePrice = ZERO_BI
-  if (rewardToNativePriceRes != null && !rewardToNativePriceRes.reverted) {
-    rewardToNativePrice = rewardToNativePriceRes.value.toBigInt()
+  if (rewardToNativePriceRes != null) {
+    if (!rewardToNativePriceRes.reverted) {
+      rewardToNativePrice = rewardToNativePriceRes.value.toBigInt()
+    } else {
+      log.error("Failed to fetch rewardToNativePrice for CLM {}", [clm.id.toString()])
+    }
   }
 
   // and have a native price in USD
-  const chainLinkAnswer = chainLinkAnswerRes.value.toTuple()
-  const nativeToUSDPrice = changeValueEncoding(
-    chainLinkAnswer[1].toBigInt(),
-    PRICE_FEED_DECIMALS,
-    PRICE_STORE_DECIMALS_USD,
-  )
+  let nativeToUSDPrice = ZERO_BI
+  if (!chainLinkAnswerRes.reverted) {
+    const chainLinkAnswer = chainLinkAnswerRes.value.toTuple()
+    nativeToUSDPrice = changeValueEncoding(chainLinkAnswer[1].toBigInt(), PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD)
+  } else {
+    log.error("Failed to fetch nativeToUSDPrice for CLM {}", [clm.id.toString()])
+  }
 
+  // only some clms have a reward pool token
   let rewardPoolTotalSupply = ZERO_BI
-  if (rewardPoolTotalSupplyRes != null && !rewardPoolTotalSupplyRes.reverted) {
-    rewardPoolTotalSupply = rewardPoolTotalSupplyRes.value.toBigInt()
+  if (rewardPoolTotalSupplyRes != null) {
+    if (!rewardPoolTotalSupplyRes.reverted) {
+      rewardPoolTotalSupply = rewardPoolTotalSupplyRes.value.toBigInt()
+    } else {
+      log.error("Failed to fetch rewardPoolTotalSupply for CLM {}", [clm.id.toString()])
+    }
   }
 
   return new CLMData(

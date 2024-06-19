@@ -5,9 +5,18 @@ import { getToken } from "../entity/token"
 
 export function fetchAndSaveTokenData(tokenAddress: Bytes): Token {
   const tokenContract = IERC20Contract.bind(Address.fromBytes(tokenAddress))
-  const tokenDecimals = tokenContract.decimals()
-  const tokenName = tokenContract.name()
-  const tokenSymbol = tokenContract.symbol()
+  // use individual calls as there is a good change other subgraph has requested
+  // this token's metadata and it's already in the graph-node cache
+
+  // if any of these calls revert, we will just use the default values to avoid a subgraph crash
+  const tokenDecimalsRes = tokenContract.try_decimals()
+  const tokenDecimals = tokenDecimalsRes.reverted ? 18 : tokenDecimalsRes.value
+
+  const tokenNameRes = tokenContract.try_name()
+  const tokenName = tokenNameRes.reverted ? "Unknown" : tokenNameRes.value
+
+  const tokenSymbolRes = tokenContract.try_symbol()
+  const tokenSymbol = tokenSymbolRes.reverted ? "UNKNOWN" : tokenSymbolRes.value
 
   const token = getToken(tokenAddress)
   token.name = tokenName

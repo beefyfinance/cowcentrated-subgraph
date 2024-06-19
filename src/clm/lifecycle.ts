@@ -64,7 +64,14 @@ export function handleClmManagerInitialized(event: ClmManagerInitialized): void 
   const managerAddress = event.address
 
   const managerContract = ClmManagerContract.bind(managerAddress)
-  const strategyAddress = managerContract.strategy()
+  const strategyAddressRes = managerContract.try_strategy()
+  if (strategyAddressRes.reverted) {
+    log.error("handleClmManagerInitialized: Strategy address is not available for CLM {}", [
+      managerAddress.toHexString(),
+    ])
+    return
+  }
+  const strategyAddress = strategyAddressRes.value
 
   let clm = getCLM(managerAddress)
   clm.strategy = strategyAddress
@@ -81,9 +88,14 @@ export function handleClmManagerInitialized(event: ClmManagerInitialized): void 
   // the strategy may or may not be initialized
   // this is a test to know if that is the case
   const strategyContract = ClmStrategyContract.bind(strategyAddress)
-  const strategyPool = strategyContract.pool()
-  strategy.isInitialized = !strategyPool.equals(ADDRESS_ZERO)
+  const strategyPoolRes = strategyContract.try_pool()
+  if (strategyAddressRes.reverted) {
+    log.error("handleClmManagerInitialized: Strategy pool reverted for CLM {}", [managerAddress.toHexString()])
+    return
+  }
+  const strategyPool = strategyPoolRes.value
 
+  strategy.isInitialized = !strategyPool.equals(ADDRESS_ZERO)
   strategy.save()
 
   // we start watching strategy events
@@ -104,7 +116,14 @@ export function handleClmStrategyInitialized(event: ClmStrategyInitializedEvent)
   const strategyAddress = event.address
 
   const strategyContract = ClmStrategyContract.bind(strategyAddress)
-  const managerAddress = strategyContract.vault()
+  const managerAddressRes = strategyContract.try_vault()
+  if (managerAddressRes.reverted) {
+    log.error("handleClmStrategyInitialized: Manager address is not available for strategy {}", [
+      strategyAddress.toHexString(),
+    ])
+    return
+  }
+  const managerAddress = managerAddressRes.value
 
   const clm = getCLM(managerAddress)
   clm.strategy = strategyAddress
@@ -135,7 +154,12 @@ export function handleClmStrategyInitialized(event: ClmStrategyInitializedEvent)
 function fetchInitialCLMDataAndSave(clm: CLM): void {
   const managerAddress = Address.fromBytes(clm.manager)
   const managerContract = ClmManagerContract.bind(managerAddress)
-  const wants = managerContract.wants()
+  const wantsRes = managerContract.try_wants()
+  if (wantsRes.reverted) {
+    log.error("fetchInitialCLMDataAndSave: Wants reverted for CLM {}", [clm.id.toHexString()])
+    return
+  }
+  const wants = wantsRes.value
 
   const underlyingToken0Address = wants.value0
   const underlyingToken1Address = wants.value1
@@ -204,7 +228,14 @@ export function handleRewardPoolCreated(event: RewardPoolCreatedEvent): void {
 export function handleRewardPoolInitialized(event: RewardPoolInitialized): void {
   const rewardPoolAddress = event.address
   const rewardPoolContract = ClmRewardPoolContract.bind(rewardPoolAddress)
-  const managerAddress = rewardPoolContract.stakedToken()
+  const managerAddressRes = rewardPoolContract.try_stakedToken()
+  if (managerAddressRes.reverted) {
+    log.error("handleRewardPoolInitialized: Manager address is not available for reward pool {}", [
+      rewardPoolAddress.toHexString(),
+    ])
+    return
+  }
+  const managerAddress = managerAddressRes.value
 
   const tx = getTransaction(event.block, event.transaction)
   tx.save()

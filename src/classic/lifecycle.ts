@@ -72,7 +72,12 @@ export function handleClassicVaultInitialized(event: ClassicVaultInitialized): v
     return
   }
   const vaultContract = ClassicVaultContract.bind(vaultAddress)
-  const strategyAddress = vaultContract.strategy()
+  const strategyAddressRes = vaultContract.try_strategy()
+  if (strategyAddressRes.reverted) {
+    log.error("Failed to fetch strategy address for vault: {}", [vaultAddress.toHexString()])
+    return
+  }
+  const strategyAddress = strategyAddressRes.value
 
   vault.isInitialized = true
   vault.save()
@@ -99,7 +104,12 @@ export function handleClassicStrategyInitialized(event: ClassicStrategyInitializ
   }
 
   const strategyContract = ClassicStrategyContract.bind(strategyAddress)
-  const vaultAddress = strategyContract.vault()
+  const vaultAddressRes = strategyContract.try_vault()
+  if (vaultAddressRes.reverted) {
+    log.error("Failed to fetch vault address for strategy: {}", [strategyAddress.toHexString()])
+    return
+  }
+  const vaultAddress = vaultAddressRes.value
 
   let classic = getClassic(vaultAddress)
   const vault = getClassicVault(vaultAddress)
@@ -121,7 +131,12 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
   const vaultAddress = Address.fromBytes(classic.vault)
   const vaultContract = ClassicVaultContract.bind(vaultAddress)
 
-  const underlyingTokenAddress = vaultContract.want()
+  const underlyingTokenAddressRes = vaultContract.try_want()
+  if (underlyingTokenAddressRes.reverted) {
+    log.error("Failed to fetch underlying token address for Classic: {}", [vaultAddress.toHexString()])
+    return
+  }
+  const underlyingTokenAddress = underlyingTokenAddressRes.value
 
   const vaultSharesToken = fetchAndSaveTokenData(vaultAddress)
   const underlyingToken = fetchAndSaveTokenData(underlyingTokenAddress)

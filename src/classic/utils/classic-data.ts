@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt, log } from "@graphprotocol/graph-ts"
 import { Classic } from "../../../generated/schema"
 import { ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
 import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD } from "../../config"
@@ -24,16 +24,27 @@ export function fetchClassicData(classic: Classic): ClassicData {
   const underlyingTokenBalanceRes = results[1]
   const chainLinkAnswerRes = results[2]
 
-  const vaultSharesTotalSupply = vaultTotalSupplyRes.value.toBigInt()
-  const underlyingAmount = underlyingTokenBalanceRes.value.toBigInt()
+  let vaultSharesTotalSupply = ZERO_BI
+  if (!vaultTotalSupplyRes.reverted) {
+    vaultSharesTotalSupply = vaultTotalSupplyRes.value.toBigInt()
+  } else {
+    log.error("Failed to fetch vaultSharesTotalSupply for Classic {}", [classic.id.toString()])
+  }
+  let underlyingAmount = ZERO_BI
+  if (!underlyingTokenBalanceRes.reverted) {
+    underlyingAmount = underlyingTokenBalanceRes.value.toBigInt()
+  } else {
+    log.error("Failed to fetch underlyingAmount for Classic {}", [classic.id.toString()])
+  }
 
   // and have a native price in USD
-  const chainLinkAnswer = chainLinkAnswerRes.value.toTuple()
-  const nativeToUSDPrice = changeValueEncoding(
-    chainLinkAnswer[1].toBigInt(),
-    PRICE_FEED_DECIMALS,
-    PRICE_STORE_DECIMALS_USD,
-  )
+  let nativeToUSDPrice = ZERO_BI
+  if (!chainLinkAnswerRes.reverted) {
+    const chainLinkAnswer = chainLinkAnswerRes.value.toTuple()
+    nativeToUSDPrice = changeValueEncoding(chainLinkAnswer[1].toBigInt(), PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD)
+  } else {
+    log.error("Failed to fetch nativeToUSDPrice for Classic {}", [classic.id.toString()])
+  }
 
   return new ClassicData(vaultSharesTotalSupply, underlyingAmount, nativeToUSDPrice)
 }

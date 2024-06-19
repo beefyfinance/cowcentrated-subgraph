@@ -1,5 +1,6 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import { log } from "matchstick-as"
+import { ZERO_BI } from "./decimal"
 
 export const MINUTES_15 = BigInt.fromI32(60 * 15)
 export const HOUR = BigInt.fromI32(60 * 60)
@@ -35,7 +36,9 @@ export function getIntervalFromTimestamp(timestamp: BigInt, period: BigInt): Big
     }
 
     log.error("Unsupported period: {}", [period.toString()])
-    throw Error("Unsupported period: " + period.toString())
+    period = DAY
+  } else if (period.equals(ZERO_BI)) {
+    return timestamp
   }
   return timestamp.div(period).times(period)
 }
