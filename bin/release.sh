@@ -37,7 +37,7 @@ function publish_goldsky {
     echo "publishing $SUBGRAPH to goldsky"
     goldsky subgraph deploy $SUBGRAPH/$VERSION --path . --token $DEPLOY_KEY
     sleep 10 # wait for the subgraph to propagate
-    goldsky subgraph tag create $SUBGRAPH/$VERSIO --token $DEPLOY_KEY --tag next
+    goldsky subgraph tag create $SUBGRAPH/$VERSION --token $DEPLOY_KEY --tag next
 }
 
 function publish {

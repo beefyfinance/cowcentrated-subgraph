@@ -25,13 +25,13 @@ export function fetchClassicData(classic: Classic): ClassicData {
   const chainLinkAnswerRes = results[2]
 
   let vaultSharesTotalSupply = ZERO_BI
-  if (!vaultTotalSupplyRes.reverted) {
+  if (vaultTotalSupplyRes) {
     vaultSharesTotalSupply = vaultTotalSupplyRes.value.toBigInt()
   } else {
     log.error("Failed to fetch vaultSharesTotalSupply for Classic {}", [classic.id.toString()])
   }
   let underlyingAmount = ZERO_BI
-  if (!underlyingTokenBalanceRes.reverted) {
+  if (underlyingTokenBalanceRes) {
     underlyingAmount = underlyingTokenBalanceRes.value.toBigInt()
   } else {
     log.error("Failed to fetch underlyingAmount for Classic {}", [classic.id.toString()])
@@ -39,7 +39,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
 
   // and have a native price in USD
   let nativeToUSDPrice = ZERO_BI
-  if (!chainLinkAnswerRes.reverted) {
+  if (chainLinkAnswerRes) {
     const chainLinkAnswer = chainLinkAnswerRes.value.toTuple()
     nativeToUSDPrice = changeValueEncoding(chainLinkAnswer[1].toBigInt(), PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD)
   } else {

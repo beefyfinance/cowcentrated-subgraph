@@ -49,7 +49,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   const rewardPoolTotalSupplyRes = hasRewardPool ? results[9] : null
 
   let managerTotalSupply = ZERO_BI
-  if (!totalSupplyRes.reverted) {
+  if (totalSupplyRes) {
     managerTotalSupply = totalSupplyRes.value.toBigInt()
   } else {
     log.error("Failed to fetch totalSupply for CLM {}", [clm.id.toString()])
@@ -57,7 +57,7 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   let token0Balance = ZERO_BI
   let token1Balance = ZERO_BI
-  if (!balanceRes.reverted) {
+  if (balanceRes) {
     const balances = balanceRes.value.toTuple()
     token0Balance = balances[0].toBigInt()
     token1Balance = balances[1].toBigInt()
@@ -69,7 +69,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   let token1PositionMainBalance = ZERO_BI
   let token0PositionAltBalance = ZERO_BI
   let token1PositionAltBalance = ZERO_BI
-  if (!balanceOfPoolRes.reverted) {
+  if (balanceOfPoolRes) {
     const balanceOfPool = balanceOfPoolRes.value.toTuple()
     token0PositionMainBalance = balanceOfPool[2].toBigInt()
     token1PositionMainBalance = balanceOfPool[3].toBigInt()
@@ -83,7 +83,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   // this can revert when the liquidity is 0
   const priceDecimals = BigInt.fromU32(36)
   let priceOfToken0InToken1 = ZERO_BI
-  if (!priceRes.reverted) {
+  if (priceRes) {
     priceOfToken0InToken1 = changeValueEncoding(priceRes.value.toBigInt(), priceDecimals, token1.decimals)
   } else {
     log.warning("Failed to fetch price for CLM {}", [clm.id.toString()])
@@ -93,7 +93,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   // this can revert when the liquidity is 0
   let priceRangeMin1 = ZERO_BI
   let priceRangeMax1 = ZERO_BI
-  if (!rangeRes.reverted) {
+  if (rangeRes) {
     const range = rangeRes.value.toTuple()
     priceRangeMin1 = changeValueEncoding(range[0].toBigInt(), priceDecimals, token1.decimals)
     priceRangeMax1 = changeValueEncoding(range[1].toBigInt(), priceDecimals, token1.decimals)
@@ -106,13 +106,13 @@ export function fetchCLMData(clm: CLM): CLMData {
   // this contract makes these calls fail at block 223528247
   // due to a misconfigured quote path in the contract
   let token0ToNativePrice = ZERO_BI
-  if (!token0ToNativePriceRes.reverted) {
+  if (token0ToNativePriceRes) {
     token0ToNativePrice = token0ToNativePriceRes.value.toBigInt()
   } else {
     log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toString()])
   }
   let token1ToNativePrice = ZERO_BI
-  if (!token1ToNativePriceRes.reverted) {
+  if (token1ToNativePriceRes) {
     token1ToNativePrice = token1ToNativePriceRes.value.toBigInt()
   } else {
     log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toString()])
@@ -120,8 +120,8 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   // only some strategies have this
   let rewardToNativePrice = ZERO_BI
-  if (rewardToNativePriceRes != null) {
-    if (!rewardToNativePriceRes.reverted) {
+  if (hasRewardPool) {
+    if (rewardToNativePriceRes) {
       rewardToNativePrice = rewardToNativePriceRes.value.toBigInt()
     } else {
       log.error("Failed to fetch rewardToNativePrice for CLM {}", [clm.id.toString()])
@@ -130,7 +130,7 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   // and have a native price in USD
   let nativeToUSDPrice = ZERO_BI
-  if (!chainLinkAnswerRes.reverted) {
+  if (chainLinkAnswerRes) {
     const chainLinkAnswer = chainLinkAnswerRes.value.toTuple()
     nativeToUSDPrice = changeValueEncoding(chainLinkAnswer[1].toBigInt(), PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD)
   } else {
@@ -139,8 +139,8 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   // only some clms have a reward pool token
   let rewardPoolTotalSupply = ZERO_BI
-  if (rewardPoolTotalSupplyRes != null) {
-    if (!rewardPoolTotalSupplyRes.reverted) {
+  if (hasRewardPool) {
+    if (rewardPoolTotalSupplyRes) {
       rewardPoolTotalSupply = rewardPoolTotalSupplyRes.value.toBigInt()
     } else {
       log.error("Failed to fetch rewardPoolTotalSupply for CLM {}", [clm.id.toString()])

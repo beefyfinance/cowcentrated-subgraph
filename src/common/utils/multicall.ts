@@ -1,4 +1,4 @@
-import { Bytes, ethereum, log, crypto, ByteArray, Address } from "@graphprotocol/graph-ts"
+import { Address, ByteArray, Bytes, crypto, ethereum, log } from "@graphprotocol/graph-ts"
 import { Multicall3 as Multicall3Contract } from "../../../generated/templates/ClmStrategy/Multicall3"
 import { MULTICALL3_ADDRESS } from "../../config"
 
@@ -10,12 +10,12 @@ export class Multicall3Params {
   ) {}
 }
 
-class MulticallResult {
-  constructor(
-    public value: ethereum.Value,
-    public reverted: boolean,
-  ) {}
+
+class ResultSuccess {
+  constructor(public readonly value: ethereum.Value) {}
 }
+
+type MulticallResult = ResultSuccess | null
 
 export function multicall(callParams: Array<Multicall3Params>): Array<MulticallResult> {
   const multicallContract = Multicall3Contract.bind(MULTICALL3_ADDRESS)
@@ -46,7 +46,7 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
     log.error("Multicall aggregate3 call failed", [])
 
     for (let i = 0; i < callParams.length; i++) {
-      results.push(new MulticallResult(ethereum.Value.fromI32(0), true))
+      results.push(null)
     }
 
     return results
@@ -61,13 +61,13 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
       const value = ethereum.decode(callParam.resultType, res[1].toBytes())
       if (value == null) {
         log.error("Failed to decode result for {}", [callParam.functionSignature])
-        results.push(new MulticallResult(ethereum.Value.fromI32(0), true))
+        results.push(null)
       } else {
-        results.push(new MulticallResult(value, false))
+        results.push(new ResultSuccess(value))
       }
     } else {
       log.warning("Call failed for {}", [callParam.functionSignature])
-      results.push(new MulticallResult(ethereum.Value.fromBytes(Bytes.fromI32(0)), true))
+      results.push(null)
     }
   }
 

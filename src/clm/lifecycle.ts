@@ -172,7 +172,7 @@ function fetchInitialCLMDataAndSave(clm: CLM): void {
   const strategyAddress = Address.fromBytes(clm.strategy)
   const strategyContract = ClmStrategyContract.bind(strategyAddress)
   const outputTokenRes = strategyContract.try_output()
-  if (!outputTokenRes.reverted) {
+  if (outputTokenRes) {
     const rewardToken = fetchAndSaveTokenData(outputTokenRes.value)
     clm.rewardToken = rewardToken.id
   }
