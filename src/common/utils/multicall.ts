@@ -24,21 +24,32 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
   let params: Array<ethereum.Tuple> = []
   for (let i = 0; i < callParams.length; i++) {
     const callParam = callParams[i]
-    const functionSignature = Bytes.fromUint8Array(
+    const signature = Bytes.fromUint8Array(
       crypto.keccak256(ByteArray.fromUTF8(callParam.functionSignature)).slice(0, 4),
     )
 
-    let functionCallBytes = functionSignature
-    for (let j = 0; j < callParam.args.length; j++) {
-      functionCallBytes = functionCallBytes.concat(callParam.args[j].toBytes())
+    let functionCall = signature
+    if (callParam.args.length > 0) {
+      const calldata = ethereum.encode(
+        ethereum.Value.fromTuple(
+          // @ts-expect-error assemblyscript native function
+          changetype<ethereum.Tuple>(callParam.args),
+        ),
+      )
+
+      if (calldata) {
+        functionCall = functionCall.concat(calldata)
+      } else {
+        log.error("Failed to encode calldata for function {}", [callParam.functionSignature])
+      }
     }
 
     params.push(
-      // @ts-ignore
+      // @ts-expect-error assemblyscript native function
       changetype<ethereum.Tuple>([
         ethereum.Value.fromAddress(Address.fromBytes(callParam.contractAddress)),
         ethereum.Value.fromBoolean(true),
-        ethereum.Value.fromBytes(functionCallBytes),
+        ethereum.Value.fromBytes(functionCall),
       ]),
     )
   }
@@ -67,15 +78,22 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
     const res = multiResults[i]
     const success = res[0].toBoolean()
     if (success) {
-      const value = res[1]
+      const value = ethereum.decode(callParam.resultType, res[1].toBytes())
       if (value == null) {
-        log.error("Failed to decode result for {}", [callParam.functionSignature])
+        log.error("Failed to decode result for function {}, with resultType {} and result bytes {}", [
+          callParam.functionSignature,
+          callParam.resultType,
+          res[1].toBytes().toHexString(),
+        ])
         results.push(new MulticallResult(ethereum.Value.fromI32(0), true))
       } else {
         results.push(new MulticallResult(value, false))
       }
     } else {
-      log.warning("Call failed for {}", [callParam.functionSignature])
+      log.warning("Multicall call failed for function {} on {}", [
+        callParam.functionSignature,
+        callParam.contractAddress.toHexString(),
+      ])
       results.push(new MulticallResult(ethereum.Value.fromBytes(Bytes.fromI32(0)), true))
     }
   }

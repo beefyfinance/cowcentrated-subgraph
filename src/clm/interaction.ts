@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
+import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
 import { Transfer as ClmManagerTransferEvent } from "../../generated/templates/ClmManager/ClmManager"
 import {
   Transfer as RewardPoolTransferEvent,
@@ -36,7 +36,7 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
     !event.params.from.equals(managerAddress) &&
     !event.params.from.equals(rewardPoolAddress)
   ) {
-    updateUserPosition(clm, event, event.params.from, event.params.value.neg(), ZERO_BI, new Array<BigInt>(0))
+    updateUserPosition(clm, event, event.params.from, event.params.value.neg(), ZERO_BI, [])
   }
 
   if (
@@ -45,7 +45,7 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
     !event.params.to.equals(managerAddress) &&
     !event.params.to.equals(rewardPoolAddress)
   ) {
-    updateUserPosition(clm, event, event.params.to, event.params.value, ZERO_BI, new Array<BigInt>(0))
+    updateUserPosition(clm, event, event.params.to, event.params.value, ZERO_BI, [])
   }
 }
 
@@ -72,7 +72,7 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
     !event.params.to.equals(managerAddress) &&
     !event.params.to.equals(rewardPoolAddress)
   ) {
-    updateUserPosition(clm, event, event.params.from, ZERO_BI, event.params.value.neg(), new Array<BigInt>(0))
+    updateUserPosition(clm, event, event.params.from, ZERO_BI, event.params.value.neg(), [])
   }
 
   if (
@@ -81,7 +81,7 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
     !event.params.to.equals(managerAddress) &&
     !event.params.to.equals(rewardPoolAddress)
   ) {
-    updateUserPosition(clm, event, event.params.to, ZERO_BI, event.params.value, new Array<BigInt>(0))
+    updateUserPosition(clm, event, event.params.to, ZERO_BI, event.params.value, [])
   }
 }
 
@@ -89,8 +89,9 @@ export function handleRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent): vo
   const rewardPool = getClmRewardPool(event.address)
   const clm = getCLM(rewardPool.clm)
 
-  const rewardBalancesDelta = new Array<BigInt>(clm.rewardTokens.length)
-  for (let i = 0; i < clm.rewardTokens.length; i++) {
+  const rewardTokens = clm.rewardTokens
+  const rewardBalancesDelta = new Array<BigInt>()
+  for (let i = 0; i < rewardTokens.length; i++) {
     if (clm.rewardTokens[i].equals(event.params.reward)) {
       rewardBalancesDelta.push(event.params.amount)
     } else {

@@ -28,14 +28,14 @@ export function getCLM(managerAddress: Bytes): CLM {
 
     clm.underlyingToken0 = ADDRESS_ZERO
     clm.underlyingToken1 = ADDRESS_ZERO
-    clm.rewardTokens = new Array<Bytes>()
+    clm.rewardTokens = []
 
     clm.managerTotalSupply = ZERO_BI
     clm.rewardPoolTotalSupply = ZERO_BI
 
     clm.token0ToNativePrice = ZERO_BI
     clm.token1ToNativePrice = ZERO_BI
-    clm.rewardToNativePrices = new Array<BigInt>()
+    clm.rewardToNativePrices = []
     clm.nativeToUSDPrice = ZERO_BI
 
     clm.priceOfToken0InToken1 = ZERO_BI
@@ -102,7 +102,7 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
 
     snapshot.token0ToNativePrice = ZERO_BI
     snapshot.token1ToNativePrice = ZERO_BI
-    snapshot.rewardToNativePrices = new Array<BigInt>()
+    snapshot.rewardToNativePrices = []
     snapshot.nativeToUSDPrice = ZERO_BI
 
     snapshot.priceOfToken0InToken1 = ZERO_BI

@@ -260,9 +260,9 @@ export function handleRewardPoolAddReward(event: RewardPoolAddRewardEvent): void
   const rewardPool = getClmRewardPool(rewardPoolAddress)
   const clm = getCLM(rewardPool.clm)
 
-  const tokens = clm.rewardTokens
-  tokens.push(event.params.reward)
-  clm.rewardTokens = tokens
+  const rewardTokens = clm.rewardTokens
+  rewardTokens.push(event.params.reward)
+  clm.rewardTokens = rewardTokens
   clm.save()
 }
 
@@ -270,13 +270,13 @@ export function handleRewardPoolRemoveReward(event: RewardPoolRemoveRewardEvent)
   const rewardPoolAddress = event.address
   const rewardPool = getClmRewardPool(rewardPoolAddress)
   const clm = getCLM(rewardPool.clm)
-
-  const tokens = new Array<Bytes>(clm.rewardTokens.length - 1)
-  for (let i = 0; i < clm.rewardTokens.length; i++) {
-    if (clm.rewardTokens[i].equals(event.params.reward)) {
+  const rewardTokens = clm.rewardTokens
+  const tokens = new Array<Bytes>()
+  for (let i = 0; i < rewardTokens.length; i++) {
+    if (rewardTokens[i].equals(event.params.reward)) {
       tokens.push(getNullToken().id)
     } else {
-      tokens.push(clm.rewardTokens[i])
+      tokens.push(rewardTokens[i])
     }
   }
   clm.rewardTokens = tokens

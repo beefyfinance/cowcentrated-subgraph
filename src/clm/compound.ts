@@ -13,12 +13,12 @@ import { getEventIdentifier } from "../common/utils/event"
 import { updateCLMDataAndSnapshots, fetchCLMData } from "./utils/clm-data"
 
 export function handleClmStrategyHarvestAmounts(event: CLMHarvestEvent): void {
-  handleClmStrategyHarvest(event, event.params.fee0, event.params.fee1, new Array<BigInt>(0))
+  handleClmStrategyHarvest(event, event.params.fee0, event.params.fee1, [])
 }
 
 export function handleClmStrategyHarvestRewards(event: CLMHarvestRewardsEvent): void {
   // TODO: handle output tokens and event.params.fees or remove this handler
-  handleClmStrategyHarvest(event, ZERO_BI, ZERO_BI, new Array<BigInt>(0))
+  handleClmStrategyHarvest(event, ZERO_BI, ZERO_BI, [])
 }
 
 function handleClmStrategyHarvest(
@@ -67,12 +67,12 @@ export function handleClmStrategyClaimedFees(event: CLMClaimedFeesEvent): void {
     event,
     event.params.feeAlt0.plus(event.params.feeMain0),
     event.params.feeAlt1.plus(event.params.feeMain1),
-    new Array<BigInt>(0),
+    [],
   )
 }
 export function handleClmStrategyClaimedRewards(event: CLMClaimedRewardsEvent): void {
   // TODO: handle output tokens and event.params.fees or remove this handler
-  handleClmStrategyFees(event, ZERO_BI, ZERO_BI, new Array<BigInt>(0))
+  handleClmStrategyFees(event, ZERO_BI, ZERO_BI, [])
 }
 
 function handleClmStrategyFees(
