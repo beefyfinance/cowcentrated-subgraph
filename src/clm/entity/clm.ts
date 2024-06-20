@@ -50,6 +50,10 @@ export function getCLM(managerAddress: Bytes): CLM {
   return clm
 }
 
+export function isClmManager(managerAddress: Bytes): boolean {
+  return ClmManager.load(managerAddress) != null
+}
+
 export function getClmManager(managerAddress: Bytes): ClmManager {
   let manager = ClmManager.load(managerAddress)
   if (!manager) {
@@ -71,6 +75,10 @@ export function getClmStrategy(strategyAddress: Bytes): ClmStrategy {
     strategy.isInitialized = false
   }
   return strategy
+}
+
+export function isClmRewardPool(rewardPoolAddress: Bytes): boolean {
+  return ClmRewardPool.load(rewardPoolAddress) != null
 }
 
 export function getClmRewardPool(rewardPoolAddress: Bytes): ClmRewardPool {

@@ -33,7 +33,7 @@ dataSources:
         - Protocol
         - Token
         - Transaction
-      abis: &clmAbis
+      abis: &abis
         - name: ClmManagerFactory
           file: ./abis/beefy/clm/ClmManagerFactory.json
         - name: ClmManager
@@ -46,6 +46,18 @@ dataSources:
           file: ./abis/beefy/clm/RewardPoolFactory.json
         - name: RewardPool
           file: ./abis/beefy/clm/RewardPool.json
+
+        - name: ClassicVaultFactory
+          file: ./abis/beefy/classic/ClassicVaultFactory.json
+        - name: ClassicVault
+          file: ./abis/beefy/classic/ClassicVault.json
+        - name: ClassicStrategy
+          file: ./abis/beefy/classic/ClassicStrategy.json
+        - name: ClassicBoostFactory
+          file: ./abis/beefy/classic/ClassicBoostFactory.json
+        - name: ClassicBoost
+          file: ./abis/beefy/classic/ClassicBoost.json
+
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
         - name: Multicall3
@@ -67,7 +79,7 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/clm/mapping/strategy-factory.ts
       entities: *clmEntities
-      abis: *clmAbis
+      abis: *abis
       eventHandlers:
         - event: GlobalPause(bool)
           handler: handleClmStrategyGlobalPause
@@ -85,7 +97,7 @@ dataSources:
       language: wasm/assemblyscript
       file: ./src/clm/mapping/reward-pool-factory.ts
       entities: *clmEntities
-      abis: *clmAbis
+      abis: *abis
       eventHandlers:
         - event: ProxyCreated(string,address)
           handler: handleRewardPoolCreated
@@ -101,9 +113,9 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/clm/mapping/clock.ts
+      file: ./src/common/mapping/clock.ts
       entities: *clmEntities
-      abis: *clmAbis
+      abis: *abis
       blockHandlers:
         - handler: handleClockTick
           filter:
@@ -137,21 +149,7 @@ dataSources:
         - Protocol
         - Token
         - Transaction
-      abis: &classicAbis
-        - name: ClassicVaultFactory
-          file: ./abis/beefy/classic/ClassicVaultFactory.json
-        - name: ClassicVault
-          file: ./abis/beefy/classic/ClassicVault.json
-        - name: ClassicStrategy
-          file: ./abis/beefy/classic/ClassicStrategy.json
-        - name: ClassicBoostFactory
-          file: ./abis/beefy/classic/ClassicBoostFactory.json
-        - name: ClassicBoost
-          file: ./abis/beefy/classic/ClassicBoost.json
-        - name: IERC20
-          file: ./abis/IERC20/IERC20.json
-        - name: Multicall3
-          file: ./abis/multicall/Multicall3.json
+      abis: *abis
       eventHandlers:
         - event: ProxyCreated(address)
           handler: handleClassicVaultOrStrategyCreated
@@ -169,7 +167,7 @@ templates:
       language: wasm/assemblyscript
       file: ./src/clm/mapping/manager.ts
       entities: *clmEntities
-      abis: *clmAbis
+      abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleClmManagerInitialized
@@ -187,7 +185,7 @@ templates:
       language: wasm/assemblyscript
       file: ./src/clm/mapping/strategy.ts
       entities: *clmEntities
-      abis: *clmAbis
+      abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleClmStrategyInitialized
@@ -216,7 +214,7 @@ templates:
       language: wasm/assemblyscript
       file: ./src/clm/mapping/reward-pool.ts
       entities: *clmEntities
-      abis: *clmAbis
+      abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleRewardPoolInitialized
@@ -242,7 +240,7 @@ templates:
       language: wasm/assemblyscript
       file: ./src/classic/mapping/vault.ts
       entities: *classicEntities
-      abis: *classicAbis
+      abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleClassicVaultInitialized
@@ -262,7 +260,7 @@ templates:
       language: wasm/assemblyscript
       file: ./src/classic/mapping/strategy.ts
       entities: *classicEntities
-      abis: *classicAbis
+      abis: *abis
       eventHandlers:
         - event: Initialized(uint8)
           handler: handleClassicStrategyInitialized
