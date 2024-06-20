@@ -1,7 +1,15 @@
-import { BigInt, log } from "@graphprotocol/graph-ts"
+import { BigInt, log, ethereum, Address } from "@graphprotocol/graph-ts"
 import { CLM } from "../../../generated/schema"
-import { ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
-import { CHAINLINK_NATIVE_PRICE_FEED_ADDRESS, PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD } from "../../config"
+import { ONE_BI, TEN_BI, ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
+import {
+  BEEFY_ORACLE_ADDRESS,
+  BEEFY_SWAPPER_ADDRESS,
+  CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
+  PRICE_FEED_DECIMALS,
+  PRICE_STORE_DECIMALS_USD,
+  WNATIVE_TOKEN_ADDRESS,
+  BEEFY_SWAPPER_VALUE_SCALER,
+} from "../../config"
 import { Multicall3Params, multicall } from "../../common/utils/multicall"
 import { getToken, isNullToken } from "../../common/entity/token"
 import { CLM_SNAPSHOT_PERIODS } from "./snapshot"
@@ -15,7 +23,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   const token1 = getToken(clm.underlyingToken0)
   const rewardPoolToken = getToken(clm.rewardPoolToken)
 
-  const signatures = [
+  const calls = [
     new Multicall3Params(managerAddress, "totalSupply()", "uint256"),
     new Multicall3Params(managerAddress, "balances()", "(uint256,uint256)"),
     new Multicall3Params(strategyAddress, "balancesOfPool()", "(uint256,uint256,uint256,uint256,uint256,uint256)"),
@@ -31,12 +39,36 @@ export function fetchCLMData(clm: CLM): CLMData {
   ]
 
   const hasRewardPool = !isNullToken(rewardPoolToken)
+  const rewardTokens = clm.rewardTokens
   if (hasRewardPool) {
-    signatures.push(new Multicall3Params(strategyAddress, "rewardToNativePrice()", "uint256"))
-    signatures.push(new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256"))
+    calls.push(new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256"))
+    calls.push(
+      new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
+        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+      ]),
+    )
+
+    for (let i = 0; i < rewardTokens.length; i++) {
+      const rewardTokenAddress = Address.fromBytes(rewardTokens[i])
+      const rewardToken = getToken(rewardTokenAddress)
+      calls.push(
+        new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
+          ethereum.Value.fromAddress(rewardTokenAddress),
+        ]),
+      )
+
+      const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, rewardToken.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
+      calls.push(
+        new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
+          ethereum.Value.fromAddress(rewardTokenAddress),
+          ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+          ethereum.Value.fromUnsignedBigInt(amountIn),
+        ]),
+      )
+    }
   }
 
-  const results = multicall(signatures)
+  const results = multicall(calls)
   const totalSupplyRes = results[0]
   const balanceRes = results[1]
   const balanceOfPoolRes = results[2]
@@ -45,14 +77,16 @@ export function fetchCLMData(clm: CLM): CLMData {
   const token0ToNativePriceRes = results[5]
   const token1ToNativePriceRes = results[6]
   const chainLinkAnswerRes = results[7]
-  const rewardToNativePriceRes = hasRewardPool ? results[8] : null
-  const rewardPoolTotalSupplyRes = hasRewardPool ? results[9] : null
+  const rewardPoolTotalSupplyRes = hasRewardPool ? results[8] : null
+  const rewardTokenOutputAmountsRes = hasRewardPool
+    ? results.filter((_, i) => i >= 10).filter((_, i) => i % 2 == 1)
+    : []
 
   let managerTotalSupply = ZERO_BI
   if (!totalSupplyRes.reverted) {
     managerTotalSupply = totalSupplyRes.value.toBigInt()
   } else {
-    log.error("Failed to fetch totalSupply for CLM {}", [clm.id.toString()])
+    log.error("Failed to fetch totalSupply for CLM {}", [clm.id.toHexString()])
   }
 
   let token0Balance = ZERO_BI
@@ -62,7 +96,7 @@ export function fetchCLMData(clm: CLM): CLMData {
     token0Balance = balances[0].toBigInt()
     token1Balance = balances[1].toBigInt()
   } else {
-    log.error("Failed to fetch balance for CLM {}", [clm.id.toString()])
+    log.error("Failed to fetch balance for CLM {}", [clm.id.toHexString()])
   }
 
   let token0PositionMainBalance = ZERO_BI
@@ -76,7 +110,7 @@ export function fetchCLMData(clm: CLM): CLMData {
     token0PositionAltBalance = balanceOfPool[4].toBigInt()
     token1PositionAltBalance = balanceOfPool[5].toBigInt()
   } else {
-    log.error("Failed to fetch balanceOfPool for CLM {}", [clm.id.toString()])
+    log.error("Failed to fetch balanceOfPool for CLM {}", [clm.id.toHexString()])
   }
 
   // price is the amount of token1 per token0, expressed with 36 decimals
@@ -86,7 +120,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   if (!priceRes.reverted) {
     priceOfToken0InToken1 = changeValueEncoding(priceRes.value.toBigInt(), priceDecimals, token1.decimals)
   } else {
-    log.warning("Failed to fetch price for CLM {}", [clm.id.toString()])
+    log.warning("Failed to fetch price for CLM {}", [clm.id.toHexString()])
   }
 
   // price range
@@ -98,7 +132,7 @@ export function fetchCLMData(clm: CLM): CLMData {
     priceRangeMin1 = changeValueEncoding(range[0].toBigInt(), priceDecimals, token1.decimals)
     priceRangeMax1 = changeValueEncoding(range[1].toBigInt(), priceDecimals, token1.decimals)
   } else {
-    log.warning("Failed to fetch price range for CLM {}", [clm.id.toString()])
+    log.warning("Failed to fetch price range for CLM {}", [clm.id.toHexString()])
   }
 
   // and now the prices
@@ -109,22 +143,26 @@ export function fetchCLMData(clm: CLM): CLMData {
   if (!token0ToNativePriceRes.reverted) {
     token0ToNativePrice = token0ToNativePriceRes.value.toBigInt()
   } else {
-    log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toString()])
+    log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toHexString()])
   }
   let token1ToNativePrice = ZERO_BI
   if (!token1ToNativePriceRes.reverted) {
     token1ToNativePrice = token1ToNativePriceRes.value.toBigInt()
   } else {
-    log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toString()])
+    log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toHexString()])
   }
 
   // only some strategies have this
-  let rewardToNativePrice = ZERO_BI
-  if (rewardToNativePriceRes != null) {
-    if (!rewardToNativePriceRes.reverted) {
-      rewardToNativePrice = rewardToNativePriceRes.value.toBigInt()
-    } else {
-      log.error("Failed to fetch rewardToNativePrice for CLM {}", [clm.id.toString()])
+  let rewardToNativePrices = new Array<BigInt>()
+  if (hasRewardPool) {
+    for (let i = 0; i < rewardTokenOutputAmountsRes.length; i++) {
+      const amountOutRes = rewardTokenOutputAmountsRes[i]
+      if (!amountOutRes.reverted) {
+        const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+        rewardToNativePrices[i] = amountOut
+      } else {
+        log.error("Failed to fetch rewardToNativePrices for CLM {}", [clm.id.toHexString()])
+      }
     }
   }
 
@@ -134,7 +172,7 @@ export function fetchCLMData(clm: CLM): CLMData {
     const chainLinkAnswer = chainLinkAnswerRes.value.toTuple()
     nativeToUSDPrice = changeValueEncoding(chainLinkAnswer[1].toBigInt(), PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD)
   } else {
-    log.error("Failed to fetch nativeToUSDPrice for CLM {}", [clm.id.toString()])
+    log.error("Failed to fetch nativeToUSDPrice for CLM {}", [clm.id.toHexString()])
   }
 
   // only some clms have a reward pool token
@@ -143,7 +181,7 @@ export function fetchCLMData(clm: CLM): CLMData {
     if (!rewardPoolTotalSupplyRes.reverted) {
       rewardPoolTotalSupply = rewardPoolTotalSupplyRes.value.toBigInt()
     } else {
-      log.error("Failed to fetch rewardPoolTotalSupply for CLM {}", [clm.id.toString()])
+      log.error("Failed to fetch rewardPoolTotalSupply for CLM {}", [clm.id.toHexString()])
     }
   }
 
@@ -164,7 +202,7 @@ export function fetchCLMData(clm: CLM): CLMData {
 
     token0ToNativePrice,
     token1ToNativePrice,
-    rewardToNativePrice,
+    rewardToNativePrices,
     nativeToUSDPrice,
   )
 }
@@ -187,7 +225,7 @@ class CLMData {
 
     public token0ToNativePrice: BigInt,
     public token1ToNativePrice: BigInt,
-    public rewardToNativePrice: BigInt,
+    public rewardToNativePrices: Array<BigInt>,
     public nativeToUSDPrice: BigInt,
   ) {}
 }
@@ -198,7 +236,7 @@ export function updateCLMDataAndSnapshots(clm: CLM, clmData: CLMData, nowTimesta
   clm.rewardPoolTotalSupply = clmData.rewardPoolTotalSupply
   clm.token0ToNativePrice = clmData.token0ToNativePrice
   clm.token1ToNativePrice = clmData.token1ToNativePrice
-  clm.rewardToNativePrice = clmData.rewardToNativePrice
+  clm.rewardToNativePrices = clmData.rewardToNativePrices
   clm.nativeToUSDPrice = clmData.nativeToUSDPrice
   clm.priceOfToken0InToken1 = clmData.priceOfToken0InToken1
   clm.priceRangeMin1 = clmData.priceRangeMin1
@@ -222,7 +260,7 @@ export function updateCLMDataAndSnapshots(clm: CLM, clmData: CLMData, nowTimesta
     snapshot.rewardPoolTotalSupply = clm.rewardPoolTotalSupply
     snapshot.token0ToNativePrice = clm.token0ToNativePrice
     snapshot.token1ToNativePrice = clm.token1ToNativePrice
-    snapshot.rewardToNativePrice = clm.rewardToNativePrice
+    snapshot.rewardToNativePrices = clm.rewardToNativePrices
     snapshot.nativeToUSDPrice = clm.nativeToUSDPrice
     snapshot.priceOfToken0InToken1 = clm.priceOfToken0InToken1
     snapshot.priceRangeMin1 = clm.priceRangeMin1

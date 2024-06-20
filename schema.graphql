@@ -378,8 +378,8 @@ type CLM @entity {
   underlyingToken0: Token!
   "The underlying tokens contained in the CLM. This is the second token."
   underlyingToken1: Token!
-  "The reward token of the CLM. This is the token that is minted when the CLM earns non-compounding yield."
-  rewardToken: Token!
+  "The reward tokens of the CLM's rewardpool. These will be rewarded to positions when the CLM earns non-compounding yield."
+  rewardTokens: [Token!]!
 
   # ----- PRICES & STATS -----
 
@@ -388,13 +388,13 @@ type CLM @entity {
   "Total supply of the reward pool token. Express with `rewardPoolToken.decimals` decimals."
   rewardPoolTotalSupply: BigInt!
 
-  "Token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  "Latest token 0 price in native we have seen. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
-  "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
+  "Latest token 1 price in native we have seen. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
-  "Reward token 0 price in native at the time of the interaction. Expressed with 18 decimals."
-  rewardToNativePrice: BigInt!
-  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  "Latest reward token prices in native we have seen. Ordered by clm.rewardTokens. Expressed with 18 decimals."
+  rewardToNativePrices: [BigInt!]!
+  "Latest native token price we have seen. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
   """
@@ -464,13 +464,13 @@ type ClmSnapshot @entity {
   "Total supply of the reward pool token. Express with `rewardPoolToken.decimals` decimals."
   rewardPoolTotalSupply: BigInt!
 
-  "Token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  "Latest token 0 price in native of this snapshot. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
-  "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
+  "Latest token 1 price in native of this snapshot. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
-  "Reward token price in native at the time of the interaction. Expressed with 18 decimals."
-  rewardToNativePrice: BigInt!
-  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  "Latest reward token prices in native of this snapshot. Ordered by clm.rewardTokens. Expressed with 18 decimals."
+  rewardToNativePrices: [BigInt!]!
+  "Latest native token price of this snapshot. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
   """
@@ -572,21 +572,21 @@ type ClmHarvestEvent @entity(immutable: true) {
   compoundedAmount0: BigInt!
   "The amount of second underlying tokens compounded"
   compoundedAmount1: BigInt!
-  "The amount of reward tokens collected"
-  collectedRewards: BigInt!
+  "The amount of reward tokens collected. Ordered by clm.rewardTokens."
+  collectedRewards: [BigInt!]!
 
   "Total amount of liquidity in the manager at time of harvest"
   managerTotalSupply: BigInt!
   "Total amount of reward pool shares at time of harvest"
   rewardPoolTotalSupply: BigInt!
 
-  "Token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  "Token 0 price in native at the time of harvest. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
-  "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
+  "Token 1 price in native at the time of harvest. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
-  "Reward token price in native at the time of the interaction. Expressed with 18 decimals."
-  rewardToNativePrice: BigInt!
-  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  "Reward token prices in native at the time of harvest. Expressed with 18 decimals. Ordered by clm.rewardTokens."
+  rewardToNativePrices: [BigInt!]!
+  "Native token price at the time of harvest. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }
 
@@ -624,15 +624,15 @@ type ClmManagerCollectionEvent @entity(immutable: true) {
   collectedAmount0: BigInt!
   "Amount of collected fees in the second token"
   collectedAmount1: BigInt!
-  "Amount of collected fees in the reward token"
-  collectedRewardAmount: BigInt!
+  "Amount of collected fees in the reward tokens. Ordered by clm.rewardTokens."
+  collectedRewardAmounts: [BigInt!]!
 
-  "Token 0 price in native at the time of the interaction. Expressed with 18 decimals."
+  "Token 0 price in native at the time of the collection. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
-  "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
+  "Token 1 price in native at the time of the collection. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
-  "Reward token price in native at the time of the interaction. Expressed with 18 decimals."
-  rewardToNativePrice: BigInt!
+  "Reward token prices in native at the time of the collection. Expressed with 18 decimals. Ordered by clm.rewardTokens."
+  rewardToNativePrices: [BigInt!]!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }
@@ -712,6 +712,8 @@ type ClmPositionInteraction @entity(immutable: true) {
   managerBalanceDelta: BigInt!
   "Amount of reward pool shares change in the interaction"
   rewardPoolBalanceDelta: BigInt!
+  "Amount of reward tokens change in the interaction. Ordered by clm.rewardTokens."
+  rewardBalancesDelta: [BigInt!]!
   "Amount of underlying token 0 change in the interaction"
   underlyingBalance0Delta: BigInt!
   "Amount of underlying token 0 change in the interaction"
@@ -721,8 +723,8 @@ type ClmPositionInteraction @entity(immutable: true) {
   token0ToNativePrice: BigInt!
   "Token 1 price in native at the time of the interaction. Expressed with 18 decimals."
   token1ToNativePrice: BigInt!
-  "Reward token price in native at the time of the interaction. Expressed with 18 decimals."
-  rewardToNativePrice: BigInt!
+  "Reward token prices in native at the time of the interaction. Expressed with 18 decimals. Ordered by clm.rewardTokens."
+  rewardToNativePrices: [BigInt!]!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }

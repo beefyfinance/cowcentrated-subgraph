@@ -28,14 +28,14 @@ export function getCLM(managerAddress: Bytes): CLM {
 
     clm.underlyingToken0 = ADDRESS_ZERO
     clm.underlyingToken1 = ADDRESS_ZERO
-    clm.rewardToken = getNullToken().id
+    clm.rewardTokens = []
 
     clm.managerTotalSupply = ZERO_BI
     clm.rewardPoolTotalSupply = ZERO_BI
 
     clm.token0ToNativePrice = ZERO_BI
     clm.token1ToNativePrice = ZERO_BI
-    clm.rewardToNativePrice = ZERO_BI
+    clm.rewardToNativePrices = []
     clm.nativeToUSDPrice = ZERO_BI
 
     clm.priceOfToken0InToken1 = ZERO_BI
@@ -102,7 +102,7 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
 
     snapshot.token0ToNativePrice = ZERO_BI
     snapshot.token1ToNativePrice = ZERO_BI
-    snapshot.rewardToNativePrice = ZERO_BI
+    snapshot.rewardToNativePrices = []
     snapshot.nativeToUSDPrice = ZERO_BI
 
     snapshot.priceOfToken0InToken1 = ZERO_BI
@@ -122,7 +122,7 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
       snapshot.rewardPoolTotalSupply = previousSnapshot.rewardPoolTotalSupply
       snapshot.token0ToNativePrice = previousSnapshot.token0ToNativePrice
       snapshot.token1ToNativePrice = previousSnapshot.token1ToNativePrice
-      snapshot.rewardToNativePrice = previousSnapshot.rewardToNativePrice
+      snapshot.rewardToNativePrices = previousSnapshot.rewardToNativePrices
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
       snapshot.priceOfToken0InToken1 = previousSnapshot.priceOfToken0InToken1
       snapshot.priceRangeMin1 = previousSnapshot.priceRangeMin1

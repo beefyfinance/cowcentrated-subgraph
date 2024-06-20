@@ -20,5 +20,7 @@
   "wrappedNativeAddress": "0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f",
   "wrappedNativeDecimals": 18,
   "chainlinkNativePriceFeedAddress": "0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA",
-  "chainlinkNativePriceFeedDecimals": 8
+  "chainlinkNativePriceFeedDecimals": 8,
+  "beefySwapperAddress": "0x5aD159A8537fE39CAD81748726584C05b68b3c11",
+  "beefyOracleAddress": "0x3923704D9684ABb234743d65D96c43Bf26414481"
 }

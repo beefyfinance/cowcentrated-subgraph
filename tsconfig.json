@@ -1,7 +1,7 @@
 {
   "extends": "@graphprotocol/graph-ts/tsconfig",
   "compilerOptions": {
-    "types": ["@graphprotocol/graph-ts"],
+    "types": ["@graphprotocol/graph-ts", "assembly"],
     "strict": true,
     "strictNullChecks": true
   }

@@ -1,6 +1,9 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
+import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
 import { Transfer as ClmManagerTransferEvent } from "../../generated/templates/ClmManager/ClmManager"
-import { Transfer as RewardPoolTransferEvent } from "../../generated/templates/ClmRewardPool/RewardPool"
+import {
+  Transfer as RewardPoolTransferEvent,
+  RewardPaid as RewardPoolRewardPaidEvent,
+} from "../../generated/templates/ClmRewardPool/RewardPool"
 import { getClmRewardPool, getCLM, isClmInitialized } from "./entity/clm"
 import { getTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
@@ -33,7 +36,7 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
     !event.params.from.equals(managerAddress) &&
     !event.params.from.equals(rewardPoolAddress)
   ) {
-    updateUserPosition(clm, event, event.params.from, event.params.value.neg(), ZERO_BI)
+    updateUserPosition(clm, event, event.params.from, event.params.value.neg(), ZERO_BI, [])
   }
 
   if (
@@ -42,7 +45,7 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
     !event.params.to.equals(managerAddress) &&
     !event.params.to.equals(rewardPoolAddress)
   ) {
-    updateUserPosition(clm, event, event.params.to, event.params.value, ZERO_BI)
+    updateUserPosition(clm, event, event.params.to, event.params.value, ZERO_BI, [])
   }
 }
 
@@ -69,7 +72,7 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
     !event.params.to.equals(managerAddress) &&
     !event.params.to.equals(rewardPoolAddress)
   ) {
-    updateUserPosition(clm, event, event.params.from, ZERO_BI, event.params.value.neg())
+    updateUserPosition(clm, event, event.params.from, ZERO_BI, event.params.value.neg(), [])
   }
 
   if (
@@ -78,8 +81,25 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
     !event.params.to.equals(managerAddress) &&
     !event.params.to.equals(rewardPoolAddress)
   ) {
-    updateUserPosition(clm, event, event.params.to, ZERO_BI, event.params.value)
+    updateUserPosition(clm, event, event.params.to, ZERO_BI, event.params.value, [])
   }
+}
+
+export function handleRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent): void {
+  const rewardPool = getClmRewardPool(event.address)
+  const clm = getCLM(rewardPool.clm)
+
+  const rewardTokens = clm.rewardTokens
+  const rewardBalancesDelta = new Array<BigInt>()
+  for (let i = 0; i < rewardTokens.length; i++) {
+    if (clm.rewardTokens[i].equals(event.params.reward)) {
+      rewardBalancesDelta.push(event.params.amount)
+    } else {
+      rewardBalancesDelta.push(ZERO_BI)
+    }
+  }
+
+  updateUserPosition(clm, event, event.params.user, ZERO_BI, ZERO_BI, rewardBalancesDelta)
 }
 
 function updateUserPosition(
@@ -88,6 +108,7 @@ function updateUserPosition(
   investorAddress: Address,
   managerBalanceDelta: BigInt,
   rewardPoolBalanceDelta: BigInt,
+  rewardBalancesDelta: Array<BigInt>,
 ): void {
   if (!isClmInitialized(clm)) {
     return
@@ -122,13 +143,16 @@ function updateUserPosition(
   // interaction
   const isSharesTransfer = !managerBalanceDelta.equals(ZERO_BI)
   const isRewardPoolTransfer = !rewardPoolBalanceDelta.equals(ZERO_BI)
+  const isRewardClaim = rewardBalancesDelta.some((delta) => !delta.equals(ZERO_BI))
 
-  // if both shares and reward pool are transferred, we need to create two interactions
+  // if both shares and reward pool are transferred, we will create two interactions
   let interactionId = investor.id.concat(getEventIdentifier(event))
   if (isSharesTransfer) {
     interactionId = interactionId.concat(Bytes.fromI32(0))
   } else if (isRewardPoolTransfer) {
     interactionId = interactionId.concat(Bytes.fromI32(1))
+  } else if (isRewardClaim) {
+    interactionId = interactionId.concat(Bytes.fromI32(2))
   }
   const interaction = new ClmPositionInteraction(interactionId)
   interaction.clm = clm.id
@@ -141,6 +165,8 @@ function updateUserPosition(
     interaction.type = managerBalanceDelta.gt(ZERO_BI) ? "MANAGER_DEPOSIT" : "MANAGER_WITHDRAW"
   } else if (isRewardPoolTransfer) {
     interaction.type = rewardPoolBalanceDelta.gt(ZERO_BI) ? "REWARD_POOL_STAKE" : "REWARD_POOL_UNSTAKE"
+  } else if (isRewardClaim) {
+    interaction.type = "REWARD_POOL_CLAIM"
   }
 
   interaction.managerBalance = position.managerBalance
@@ -148,6 +174,7 @@ function updateUserPosition(
   interaction.totalBalance = position.totalBalance
   interaction.managerBalanceDelta = managerBalanceDelta
   interaction.rewardPoolBalanceDelta = rewardPoolBalanceDelta
+  interaction.rewardBalancesDelta = rewardBalancesDelta
 
   interaction.underlyingBalance0 = ZERO_BI
   interaction.underlyingBalance1 = ZERO_BI
@@ -174,7 +201,7 @@ function updateUserPosition(
   }
   interaction.token0ToNativePrice = clmData.token0ToNativePrice
   interaction.token1ToNativePrice = clmData.token1ToNativePrice
-  interaction.rewardToNativePrice = clmData.rewardToNativePrice
+  interaction.rewardToNativePrices = clmData.rewardToNativePrices
   interaction.nativeToUSDPrice = clmData.nativeToUSDPrice
   interaction.save()
 }

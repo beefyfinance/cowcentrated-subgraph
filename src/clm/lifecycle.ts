@@ -1,4 +1,4 @@
-import { Address } from "@graphprotocol/graph-ts"
+import { Address, Bytes } from "@graphprotocol/graph-ts"
 import { CLM } from "../../generated/schema"
 import {
   ClmManager as ClmManagerContract,
@@ -24,6 +24,8 @@ import { ProxyCreated as RewardPoolCreatedEvent } from "../../generated/RewardPo
 import {
   Initialized as RewardPoolInitialized,
   RewardPool as ClmRewardPoolContract,
+  AddReward as RewardPoolAddRewardEvent,
+  RemoveReward as RewardPoolRemoveRewardEvent,
 } from "../../generated/RewardPoolFactory/RewardPool"
 import { getTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
@@ -33,6 +35,7 @@ import {
   PRODUCT_LIFECYCLE_PAUSED,
   PRODUCT_LIFECYCLE_RUNNING,
 } from "../common/entity/lifecycle"
+import { getNullToken } from "../common/entity/token"
 
 export function handleClmManagerCreated(event: CLMManagerCreatedEvent): void {
   const tx = getTransaction(event.block, event.transaction)
@@ -168,15 +171,6 @@ function fetchInitialCLMDataAndSave(clm: CLM): void {
   const underlyingToken0 = fetchAndSaveTokenData(underlyingToken0Address)
   const underlyingToken1 = fetchAndSaveTokenData(underlyingToken1Address)
 
-  // maaaaybe we have a reward token
-  const strategyAddress = Address.fromBytes(clm.strategy)
-  const strategyContract = ClmStrategyContract.bind(strategyAddress)
-  const outputTokenRes = strategyContract.try_output()
-  if (!outputTokenRes.reverted) {
-    const rewardToken = fetchAndSaveTokenData(outputTokenRes.value)
-    clm.rewardToken = rewardToken.id
-  }
-
   clm.managerToken = managerToken.id
   clm.underlyingToken0 = underlyingToken0.id
   clm.underlyingToken1 = underlyingToken1.id
@@ -259,4 +253,32 @@ export function handleRewardPoolInitialized(event: RewardPoolInitialized): void 
     clm.id.toHexString(),
     event.block.number.toString(),
   ])
+}
+
+export function handleRewardPoolAddReward(event: RewardPoolAddRewardEvent): void {
+  const rewardPoolAddress = event.address
+  const rewardPool = getClmRewardPool(rewardPoolAddress)
+  const clm = getCLM(rewardPool.clm)
+
+  const rewardTokens = clm.rewardTokens
+  rewardTokens.push(event.params.reward)
+  clm.rewardTokens = rewardTokens
+  clm.save()
+}
+
+export function handleRewardPoolRemoveReward(event: RewardPoolRemoveRewardEvent): void {
+  const rewardPoolAddress = event.address
+  const rewardPool = getClmRewardPool(rewardPoolAddress)
+  const clm = getCLM(rewardPool.clm)
+  const rewardTokens = clm.rewardTokens
+  const tokens = new Array<Bytes>()
+  for (let i = 0; i < rewardTokens.length; i++) {
+    if (rewardTokens[i].equals(event.params.reward)) {
+      tokens.push(getNullToken().id)
+    } else {
+      tokens.push(rewardTokens[i])
+    }
+  }
+  clm.rewardTokens = tokens
+  clm.save()
 }

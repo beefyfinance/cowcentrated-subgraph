@@ -14,11 +14,13 @@
   "beefyClassicVaultFactoryAddress": "0x8396f3d25d07531a80770Ce3DEA025932C4953f7",
   "beefyClassicVaultFactoryStartBlock": 219696027,
   "beefyClassicBoostFactoryAddress": "0x2951c806a75b19954ce0bed477676a54f3c1c200",
-  "beefyClassicBoostFactoryStartBlock": 197959279,
+  "beefyClassicBoostFactoryStartBlock": 219696027,
   "clockTickBlocks": 1300,
 
   "wrappedNativeAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
   "wrappedNativeDecimals": 18,
   "chainlinkNativePriceFeedAddress": "0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612",
-  "chainlinkNativePriceFeedDecimals": 8
+  "chainlinkNativePriceFeedDecimals": 8,
+  "beefySwapperAddress": "0xCee843CD04E3758dDC5BCFf08647DddB117151D0",
+  "beefyOracleAddress": "0x5C7c7Bb0c9251821cB5a1D9c08F21B0DAD5efe65"
 }
