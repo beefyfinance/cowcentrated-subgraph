@@ -98,8 +98,7 @@ function updateUserPosition(
   interaction.totalBalance = position.totalBalance
   interaction.vaultBalanceDelta = vaultBalanceDelta
   interaction.boostBalanceDelta = boostBalanceDelta
-
-  interaction.underlyingToNativePrice = ZERO_BI // TODO: get underlying price
+  interaction.underlyingToNativePrice = classicData.underlyingToNativePrice
   interaction.nativeToUSDPrice = classicData.nativeToUSDPrice
   interaction.save()
 }
