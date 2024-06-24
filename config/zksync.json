@@ -5,8 +5,8 @@
   "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
   "burnAddress": "0x000000000000000000000000000000000000dead",
 
-  "clmManagerFactoryAddress": "0x0e02963318CD71f3084b89520b4c7dc7588db228",
-  "clmManagerFactoryStartBlock": 37377539,
+  "clmManagerFactoryAddress": "0x59c7EC7387A480c0a5d953fCb45513D01B94286D",
+  "clmManagerFactoryStartBlock": 37399642,
   "clmStrategyFactoryAddress": "0x3Da3658959D9Fc5233716487D050F73A3F659c2E",
   "clmStrategyFactoryStartBlock": 37377982,
   "rewardPoolFactoryAddress": "0x6Ff30Fde5b530d052d24AC104eC87ADbc33384Fd",
