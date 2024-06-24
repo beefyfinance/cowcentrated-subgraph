@@ -1,0 +1,26 @@
+{
+  "network": "zksync-era",
+
+  "multicall3Address": "0xF9cda624FBC7e059355ce98a31693d299FACd963",
+  "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
+  "burnAddress": "0x000000000000000000000000000000000000dead",
+
+  "clmManagerFactoryAddress": "0x0e02963318CD71f3084b89520b4c7dc7588db228",
+  "clmManagerFactoryStartBlock": 37377539,
+  "clmStrategyFactoryAddress": "0x3Da3658959D9Fc5233716487D050F73A3F659c2E",
+  "clmStrategyFactoryStartBlock": 37377982,
+  "rewardPoolFactoryAddress": "0x6Ff30Fde5b530d052d24AC104eC87ADbc33384Fd",
+  "rewardPoolFactoryStartBlock": 37377717,
+  "beefyClassicVaultFactoryAddress": "0x42F93644403C6cA1dD4F6446aA720F019a757FEA",
+  "beefyClassicVaultFactoryStartBlock": 2178385,
+  "beefyClassicBoostFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "beefyClassicBoostFactoryStartBlock": 37377539,
+  "clockTickBlocks": 500,
+
+  "wrappedNativeAddress": "0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91",
+  "wrappedNativeDecimals": 18,
+  "chainlinkNativePriceFeedAddress": "0x6D41d1dc818112880b40e26BD6FD347E41008eDA",
+  "chainlinkNativePriceFeedDecimals": 8,
+  "beefySwapperAddress": "0x46b9821E57a68274342E679B2a44c1acb5Af55C8",
+  "beefyOracleAddress": "0x072A7B3a35C7980146E23770576DC84c96Bc49Da"
+}

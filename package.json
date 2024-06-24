@@ -22,7 +22,8 @@
     "prepare:arbitrum-beta": "./bin/prepare.sh arbitrum-beta",
     "prepare:moonbeam": "./bin/prepare.sh moonbeam",
     "prepare:linea": "./bin/prepare.sh linea",
-    "prepare:polygon": "./bin/prepare.sh polygon"
+    "prepare:polygon": "./bin/prepare.sh polygon",
+    "prepare:zksync": "./bin/prepare.sh zksync"
   },
   "main": "./bin/index.js",
   "bin": {
