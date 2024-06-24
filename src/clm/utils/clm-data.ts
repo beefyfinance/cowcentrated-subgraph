@@ -1,14 +1,17 @@
 import { BigInt, log, ethereum, Address } from "@graphprotocol/graph-ts"
 import { CLM } from "../../../generated/schema"
-import { ONE_BI, TEN_BI, ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
+import { ONE_BI, ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
 import {
   BEEFY_ORACLE_ADDRESS,
   BEEFY_SWAPPER_ADDRESS,
   CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
-  PRICE_FEED_DECIMALS,
+  CHAINLINK_NATIVE_PRICE_FEED_DECIMALS,
   PRICE_STORE_DECIMALS_USD,
   WNATIVE_TOKEN_ADDRESS,
   BEEFY_SWAPPER_VALUE_SCALER,
+  PYTH_PRICE_FEED_ADDRESS,
+  PYTH_NATIVE_PRICE_ID,
+  PRICE_ORACLE_TYPE,
 } from "../../config"
 import { Multicall3Params, multicall } from "../../common/utils/multicall"
 import { getToken, isNullToken } from "../../common/entity/token"
@@ -31,12 +34,26 @@ export function fetchCLMData(clm: CLM): CLMData {
     new Multicall3Params(strategyAddress, "range()", "(uint256,uint256)"),
     new Multicall3Params(strategyAddress, "lpToken0ToNativePrice()", "uint256"),
     new Multicall3Params(strategyAddress, "lpToken1ToNativePrice()", "uint256"),
-    new Multicall3Params(
-      CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
-      "latestRoundData()",
-      "(uint80,int256,uint256,uint256,uint80)",
-    ),
   ]
+
+  if (PRICE_ORACLE_TYPE == "chainlink") {
+    calls.push(
+      new Multicall3Params(
+        CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
+        "latestRoundData()",
+        "(uint80,int256,uint256,uint256,uint80)",
+      ),
+    )
+  } else if (PRICE_ORACLE_TYPE === "pyth") {
+    calls.push(
+      new Multicall3Params(PYTH_PRICE_FEED_ADDRESS, "getPriceUnsafe()", "(int64,uint64,int32,uint256)", [
+        ethereum.Value.fromBytes(PYTH_NATIVE_PRICE_ID),
+      ]),
+    )
+  } else {
+    log.error("Unsupported price oracle type {}", [PRICE_ORACLE_TYPE])
+    throw new Error("Unsupported price oracle type")
+  }
 
   const hasRewardPool = !isNullToken(rewardPoolToken)
   const rewardTokens = clm.rewardTokens
@@ -76,7 +93,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   const rangeRes = results[4]
   const token0ToNativePriceRes = results[5]
   const token1ToNativePriceRes = results[6]
-  const chainLinkAnswerRes = results[7]
+  const priceFeedRes = results[7]
   const rewardPoolTotalSupplyRes = hasRewardPool ? results[8] : null
   const rewardTokenOutputAmountsRes = hasRewardPool
     ? results.filter((_, i) => i >= 10).filter((_, i) => i % 2 == 1)
@@ -168,13 +185,27 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   // and have a native price in USD
   let nativeToUSDPrice = ZERO_BI
-  if (!chainLinkAnswerRes.reverted) {
-    const chainLinkAnswer = chainLinkAnswerRes.value.toTuple()
-    nativeToUSDPrice = changeValueEncoding(chainLinkAnswer[1].toBigInt(), PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD)
+  if (!priceFeedRes.reverted) {
+    if (PRICE_ORACLE_TYPE === "chainlink") {
+      const chainLinkAnswer = priceFeedRes.value.toTuple()
+      nativeToUSDPrice = changeValueEncoding(
+        chainLinkAnswer[1].toBigInt(),
+        CHAINLINK_NATIVE_PRICE_FEED_DECIMALS,
+        PRICE_STORE_DECIMALS_USD,
+      )
+    } else if (PRICE_ORACLE_TYPE === "pyth") {
+      const pythAnswer = priceFeedRes.value.toTuple()
+      const value = pythAnswer[0].toBigInt()
+      const exponent = pythAnswer[2].toBigInt()
+      const decimals = exponent.neg()
+      nativeToUSDPrice = changeValueEncoding(value, decimals, PRICE_STORE_DECIMALS_USD)
+    } else {
+      log.error("Unsupported price oracle type {}", [PRICE_ORACLE_TYPE])
+      throw new Error("Unsupported price oracle type")
+    }
   } else {
-    log.error("Failed to fetch nativeToUSDPrice for CLM {}", [clm.id.toHexString()])
+    log.error("Failed to fetch nativeToUSDPrice for CLM {}", [clm.id.toString()])
   }
-
   // only some clms have a reward pool token
   let rewardPoolTotalSupply = ZERO_BI
   if (rewardPoolTotalSupplyRes != null) {

@@ -68,7 +68,15 @@ yarn test:lint # run prettier linter
 1. Add the network configuration [config/<network>.json](config/).
    - `network` must match one of the networks in Goldsky's [supported networks list](https://docs.goldsky.com/chains/supported-networks).
    - `clockTickBlocks` is the number of blocks between each clock tick, aim for a clock tick every 5 minutes.
-   - Find the <native>/USD price feed [on chainlink's documentation](https://docs.chain.link/data-feeds/price-feeds/addresses#networks). Verify that it's a ChainLink `AggregatorV3Interface` with the `latestRoundData()` method. Put the address in `chainlinkNativePriceFeedAddress`.
+   - Price feed:
+     - Use chainlink
+       - `"priceOracleType" : "chainlink"`
+       - Find the `<native>/USD` price feed contract address [on chainlink's documentation](https://docs.chain.link/data-feeds/price-feeds/addresses#networks). Verify that it's a ChainLink `AggregatorV3Interface` with the `latestRoundData()` method. Put the address in `chainlinkNativePriceFeedAddress`.
+       - Get the decimals of the price feed using the `decimals` field of the contract. Put the decimals in `chainlinkNativePriceFeedDecimals`.
+     - Use pyth
+       - `"priceOracleType" : "pyth"`
+       - Find the pyth contract address [on pyth's documentation](https://docs.pyth.network/price-feeds/contract-addresses/evm). Put the address in `pythPriceFeedAddress`.
+       - Grab the `Crypto.<native>/USD` price feed ID [on pyth's documentation](https://pyth.network/developers/price-feed-ids). Put the ID in `pythPriceFeedId`.
 2. Add dev RPCs in graph-node config [docker/graph-node/config.toml](docker/graph-node/config.toml).
 3. Add a new `prepare:<network>` script in [package.json](package.json).
 4. Add the chain name in the Release script in [.github/workflows/Release.yml](.github/workflows/Release.yml).

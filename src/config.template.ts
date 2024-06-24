@@ -1,10 +1,13 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts"
+import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 
 export const NETWORK_NAME = "{{network}}"
 export const WNATIVE_TOKEN_ADDRESS = Address.fromString("{{wrappedNativeAddress}}")
 export const WNATIVE_DECIMALS = BigInt.fromU32({{wrappedNativeDecimals}})
+export const PRICE_ORACLE_TYPE: string = "{{priceOracleType}}"
 export const CHAINLINK_NATIVE_PRICE_FEED_ADDRESS = Address.fromString("{{chainlinkNativePriceFeedAddress}}")
-export const PRICE_FEED_DECIMALS = BigInt.fromU32({{chainlinkNativePriceFeedDecimals}})
+export const CHAINLINK_NATIVE_PRICE_FEED_DECIMALS = BigInt.fromU32({{chainlinkNativePriceFeedDecimals}})
+export const PYTH_PRICE_FEED_ADDRESS = Address.fromString("{{pythPriceFeedAddress}}")
+export const PYTH_NATIVE_PRICE_ID = Bytes.fromHexString("{{pythNativePriceId}}")
 export const SHARE_TOKEN_MINT_ADDRESS = Address.fromString("{{shareTokenMintAddress}}")
 export const BURN_ADDRESS = Address.fromString("{{burnAddress}}")
 export const MULTICALL3_ADDRESS = Address.fromString("{{multicall3Address}}")

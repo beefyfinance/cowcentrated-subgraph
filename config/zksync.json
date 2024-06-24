@@ -19,8 +19,13 @@
 
   "wrappedNativeAddress": "0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91",
   "wrappedNativeDecimals": 18,
+
+  "priceOracleType": "chainlink",
   "chainlinkNativePriceFeedAddress": "0x6D41d1dc818112880b40e26BD6FD347E41008eDA",
   "chainlinkNativePriceFeedDecimals": 8,
+  "pythPriceFeedAddress": "0xf087c864AEccFb6A2Bf1Af6A0382B0d0f6c5D834",
+  "pythNativePriceId": "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+
   "beefySwapperAddress": "0x46b9821E57a68274342E679B2a44c1acb5Af55C8",
   "beefyOracleAddress": "0x072A7B3a35C7980146E23770576DC84c96Bc49Da"
 }
