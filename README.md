@@ -151,19 +151,30 @@ yarn test:lint # run prettier linter
 - classicVault: UpgradeStrat(address)
 - classicVault: Transfer(indexed address,indexed address,uint256)
 
-- classicStrategy: Transfer(indexed address,indexed address,uint256)
+- classicStrategyFactory: ProxyCreated(address)
+- classicStrategy.decimals()
+- classicStrategy.name()
+- classicStrategy.symbol()
 - classicStrategy.vault()
 - classicStrategy: Initialized(uint8)
 - classicStrategy: Paused(address)
 - classicStrategy: Unpaused(address)
 - classicStrategy: StratHarvest(indexed address,uint256,uint256)
 
+- classicBoostFactory: ProxyCreated(address)
+- classicBoost: Initialized(uint8)
+- classicBoost: Staked(indexed address,uint256)
+- classicBoost: Withdrawn(indexed address,uint256)
+- classicBoost: RewardPaid(indexed address,uint256)
 ```
 
 ## Beefy CLM contracts
 
 ```text
 - clmManagerFactory: ProxyCreated(address)
+- clmManager.decimals()
+- clmManager.name()
+- clmManager.symbol()
 - clmManager.balances()
 - clmManager.totalSupply()
 - clmManager.balanceOf()
@@ -189,9 +200,16 @@ yarn test:lint # run prettier linter
 - clmStrategy: ClaimedRewards(uint256)
 
 - rewardPoolFactory: ProxyCreated(address)
+- rewardPool.decimals()
+- rewardPool.name()
+- rewardPool.symbol()
 - rewardPool.stakedToken()
 - rewardPool.totalSupply()
 - rewardPool: Initialized(uint8)
+- rewardPool: Transfer(indexed address,indexed address,uint256)
+- rewardPool: RewardPaid(indexed address,indexed address,uint256)
+- rewardPool: AddReward(address)
+- rewardPool: RemoveReward(address,address)
 ```
 
 ## Other contracts
