@@ -307,5 +307,5 @@ templates:
           handler: handleClassicBoostStaked
         - event: Withdrawn(indexed address,uint256)
           handler: handleClassicBoostWithdrawn
-        #- event: RewardPaid(indexed address,uint256)
-        #  handler: handleClassicBoostRewardPaid
+        - event: RewardPaid(indexed address,uint256)
+          handler: handleClassicBoostRewardPaid

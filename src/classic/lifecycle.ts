@@ -6,7 +6,10 @@ import {
   UpgradeStrat as ClassicVaultUpgradeStrategy,
 } from "../../generated/ClassicVaultFactory/ClassicVault"
 import { BoostDeployed as ClassicBoostDeployed } from "../../generated/ClassicBoostFactory/ClassicBoostFactory"
-import { Initialized as ClassicBoostInitialized } from "../../generated/ClassicBoostFactory/ClassicBoost"
+import {
+  Initialized as ClassicBoostInitialized,
+  ClassicBoost as ClassicBoostContract,
+} from "../../generated/ClassicBoostFactory/ClassicBoost"
 import {
   ClassicStrategy as ClassicStrategyContract,
   Initialized as ClassicStrategyInitialized,
@@ -211,7 +214,32 @@ export function handleClassicBoostInitialized(event: ClassicBoostInitialized): v
   const boostAddress = event.address
   log.debug("Boost initialized: {}", [boostAddress.toHexString()])
 
+  const boostContract = ClassicBoostContract.bind(boostAddress)
+  const rewardTokenAddressRes = boostContract.try_rewardToken()
+  if (rewardTokenAddressRes.reverted) {
+    log.error("Failed to fetch reward token address for Classic Boost: {}", [boostAddress.toHexString()])
+    return
+  }
+  const rewardTokenAddress = rewardTokenAddressRes.value
+  const rewardToken = fetchAndSaveTokenData(rewardTokenAddress)
+
   const boost = getClassicBoost(boostAddress)
   boost.isInitialized = true
+  boost.rewardToken = rewardToken.id
   boost.save()
+
+  const clm = getClassic(boost.classic)
+  const currentRewardTokens = clm.boostRewardTokens
+  let foundToken = false
+  for (let i = 0; i < currentRewardTokens.length; i++) {
+    if (currentRewardTokens[i].equals(rewardTokenAddress)) {
+      foundToken = true
+      break
+    }
+  }
+
+  if (!foundToken) {
+    clm.boostRewardTokens.push(rewardTokenAddress)
+    clm.save()
+  }
 }
