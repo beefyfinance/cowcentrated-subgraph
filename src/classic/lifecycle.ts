@@ -5,6 +5,8 @@ import {
   Initialized as ClassicVaultInitialized,
   UpgradeStrat as ClassicVaultUpgradeStrategy,
 } from "../../generated/ClassicVaultFactory/ClassicVault"
+import { BoostDeployed as ClassicBoostDeployed } from "../../generated/ClassicBoostFactory/ClassicBoostFactory"
+import { Initialized as ClassicBoostInitialized } from "../../generated/ClassicBoostFactory/ClassicBoost"
 import {
   ClassicStrategy as ClassicStrategyContract,
   Initialized as ClassicStrategyInitialized,
@@ -14,8 +16,9 @@ import {
 import {
   ClassicVault as ClassicVaultTemplate,
   ClassicStrategy as ClassicStrategyTemplate,
+  ClassicBoost as ClassicBoostTemplate,
 } from "../../generated/templates"
-import { getClassic, getClassicStrategy, getClassicVault } from "./entity/classic"
+import { getClassic, getClassicBoost, getClassicStrategy, getClassicVault } from "./entity/classic"
 import { Classic } from "../../generated/schema"
 import { getTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
@@ -192,4 +195,23 @@ export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStra
   oldStrategy.vault = ADDRESS_ZERO
   oldStrategy.classic = ADDRESS_ZERO
   oldStrategy.save()
+}
+
+export function handleClassicBoostCreated(event: ClassicBoostDeployed): void {
+  const boostAddress = event.params.boost
+  log.info("Creating Classic Boost: {}", [boostAddress.toHexString()])
+
+  const boost = getClassicBoost(boostAddress)
+  boost.save()
+
+  ClassicBoostTemplate.create(boostAddress)
+}
+
+export function handleClassicBoostInitialized(event: ClassicBoostInitialized): void {
+  const boostAddress = event.address
+  log.debug("Boost initialized: {}", [boostAddress.toHexString()])
+
+  const boost = getClassicBoost(boostAddress)
+  boost.isInitialized = true
+  boost.save()
 }

@@ -1,12 +1,16 @@
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
 import { Transfer as ClassicVaultTransfer } from "../../generated/templates/ClassicVault/ClassicVault"
+import {
+  Staked as ClassicBoostStaked,
+  Withdrawn as ClassicBoostWithdrawn,
+} from "../../generated/templates/ClassicBoost/ClassicBoost"
 import { getTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
 import { Classic, ClassicPositionInteraction } from "../../generated/schema"
 import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
 import { ZERO_BI } from "../common/utils/decimal"
 import { getEventIdentifier } from "../common/utils/event"
-import { getClassic, isClassicInitialized } from "./entity/classic"
+import { getClassic, getClassicBoost, isClassicInitialized } from "./entity/classic"
 import { getClassicPosition } from "./entity/position"
 import { fetchClassicData, updateClassicDataAndSnapshots } from "./utils/classic-data"
 
@@ -31,6 +35,28 @@ export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
   if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.to.equals(BURN_ADDRESS)) {
     updateUserPosition(classic, event, event.params.to, event.params.value, ZERO_BI)
   }
+}
+
+export function handleClassicBoostStaked(event: ClassicBoostStaked): void {
+  const boostAddress = event.address
+  const boost = getClassicBoost(boostAddress)
+  const classic = getClassic(boost.classic)
+
+  const investorAddress = event.params.user
+  const amount = event.params.amount
+
+  updateUserPosition(classic, event, investorAddress, ZERO_BI, amount)
+}
+
+export function handleClassicBoostWithdrawn(event: ClassicBoostWithdrawn): void {
+  const boostAddress = event.address
+  const boost = getClassicBoost(boostAddress)
+  const classic = getClassic(boost.classic)
+
+  const investorAddress = event.params.user
+  const amount = event.params.amount
+
+  updateUserPosition(classic, event, investorAddress, ZERO_BI, amount.neg())
 }
 
 function updateUserPosition(

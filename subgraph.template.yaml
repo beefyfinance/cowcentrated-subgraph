@@ -154,7 +154,24 @@ dataSources:
         - event: ProxyCreated(address)
           handler: handleClassicVaultOrStrategyCreated
           
-
+  - kind: ethereum/contract
+    name: ClassicBoostFactory
+    network: {{network}}
+    source:
+      address: "{{beefyClassicBoostFactoryAddress}}"
+      abi: ClassicBoostFactory
+      startBlock: {{beefyClassicBoostFactoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/boost-factory.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
+        - event: BoostDeployed(indexed address)
+          handler: handleClassicBoostCreated
+    
 templates:
   - name: ClmManager
     kind: ethereum/contract
@@ -270,3 +287,25 @@ templates:
           handler: handleClassicStrategyUnpaused
         - event: StratHarvest(indexed address,uint256,uint256)
           handler: handleClassicStrategyHarvest
+
+  - name: ClassicBoost
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: ClassicBoost
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/boost.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
+        - event: Initialized(uint8)
+          handler: handleClassicBoostInitialized
+        - event: Staked(indexed address,uint256)
+          handler: handleClassicBoostStaked
+        - event: Withdrawn(indexed address,uint256)
+          handler: handleClassicBoostWithdrawn
+        #- event: RewardPaid(indexed address,uint256)
+        #  handler: handleClassicBoostRewardPaid
