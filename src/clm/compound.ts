@@ -17,15 +17,29 @@ export function handleClmStrategyHarvestAmounts(event: CLMHarvestEvent): void {
 }
 
 export function handleClmStrategyHarvestRewards(event: CLMHarvestRewardsEvent): void {
-  // TODO: handle output tokens and event.params.fees or remove this handler
-  handleClmStrategyHarvest(event, ZERO_BI, ZERO_BI, [])
+  const amountClaimed = event.params.fees
+  const strategy = getClmStrategy(event.address)
+  const clm = getCLM(strategy.clm)
+  const outputToken = strategy.outputToken
+
+  const collectedOutputAmounts = new Array<BigInt>()
+  const outputTokens = clm.outputTokens
+  for (let i = 0; i < outputTokens.length; i++) {
+    if (outputTokens[i].equals(outputToken)) {
+      collectedOutputAmounts.push(amountClaimed)
+    } else {
+      collectedOutputAmounts.push(ZERO_BI)
+    }
+  }
+
+  handleClmStrategyHarvest(event, ZERO_BI, ZERO_BI, collectedOutputAmounts)
 }
 
 function handleClmStrategyHarvest(
   event: ethereum.Event,
   compoundedAmount0: BigInt,
   compoundedAmount1: BigInt,
-  collectedRewards: Array<BigInt>,
+  collectedOutputAmounts: Array<BigInt>,
 ): void {
   let strategy = getClmStrategy(event.address)
   let clm = getCLM(strategy.clm)
@@ -52,11 +66,12 @@ function handleClmStrategyHarvest(
   harvest.underlyingAmount1 = clmData.token1Balance
   harvest.compoundedAmount0 = compoundedAmount0
   harvest.compoundedAmount1 = compoundedAmount1
-  harvest.collectedRewards = collectedRewards
+  harvest.collectedOutputAmounts = collectedOutputAmounts
   harvest.managerTotalSupply = clmData.managerTotalSupply
   harvest.rewardPoolTotalSupply = clmData.rewardPoolTotalSupply
   harvest.token0ToNativePrice = clmData.token0ToNativePrice
   harvest.token1ToNativePrice = clmData.token1ToNativePrice
+  harvest.outputToNativePrices = clmData.outputToNativePrices
   harvest.rewardToNativePrices = clmData.rewardToNativePrices
   harvest.nativeToUSDPrice = clmData.nativeToUSDPrice
   harvest.save()
@@ -71,15 +86,29 @@ export function handleClmStrategyClaimedFees(event: CLMClaimedFeesEvent): void {
   )
 }
 export function handleClmStrategyClaimedRewards(event: CLMClaimedRewardsEvent): void {
-  // TODO: handle output tokens and event.params.fees or remove this handler
-  handleClmStrategyFees(event, ZERO_BI, ZERO_BI, [])
+  const amountClaimed = event.params.fees
+  const strategy = getClmStrategy(event.address)
+  const clm = getCLM(strategy.clm)
+  const outputToken = strategy.outputToken
+
+  const collectedOutputAmounts = new Array<BigInt>()
+  const outputTokens = clm.outputTokens
+  for (let i = 0; i < outputTokens.length; i++) {
+    if (outputTokens[i].equals(outputToken)) {
+      collectedOutputAmounts.push(amountClaimed)
+    } else {
+      collectedOutputAmounts.push(ZERO_BI)
+    }
+  }
+
+  handleClmStrategyFees(event, ZERO_BI, ZERO_BI, collectedOutputAmounts)
 }
 
 function handleClmStrategyFees(
   event: ethereum.Event,
   collectedAmount0: BigInt,
   collectedAmount1: BigInt,
-  collectedRewardAmounts: Array<BigInt>,
+  collectedOutputAmounts: Array<BigInt>,
 ): void {
   let strategy = getClmStrategy(event.address)
   let clm = getCLM(strategy.clm)
@@ -108,9 +137,10 @@ function handleClmStrategyFees(
   collect.underlyingAltAmount1 = clmData.token1PositionAltBalance
   collect.collectedAmount0 = collectedAmount0
   collect.collectedAmount1 = collectedAmount1
-  collect.collectedRewardAmounts = collectedRewardAmounts
+  collect.collectedOutputAmounts = collectedOutputAmounts
   collect.token0ToNativePrice = clmData.token0ToNativePrice
   collect.token1ToNativePrice = clmData.token1ToNativePrice
+  collect.outputToNativePrices = clmData.outputToNativePrices
   collect.rewardToNativePrices = clmData.rewardToNativePrices
   collect.nativeToUSDPrice = clmData.nativeToUSDPrice
   collect.save()

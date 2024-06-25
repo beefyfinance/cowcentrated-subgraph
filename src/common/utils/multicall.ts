@@ -11,7 +11,7 @@ export class Multicall3Params {
   ) {}
 }
 
-class MulticallResult {
+export class MulticallResult {
   constructor(
     public value: ethereum.Value,
     public reverted: boolean,
