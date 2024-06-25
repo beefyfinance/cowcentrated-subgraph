@@ -171,6 +171,30 @@ function fetchInitialCLMDataAndSave(clm: CLM): void {
   const underlyingToken0 = fetchAndSaveTokenData(underlyingToken0Address)
   const underlyingToken1 = fetchAndSaveTokenData(underlyingToken1Address)
 
+  const strategyAddress = Address.fromBytes(clm.strategy)
+  const strategyContract = ClmStrategyContract.bind(strategyAddress)
+  const outputTokenRes = strategyContract.try_output()
+  if (!outputTokenRes.reverted) {
+    const outputTokenAddress = outputTokenRes.value
+    const outputToken = fetchAndSaveTokenData(outputTokenAddress)
+
+    const currentOutputTokens = clm.outputTokens
+    let found = false
+    for (let i = 0; i < currentOutputTokens.length; i++) {
+      if (currentOutputTokens[i].equals(outputToken.id)) {
+        found = true
+        break
+      }
+    }
+
+    if (!found) {
+      currentOutputTokens.push(outputToken.id)
+      clm.outputTokens = currentOutputTokens
+    }
+  } else {
+    log.warning("fetchInitialCLMDataAndSave: Output token not found for CLM {}", [clm.id.toHexString()])
+  }
+
   clm.managerToken = managerToken.id
   clm.underlyingToken0 = underlyingToken0.id
   clm.underlyingToken1 = underlyingToken1.id

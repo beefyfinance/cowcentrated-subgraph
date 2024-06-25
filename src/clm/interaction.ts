@@ -201,6 +201,7 @@ function updateUserPosition(
   }
   interaction.token0ToNativePrice = clmData.token0ToNativePrice
   interaction.token1ToNativePrice = clmData.token1ToNativePrice
+  interaction.outputToNativePrices = clmData.outputToNativePrices
   interaction.rewardToNativePrices = clmData.rewardToNativePrices
   interaction.nativeToUSDPrice = clmData.nativeToUSDPrice
   interaction.save()

@@ -188,6 +188,7 @@ yarn test:lint # run prettier linter
 - clmStrategy.vault()
 - clmStrategy.price()
 - clmStrategy.range()
+- clmStrategy.output() // optional
 - clmStrategy.balanceOfPool()
 - clmStrategy.lpToken1ToNativePrice()
 - clmStrategy.lpToken0ToNativePrice()
