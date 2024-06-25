@@ -176,8 +176,9 @@ export function fetchCLMData(clm: CLM): CLMData {
       const amountOutRes = rewardTokenOutputAmountsRes[i]
       if (!amountOutRes.reverted) {
         const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-        rewardToNativePrices[i] = amountOut
+        rewardToNativePrices.push(amountOut)
       } else {
+        rewardToNativePrices.push(ZERO_BI)
         log.error("Failed to fetch rewardToNativePrices for CLM {}", [clm.id.toHexString()])
       }
     }

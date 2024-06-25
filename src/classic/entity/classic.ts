@@ -24,10 +24,12 @@ export function getClassic(vaultAddress: Bytes): Classic {
 
     classic.vaultSharesToken = vaultAddress
     classic.underlyingToken = ADDRESS_ZERO
+    classic.boostRewardTokens = []
 
     classic.vaultSharesTotalSupply = ZERO_BI
 
     classic.underlyingToNativePrice = ZERO_BI
+    classic.boostRewardToNativePrices = []
     classic.nativeToUSDPrice = ZERO_BI
 
     classic.underlyingAmount = ZERO_BI
@@ -65,6 +67,7 @@ export function getClassicBoost(boostAddress: Bytes): ClassicBoost {
     boost.classic = ADDRESS_ZERO
     boost.vault = ADDRESS_ZERO
     boost.createdWith = ADDRESS_ZERO
+    boost.rewardToken = ADDRESS_ZERO
     boost.isInitialized = false
   }
   return boost
@@ -85,6 +88,7 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
     snapshot.vaultSharesTotalSupply = ZERO_BI
 
     snapshot.underlyingToNativePrice = ZERO_BI
+    snapshot.boostRewardToNativePrices = []
     snapshot.nativeToUSDPrice = ZERO_BI
 
     snapshot.underlyingAmount = ZERO_BI
@@ -95,6 +99,7 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
     if (previousSnapshot) {
       snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
+      snapshot.boostRewardToNativePrices = previousSnapshot.boostRewardToNativePrices
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
       snapshot.underlyingAmount = previousSnapshot.underlyingAmount
     }

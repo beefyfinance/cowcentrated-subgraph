@@ -110,6 +110,7 @@ TODO: find a better name for this entity
 type Classic @entity {
   "The vault address"
   id: Bytes!
+
   "The protocol the vault belongs to"
   protocol: Protocol!
   "The vault"
@@ -124,15 +125,23 @@ type Classic @entity {
 
   "The vault's share token"
   vaultSharesToken: Token!
+
   "The vault's underlying LP token"
   underlyingToken: Token!
+
+  "The boost tokens of the vault. Tokens earned by staking in the boost. This is the source of truth for other tables reward ordering."
+  boostRewardTokens: [Token!]!
+
+  # ----- PRICES & STATS -----
 
   "The total supply of the vault shares token in circulation. Express with `sharesToken.decimals` decimals."
   vaultSharesTotalSupply: BigInt!
 
-  "LP token price in native at the time of the interaction. Expressed with 18 decimals."
+  "Latest LP token price in native we have seen. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
-  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  "Latest boost token prices in native we have seen. Ordered by classic.boostRewardTokens. Expressed with 18 decimals."
+  boostRewardToNativePrices: [BigInt!]!
+  "Latest native token price we have seen. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
   "Amount of underlying tokens in the vault"
@@ -180,9 +189,11 @@ type ClassicSnapshot @entity {
   "The total supply of the vault shares token in circulation. Express with `sharesToken.decimals` decimals."
   vaultSharesTotalSupply: BigInt!
 
-  "LP token price in native at the time of the interaction. Expressed with 18 decimals."
+  "Latest LP token price in native of this snapshot. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
-  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  "Latest boost token prices in native of this snapshot. Ordered by classic.boostRewardTokens. Expressed with 18 decimals."
+  boostRewardToNativePrices: [BigInt!]!
+  "Latest native token price of this snapshot. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
   "Amount of underlying tokens in the vault"
@@ -234,6 +245,8 @@ type ClassicBoost @entity {
   vault: ClassicVault!
   "The transaction that created the strategy"
   createdWith: Transaction!
+  "The boost reward token"
+  rewardToken: Token!
   "Technical field to remember if the strategy was already initialized"
   isInitialized: Boolean!
 }
@@ -267,9 +280,11 @@ type ClassicHarvestEvent @entity(immutable: true) {
   "Total amount of liquidity in the vault at time of harvest"
   vaultSharesTotalSupply: BigInt!
 
-  "LP token price in native at the time of the interaction. Expressed with 18 decimals."
+  "LP token price in native at the time of harvest. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
-  "Native token price at the time of the interaction. Expressed with 18 decimals."
+  "Boost token prices in native at the time of harvest. Ordered by classic.boostRewardTokens. Expressed with 18 decimals."
+  boostRewardToNativePrices: [BigInt!]!
+  "Native token price at the time of harvest. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }
 
@@ -307,6 +322,8 @@ enum ClassicPositionInteractionType {
   BOOST_STAKE
   "The investor unstaked from the boost of the vault and received vault shares"
   BOOST_UNSTAKE
+  "The investor claimed their rewards from the vault"
+  BOOST_REWARD_CLAIM
 }
 
 type ClassicPositionInteraction @entity(immutable: true) {
@@ -340,11 +357,15 @@ type ClassicPositionInteraction @entity(immutable: true) {
 
   "Amount of vault shares change in the interaction"
   vaultBalanceDelta: BigInt!
-  "Amount of boost shares change in the interaction"
+  "Amount of vault shares token change on the boost contract in the interaction"
   boostBalanceDelta: BigInt!
+  "Amount of boost tokens change in the interaction. Ordered by classic.boostRewardTokens."
+  boostRewardBalancesDelta: [BigInt!]!
 
   "LP token price in native at the time of the interaction. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
+  "Boost token prices in native at the time of the interaction. Ordered by classic.boostRewardTokens. Expressed with 18 decimals."
+  boostRewardToNativePrices: [BigInt!]!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }

@@ -1,18 +1,23 @@
-import { BigInt, log, ethereum } from "@graphprotocol/graph-ts"
+import { BigInt, log, ethereum, Address } from "@graphprotocol/graph-ts"
 import { CLM, Classic } from "../../../generated/schema"
-import { ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
+import { ONE_BI, ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
 import {
+  BEEFY_ORACLE_ADDRESS,
+  BEEFY_SWAPPER_ADDRESS,
+  BEEFY_SWAPPER_VALUE_SCALER,
   CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
   CHAINLINK_NATIVE_PRICE_FEED_DECIMALS,
   PRICE_ORACLE_TYPE,
   PRICE_STORE_DECIMALS_USD,
   PYTH_NATIVE_PRICE_ID,
   PYTH_PRICE_FEED_ADDRESS,
+  WNATIVE_TOKEN_ADDRESS,
 } from "../../config"
 import { Multicall3Params, multicall } from "../../common/utils/multicall"
 import { CLASSIC_SNAPSHOT_PERIODS } from "./snapshot"
 import { getClassicSnapshot } from "../entity/classic"
 import { getCLM, getClmRewardPool, isClmManager, isClmRewardPool } from "../../clm/entity/clm"
+import { getToken } from "../../common/entity/token"
 
 export function fetchClassicData(classic: Classic): ClassicData {
   const vaultAddress = classic.vault
@@ -41,10 +46,35 @@ export function fetchClassicData(classic: Classic): ClassicData {
     throw new Error("Unsupported price oracle type")
   }
 
+  calls.push(
+    new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
+      ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+    ]),
+  )
+  const boostRewardTokens = classic.boostRewardTokens
+  for (let i = 0; i < boostRewardTokens.length; i++) {
+    const boostTokenAddress = Address.fromBytes(boostRewardTokens[i])
+    const boostToken = getToken(boostTokenAddress)
+    calls.push(
+      new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
+        ethereum.Value.fromAddress(boostTokenAddress),
+      ]),
+    )
+    const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, boostToken.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
+    calls.push(
+      new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
+        ethereum.Value.fromAddress(boostTokenAddress),
+        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+        ethereum.Value.fromUnsignedBigInt(amountIn),
+      ]),
+    )
+  }
+
   const results = multicall(calls)
   const vaultTotalSupplyRes = results[0]
   const underlyingTokenBalanceRes = results[1]
   const priceFeedRes = results[2]
+  const boostTokenOutputAmountsRes = results.filter((_, i) => i >= 4).filter((_, i) => i % 2 == 1)
 
   let vaultSharesTotalSupply = ZERO_BI
   if (!vaultTotalSupplyRes.reverted) {
@@ -104,7 +134,25 @@ export function fetchClassicData(classic: Classic): ClassicData {
       : totalNativeAmountInClm.div(clm.managerTotalSupply)
   }
 
-  return new ClassicData(vaultSharesTotalSupply, underlyingAmount, underlyingToNativePrice, nativeToUSDPrice)
+  let boostRewardToNativePrices: BigInt[] = []
+  for (let i = 0; i < boostTokenOutputAmountsRes.length; i++) {
+    const amountOutRes = boostTokenOutputAmountsRes[i]
+    if (!amountOutRes.reverted) {
+      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+      boostRewardToNativePrices.push(amountOut)
+    } else {
+      boostRewardToNativePrices.push(ZERO_BI)
+      log.error("Failed to fetch boostRewardToNativePrices for Classic {}", [classic.id.toHexString()])
+    }
+  }
+
+  return new ClassicData(
+    vaultSharesTotalSupply,
+    underlyingAmount,
+    underlyingToNativePrice,
+    boostRewardToNativePrices,
+    nativeToUSDPrice,
+  )
 }
 
 class ClassicData {
@@ -112,6 +160,7 @@ class ClassicData {
     public vaultSharesTotalSupply: BigInt,
     public underlyingAmount: BigInt,
     public underlyingToNativePrice: BigInt,
+    public boostRewardToNativePrices: BigInt[],
     public nativeToUSDPrice: BigInt,
   ) {}
 }
@@ -124,6 +173,7 @@ export function updateClassicDataAndSnapshots(
   // update classic data
   classic.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
   classic.underlyingToNativePrice = classicData.underlyingToNativePrice
+  classic.boostRewardToNativePrices = classicData.boostRewardToNativePrices
   classic.nativeToUSDPrice = classicData.nativeToUSDPrice
   classic.underlyingAmount = classicData.underlyingAmount
   classic.save()
@@ -139,6 +189,7 @@ export function updateClassicDataAndSnapshots(
     const snapshot = getClassicSnapshot(classic, nowTimestamp, period)
     snapshot.vaultSharesTotalSupply = classic.vaultSharesTotalSupply
     snapshot.underlyingToNativePrice = classic.underlyingToNativePrice
+    snapshot.boostRewardToNativePrices = classic.boostRewardToNativePrices
     snapshot.underlyingAmount = classic.underlyingAmount
     snapshot.nativeToUSDPrice = classic.nativeToUSDPrice
     snapshot.save()
