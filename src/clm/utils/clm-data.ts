@@ -12,6 +12,7 @@ import {
   PYTH_PRICE_FEED_ADDRESS,
   PYTH_NATIVE_PRICE_ID,
   PRICE_ORACLE_TYPE,
+  WNATIVE_DECIMALS,
 } from "../../config"
 import { Multicall3Params, MulticallResult, multicall } from "../../common/utils/multicall"
 import { getToken, isNullToken } from "../../common/entity/token"
@@ -23,8 +24,10 @@ export function fetchCLMData(clm: CLM): CLMData {
   const strategyAddress = clm.strategy
   const rewardPoolAddress = clm.rewardPoolToken
 
-  const token1 = getToken(clm.underlyingToken0)
+  const token0 = getToken(clm.underlyingToken0)
+  const token1 = getToken(clm.underlyingToken1)
   const rewardPoolToken = getToken(clm.rewardPoolToken)
+  const hasRewardPool = !isNullToken(rewardPoolToken)
 
   const calls = [
     new Multicall3Params(managerAddress, "totalSupply()", "uint256"),
@@ -32,10 +35,10 @@ export function fetchCLMData(clm: CLM): CLMData {
     new Multicall3Params(strategyAddress, "balancesOfPool()", "(uint256,uint256,uint256,uint256,uint256,uint256)"),
     new Multicall3Params(strategyAddress, "price()", "uint256"),
     new Multicall3Params(strategyAddress, "range()", "(uint256,uint256)"),
-    new Multicall3Params(strategyAddress, "lpToken0ToNativePrice()", "uint256"),
-    new Multicall3Params(strategyAddress, "lpToken1ToNativePrice()", "uint256"),
+    new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256"),
   ]
 
+  // wnative price to usd
   if (PRICE_ORACLE_TYPE == "chainlink") {
     calls.push(
       new Multicall3Params(
@@ -55,51 +58,62 @@ export function fetchCLMData(clm: CLM): CLMData {
     throw new Error("Unsupported price oracle type")
   }
 
-  const hasRewardPool = !isNullToken(rewardPoolToken)
-  const rewardTokens = clm.rewardTokens
-  let rewardCallStartIndex = calls.length
-  if (hasRewardPool) {
-    calls.push(new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256"))
+  // warm up beefy swapper oracle
+  const tokensToRefresh = new Array<Address>()
+  tokensToRefresh.push(WNATIVE_TOKEN_ADDRESS)
+  tokensToRefresh.push(Address.fromBytes(clm.underlyingToken0))
+  tokensToRefresh.push(Address.fromBytes(clm.underlyingToken1))
+  for (let i = 0; i < clm.outputTokens.length; i++) {
+    tokensToRefresh.push(Address.fromBytes(clm.outputTokens[i]))
+  }
+  for (let i = 0; i < clm.rewardTokens.length; i++) {
+    tokensToRefresh.push(Address.fromBytes(clm.rewardTokens[i]))
+  }
+  for (let i = 0; i < tokensToRefresh.length; i++) {
+    const tokenAddress = tokensToRefresh[i]
     calls.push(
       new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
-        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+        ethereum.Value.fromAddress(tokenAddress),
       ]),
     )
-
-    rewardCallStartIndex = calls.length // ignore the first two calls, those just warm up the prices
-    for (let i = 0; i < rewardTokens.length; i++) {
-      const rewardTokenAddress = Address.fromBytes(rewardTokens[i])
-      const rewardToken = getToken(rewardTokenAddress)
-      calls.push(
-        new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
-          ethereum.Value.fromAddress(rewardTokenAddress),
-        ]),
-      )
-
-      const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, rewardToken.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
-      calls.push(
-        new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
-          ethereum.Value.fromAddress(rewardTokenAddress),
-          ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
-          ethereum.Value.fromUnsignedBigInt(amountIn),
-        ]),
-      )
-    }
   }
-  const rewardCallsEndIndex = calls.length
 
-  const outputCallsStartIndex = calls.length
+  // underlying token 0/1 prices
+  const amount0In = changeValueEncoding(ONE_BI, ZERO_BI, token0.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
+  calls.push(
+    new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
+      ethereum.Value.fromAddress(Address.fromBytes(clm.underlyingToken0)),
+      ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+      ethereum.Value.fromUnsignedBigInt(amount0In),
+    ]),
+  )
+  const amount1In = changeValueEncoding(ONE_BI, ZERO_BI, token1.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
+  calls.push(
+    new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
+      ethereum.Value.fromAddress(Address.fromBytes(clm.underlyingToken1)),
+      ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+      ethereum.Value.fromUnsignedBigInt(amount1In),
+    ]),
+  )
+
+  const rewardTokens = clm.rewardTokens
+  for (let i = 0; i < rewardTokens.length; i++) {
+    const rewardTokenAddress = Address.fromBytes(rewardTokens[i])
+    const rewardToken = getToken(rewardTokenAddress)
+    const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, rewardToken.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
+    calls.push(
+      new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
+        ethereum.Value.fromAddress(rewardTokenAddress),
+        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+        ethereum.Value.fromUnsignedBigInt(amountIn),
+      ]),
+    )
+  }
+
   const outputTokens = clm.outputTokens
   for (let i = 0; i < outputTokens.length; i++) {
     const outputTokenAddress = Address.fromBytes(outputTokens[i])
-
-    calls.push(
-      new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
-        ethereum.Value.fromAddress(outputTokenAddress),
-      ]),
-    )
-
-    const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, token1.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
+    const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, WNATIVE_DECIMALS).div(BEEFY_SWAPPER_VALUE_SCALER)
     calls.push(
       new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
         ethereum.Value.fromAddress(outputTokenAddress),
@@ -108,29 +122,33 @@ export function fetchCLMData(clm: CLM): CLMData {
       ]),
     )
   }
-  const outputCallsEndIndex = calls.length
 
+  // map multicall indices to variables
   const results = multicall(calls)
   const totalSupplyRes = results[0]
   const balanceRes = results[1]
   const balanceOfPoolRes = results[2]
   const priceRes = results[3]
   const rangeRes = results[4]
-  const token0ToNativePriceRes = results[5]
-  const token1ToNativePriceRes = results[6]
-  const priceFeedRes = results[7]
-  const rewardPoolTotalSupplyRes = hasRewardPool ? results[8] : null
+  const rewardPoolTotalSupplyRes = results[5]
+  const priceFeedRes = results[6]
+  let idxAfterRefresh = 6 + tokensToRefresh.length
+  const token0ToNativePriceRes = results[idxAfterRefresh + 1]
+  const token1ToNativePriceRes = results[idxAfterRefresh + 2]
   const rewardTokenOutputAmountsRes = new Array<MulticallResult>()
-  if (hasRewardPool) {
-    for (let i = rewardCallStartIndex; i < rewardCallsEndIndex; i += 2) {
-      rewardTokenOutputAmountsRes.push(results[i + 1])
-    }
+  let start = idxAfterRefresh + 3
+  let end = start + rewardTokens.length
+  for (let i = start; i < end; i++) {
+    rewardTokenOutputAmountsRes.push(results[i])
   }
+  start = end
+  end = start + outputTokens.length
   const outputTokenOutputAmountsRes = new Array<MulticallResult>()
-  for (let i = outputCallsStartIndex; i < outputCallsEndIndex; i += 2) {
-    outputTokenOutputAmountsRes.push(results[i + 1])
+  for (let i = start; i < end; i++) {
+    outputTokenOutputAmountsRes.push(results[i])
   }
 
+  // extract the data
   let managerTotalSupply = ZERO_BI
   if (!totalSupplyRes.reverted) {
     managerTotalSupply = totalSupplyRes.value.toBigInt()
@@ -190,13 +208,13 @@ export function fetchCLMData(clm: CLM): CLMData {
   // due to a misconfigured quote path in the contract
   let token0ToNativePrice = ZERO_BI
   if (!token0ToNativePriceRes.reverted) {
-    token0ToNativePrice = token0ToNativePriceRes.value.toBigInt()
+    token0ToNativePrice = token0ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
   } else {
     log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toHexString()])
   }
   let token1ToNativePrice = ZERO_BI
   if (!token1ToNativePriceRes.reverted) {
-    token1ToNativePrice = token1ToNativePriceRes.value.toBigInt()
+    token1ToNativePrice = token1ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
   } else {
     log.error("Failed to fetch token0ToNativePrice for CLM {}", [clm.id.toHexString()])
   }

@@ -21,7 +21,6 @@
     "prepare:linea": "./bin/prepare.sh linea",
     "prepare:manta": "./bin/prepare.sh manta",
     "prepare:moonbeam": "./bin/prepare.sh moonbeam",
-    "prepare:optimism-tmp": "./bin/prepare.sh optimism-tmp",
     "prepare:optimism": "./bin/prepare.sh optimism",
     "prepare:polygon": "./bin/prepare.sh polygon",
     "prepare:zksync": "./bin/prepare.sh zksync"

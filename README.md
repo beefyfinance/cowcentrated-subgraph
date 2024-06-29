@@ -190,8 +190,6 @@ yarn test:lint # run prettier linter
 - clmStrategy.range()
 - clmStrategy.output() // optional
 - clmStrategy.balanceOfPool()
-- clmStrategy.lpToken1ToNativePrice()
-- clmStrategy.lpToken0ToNativePrice()
 - clmStrategy: Initialized(uint8)
 - clmStrategy: Paused(address)
 - clmStrategy: Unpaused(address)
