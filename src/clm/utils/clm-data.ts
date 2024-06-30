@@ -181,7 +181,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   }
 
   // price is the amount of token1 per token0, expressed with 36 decimals
-  const priceDecimals = BigInt.fromU32(36)
+  const priceDecimals = BigInt.fromU32(36).plus(token1.decimals).minus(token0.decimals)
 
   // this can revert when the liquidity is 0
   let priceOfToken0InToken1 = ZERO_BI
