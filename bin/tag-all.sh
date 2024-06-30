@@ -18,20 +18,21 @@ function exit_help {
 function tag_one_goldsky {
     SUBGRAPH=$1
     VERSION=$2
-    TAG=$4
-    DEPLOY_KEY=$3
+    TAG=$3
+    DEPLOY_KEY=$4
     echo "Tagging $SUBGRAPH/$VERSION to $TAG"
     goldsky subgraph tag create $SUBGRAPH/$VERSION --token $DEPLOY_KEY --tag $TAG
 }
 
 function tag_one {
     VERSION=$1
-    TAG=$2
-    PROVIDER=$3
-    DEPLOY_KEY=$4
+    CHAIN=$2
+    TAG=$3
+    PROVIDER=$4
+    DEPLOY_KEY=$5
     case $PROVIDER in
         "goldsky")
-            tag_one_goldsky beefy-clm-$CHAIN $VERSION $DEPLOY_KEY
+            tag_one_goldsky beefy-clm-$CHAIN $VERSION $TAG $DEPLOY_KEY
             ;;
     esac
 }
@@ -71,5 +72,5 @@ if [ -z "$deploy_key" ]; then
 fi
 
 for chain in ${valid_chains[@]}; do
-    tag_one $version $tag $provider $deploy_key
+    tag_one $version $chain $tag $provider $deploy_key
 done
