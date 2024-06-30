@@ -180,8 +180,8 @@ export function fetchCLMData(clm: CLM): CLMData {
     log.error("Failed to fetch balanceOfPool for CLM {}", [clm.id.toHexString()])
   }
 
-  // price is the amount of token1 per token0, expressed with token0+token1 decimals
-  const priceDecimals = token0.decimals.plus(token1.decimals)
+  // price is the amount of token1 per token0, expressed with 36 decimals
+  const priceDecimals = BigInt.fromU32(36)
 
   // this can revert when the liquidity is 0
   let priceOfToken0InToken1 = ZERO_BI
