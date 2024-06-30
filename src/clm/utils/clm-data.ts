@@ -182,7 +182,7 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   // price is the amount of token1 per token0, expressed with token0+token1 decimals
   const priceDecimals = token0.decimals.plus(token1.decimals)
-  
+
   // this can revert when the liquidity is 0
   let priceOfToken0InToken1 = ZERO_BI
   if (!priceRes.reverted) {
@@ -197,6 +197,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   let priceRangeMax1 = ZERO_BI
   if (!rangeRes.reverted) {
     const range = rangeRes.value.toTuple()
+    priceRangeMin1 = changeValueEncoding(range[0].toBigInt(), priceDecimals, token1.decimals)
     priceRangeMin1 = changeValueEncoding(range[0].toBigInt(), priceDecimals, token1.decimals)
     priceRangeMax1 = changeValueEncoding(range[1].toBigInt(), priceDecimals, token1.decimals)
   } else {
