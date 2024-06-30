@@ -198,7 +198,6 @@ export function fetchCLMData(clm: CLM): CLMData {
   if (!rangeRes.reverted) {
     const range = rangeRes.value.toTuple()
     priceRangeMin1 = changeValueEncoding(range[0].toBigInt(), priceDecimals, token1.decimals)
-    priceRangeMin1 = changeValueEncoding(range[0].toBigInt(), priceDecimals, token1.decimals)
     priceRangeMax1 = changeValueEncoding(range[1].toBigInt(), priceDecimals, token1.decimals)
   } else {
     log.warning("Failed to fetch price range for CLM {}", [clm.id.toHexString()])
