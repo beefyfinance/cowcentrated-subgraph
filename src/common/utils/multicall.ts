@@ -80,7 +80,8 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
     if (success) {
       const value = ethereum.decode(callParam.resultType, res[1].toBytes())
       if (value == null) {
-        log.error("Failed to decode result for function {}, with resultType {} and result bytes {}", [
+        log.warning("Failed to decode result for {}, function {}, with resultType {} and result bytes {}", [
+          callParam.contractAddress.toHexString(),
           callParam.functionSignature,
           callParam.resultType,
           res[1].toBytes().toHexString(),

@@ -125,27 +125,27 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   // map multicall indices to variables
   const results = multicall(calls)
-  const totalSupplyRes = results[0]
-  const balanceRes = results[1]
-  const balanceOfPoolRes = results[2]
-  const priceRes = results[3]
-  const rangeRes = results[4]
-  const rewardPoolTotalSupplyRes = results[5]
-  const priceFeedRes = results[6]
-  let idxAfterRefresh = 6 + tokensToRefresh.length
-  const token0ToNativePriceRes = results[idxAfterRefresh + 1]
-  const token1ToNativePriceRes = results[idxAfterRefresh + 2]
-  const rewardTokenOutputAmountsRes = new Array<MulticallResult>()
-  let start = idxAfterRefresh + 3
-  let end = start + rewardTokens.length
-  for (let i = start; i < end; i++) {
-    rewardTokenOutputAmountsRes.push(results[i])
+
+  let idx = 0
+  const totalSupplyRes = results[idx++]
+  const balanceRes = results[idx++]
+  const balanceOfPoolRes = results[idx++]
+  const priceRes = results[idx++]
+  const rangeRes = results[idx++]
+  const rewardPoolTotalSupplyRes = results[idx++]
+  const priceFeedRes = results[idx++]
+  for (let i = 0; i < tokensToRefresh.length; i++) {
+    idx++
   }
-  start = end
-  end = start + outputTokens.length
+  const token0ToNativePriceRes = results[idx++]
+  const token1ToNativePriceRes = results[idx++]
+  const rewardTokenOutputAmountsRes = new Array<MulticallResult>()
+  for (let i = 0; i < rewardTokens.length; i++) {
+    rewardTokenOutputAmountsRes.push(results[idx++])
+  }
   const outputTokenOutputAmountsRes = new Array<MulticallResult>()
-  for (let i = start; i < end; i++) {
-    outputTokenOutputAmountsRes.push(results[i])
+  for (let i = 0; i < outputTokens.length; i++) {
+    outputTokenOutputAmountsRes.push(results[idx++])
   }
 
   // extract the data
@@ -180,9 +180,10 @@ export function fetchCLMData(clm: CLM): CLMData {
     log.error("Failed to fetch balanceOfPool for CLM {}", [clm.id.toHexString()])
   }
 
-  // price is the amount of token1 per token0, expressed with 36 decimals
+  // price is the amount of token1 per token0, expressed with token0+token1 decimals
+  const priceDecimals = token0.decimals.plus(token1.decimals)
+
   // this can revert when the liquidity is 0
-  const priceDecimals = BigInt.fromU32(36)
   let priceOfToken0InToken1 = ZERO_BI
   if (!priceRes.reverted) {
     priceOfToken0InToken1 = changeValueEncoding(priceRes.value.toBigInt(), priceDecimals, token1.decimals)
@@ -196,6 +197,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   let priceRangeMax1 = ZERO_BI
   if (!rangeRes.reverted) {
     const range = rangeRes.value.toTuple()
+    priceRangeMin1 = changeValueEncoding(range[0].toBigInt(), priceDecimals, token1.decimals)
     priceRangeMin1 = changeValueEncoding(range[0].toBigInt(), priceDecimals, token1.decimals)
     priceRangeMax1 = changeValueEncoding(range[1].toBigInt(), priceDecimals, token1.decimals)
   } else {
@@ -260,7 +262,7 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   // only some clms have a reward pool token
   let rewardPoolTotalSupply = ZERO_BI
-  if (rewardPoolTotalSupplyRes != null) {
+  if (hasRewardPool) {
     if (!rewardPoolTotalSupplyRes.reverted) {
       rewardPoolTotalSupply = rewardPoolTotalSupplyRes.value.toBigInt()
     } else {
