@@ -269,8 +269,12 @@ export function handleRewardPoolInitialized(event: RewardPoolInitialized): void 
   const rewardPoolToken = fetchAndSaveTokenData(rewardPoolAddress)
 
   const clm = getCLM(managerAddress)
-  clm.rewardPoolTokens.push(rewardPoolToken.id)
-  clm.rewardPoolsTotalSupply.push(ZERO_BI)
+  const rewardPoolTokens = clm.rewardPoolTokens
+  rewardPoolTokens.push(rewardPoolToken.id)
+  clm.rewardPoolTokens = rewardPoolTokens
+  const rewardPoolsTotalSupply = clm.rewardPoolsTotalSupply
+  rewardPoolsTotalSupply.push(ZERO_BI)
+  clm.rewardPoolsTotalSupply = rewardPoolsTotalSupply
   clm.save()
 
   log.info("handleRewardPoolInitialized: Reward pool {} initialized for CLM {} on block {}", [

@@ -259,7 +259,7 @@ export function fetchCLMData(clm: CLM): CLMData {
       throw new Error("Unsupported price oracle type")
     }
   } else {
-    log.error("Failed to fetch nativeToUSDPrice for CLM {}", [clm.id.toString()])
+    log.error("Failed to fetch nativeToUSDPrice for CLM {}", [clm.id.toHexString()])
   }
 
   // only some clms have a reward pool token
