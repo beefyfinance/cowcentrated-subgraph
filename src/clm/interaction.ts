@@ -118,7 +118,7 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
     for (let i = 0; i < rewardPoolBalancesDelta.length; i++) {
       negRewardPoolBalancesDelta.push(rewardPoolBalancesDelta[i].neg())
     }
-    updateUserPosition(clm, event, event.params.from, ZERO_BI, rewardPoolBalancesDelta, [])
+    updateUserPosition(clm, event, event.params.from, ZERO_BI, negRewardPoolBalancesDelta, [])
   }
 }
 
