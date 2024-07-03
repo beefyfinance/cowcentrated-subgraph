@@ -179,18 +179,22 @@ function fetchInitialCLMDataAndSave(clm: CLM): void {
     const outputTokenAddress = outputTokenRes.value
     const outputToken = fetchAndSaveTokenData(outputTokenAddress)
 
-    const currentOutputTokens = clm.outputTokens
+    const currentOutputTokenAddresses = clm.outputTokensOrder
     let found = false
-    for (let i = 0; i < currentOutputTokens.length; i++) {
-      if (currentOutputTokens[i].equals(outputToken.id)) {
+    for (let i = 0; i < currentOutputTokenAddresses.length; i++) {
+      if (currentOutputTokenAddresses[i].equals(outputToken.id)) {
         found = true
         break
       }
     }
 
     if (!found) {
-      currentOutputTokens.push(outputToken.id)
-      clm.outputTokens = currentOutputTokens
+      const outputTokens = clm.outputTokens
+      const outputTokensOrder = clm.outputTokensOrder
+      outputTokens.push(outputToken.id)
+      outputTokensOrder.push(outputToken.id)
+      clm.outputTokens = outputTokens
+      clm.outputTokensOrder = outputTokensOrder
     }
   } else {
     log.warning("fetchInitialCLMDataAndSave: Output token not found for CLM {}", [clm.id.toHexString()])
@@ -270,8 +274,11 @@ export function handleRewardPoolInitialized(event: RewardPoolInitialized): void 
 
   const clm = getCLM(managerAddress)
   const rewardPoolTokens = clm.rewardPoolTokens
+  const rewardPoolTokensOrder = clm.rewardPoolTokensOrder
   rewardPoolTokens.push(rewardPoolToken.id)
+  rewardPoolTokensOrder.push(rewardPoolToken.id)
   clm.rewardPoolTokens = rewardPoolTokens
+  clm.rewardPoolTokensOrder = rewardPoolTokensOrder
   const rewardPoolsTotalSupply = clm.rewardPoolsTotalSupply
   rewardPoolsTotalSupply.push(ZERO_BI)
   clm.rewardPoolsTotalSupply = rewardPoolsTotalSupply
@@ -290,8 +297,11 @@ export function handleRewardPoolAddReward(event: RewardPoolAddRewardEvent): void
   const clm = getCLM(rewardPool.clm)
 
   const rewardTokens = clm.rewardTokens
+  const rewardTokensOrder = clm.rewardTokensOrder
   rewardTokens.push(event.params.reward)
+  rewardTokensOrder.push(event.params.reward)
   clm.rewardTokens = rewardTokens
+  clm.rewardTokensOrder = rewardTokensOrder
   clm.save()
 }
 
@@ -299,15 +309,16 @@ export function handleRewardPoolRemoveReward(event: RewardPoolRemoveRewardEvent)
   const rewardPoolAddress = event.address
   const rewardPool = getClmRewardPool(rewardPoolAddress)
   const clm = getCLM(rewardPool.clm)
-  const rewardTokens = clm.rewardTokens
+  const rewardTokenAddresses = clm.rewardTokensOrder
   const tokens = new Array<Bytes>()
-  for (let i = 0; i < rewardTokens.length; i++) {
-    if (rewardTokens[i].equals(event.params.reward)) {
+  for (let i = 0; i < rewardTokenAddresses.length; i++) {
+    if (rewardTokenAddresses[i].equals(event.params.reward)) {
       tokens.push(getNullToken().id)
     } else {
-      tokens.push(rewardTokens[i])
+      tokens.push(rewardTokenAddresses[i])
     }
   }
   clm.rewardTokens = tokens
+  clm.rewardTokensOrder = tokens
   clm.save()
 }

@@ -229,17 +229,25 @@ export function handleClassicBoostInitialized(event: ClassicBoostInitialized): v
   boost.save()
 
   const clm = getClassic(boost.classic)
-  const currentRewardTokens = clm.boostRewardTokens
+  const currentRewardTokenAddresses = clm.boostRewardTokensOrder
   let foundToken = false
-  for (let i = 0; i < currentRewardTokens.length; i++) {
-    if (currentRewardTokens[i].equals(rewardTokenAddress)) {
+  for (let i = 0; i < currentRewardTokenAddresses.length; i++) {
+    if (currentRewardTokenAddresses[i].equals(rewardTokenAddress)) {
       foundToken = true
       break
     }
   }
 
   if (!foundToken) {
-    clm.boostRewardTokens.push(rewardTokenAddress)
+    const boostRewardTokens = clm.boostRewardTokens
+    const boostRewardTokensOrder = clm.boostRewardTokensOrder
+
+    boostRewardTokens.push(rewardTokenAddress)
+    boostRewardTokensOrder.push(rewardTokenAddress)
+
+    clm.boostRewardTokens = boostRewardTokens
+    clm.boostRewardTokensOrder = boostRewardTokensOrder
+
     clm.save()
   }
 }

@@ -23,9 +23,9 @@ export function handleClmStrategyHarvestRewards(event: CLMHarvestRewardsEvent): 
   const outputToken = strategy.outputToken
 
   const collectedOutputAmounts = new Array<BigInt>()
-  const outputTokens = clm.outputTokens
-  for (let i = 0; i < outputTokens.length; i++) {
-    if (outputTokens[i].equals(outputToken)) {
+  const outputTokenAddresses = clm.outputTokensOrder
+  for (let i = 0; i < outputTokenAddresses.length; i++) {
+    if (outputTokenAddresses[i].equals(outputToken)) {
       collectedOutputAmounts.push(amountClaimed)
     } else {
       collectedOutputAmounts.push(ZERO_BI)
@@ -92,9 +92,9 @@ export function handleClmStrategyClaimedRewards(event: CLMClaimedRewardsEvent): 
   const outputToken = strategy.outputToken
 
   const collectedOutputAmounts = new Array<BigInt>()
-  const outputTokens = clm.outputTokens
-  for (let i = 0; i < outputTokens.length; i++) {
-    if (outputTokens[i].equals(outputToken)) {
+  const outputTokenAddresses = clm.outputTokensOrder
+  for (let i = 0; i < outputTokenAddresses.length; i++) {
+    if (outputTokenAddresses[i].equals(outputToken)) {
       collectedOutputAmounts.push(amountClaimed)
     } else {
       collectedOutputAmounts.push(ZERO_BI)

@@ -27,7 +27,7 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
 
   const clm = getCLM(event.address)
   const managerAddress = clm.manager
-  const rewardPoolAddresses = clm.rewardPoolTokens
+  const rewardPoolAddresses = clm.rewardPoolTokensOrder
 
   let isRewardPoolFrom = false
   let isRewardPoolTo = false
@@ -76,7 +76,7 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
   const clm = getCLM(rewardPool.clm)
   const managerAddress = clm.manager
 
-  const rewardPoolAddresses = clm.rewardPoolTokens
+  const rewardPoolAddresses = clm.rewardPoolTokensOrder
   let isRewardPoolFrom = false
   let isRewardPoolTo = false
   for (let i = 0; i < rewardPoolAddresses.length; i++) {
@@ -114,8 +114,9 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
     !event.params.from.equals(managerAddress) &&
     !isRewardPoolFrom
   ) {
+    const negRewardPoolBalancesDelta = new Array<BigInt>()
     for (let i = 0; i < rewardPoolBalancesDelta.length; i++) {
-      rewardPoolBalancesDelta[i] = rewardPoolBalancesDelta[i].neg()
+      negRewardPoolBalancesDelta.push(rewardPoolBalancesDelta[i].neg())
     }
     updateUserPosition(clm, event, event.params.from, ZERO_BI, rewardPoolBalancesDelta, [])
   }
@@ -125,10 +126,10 @@ export function handleRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent): vo
   const rewardPool = getClmRewardPool(event.address)
   const clm = getCLM(rewardPool.clm)
 
-  const rewardTokens = clm.rewardTokens
+  const rewardTokensAddresses = clm.rewardTokensOrder
   const rewardBalancesDelta = new Array<BigInt>()
-  for (let i = 0; i < rewardTokens.length; i++) {
-    if (clm.rewardTokens[i].equals(event.params.reward)) {
+  for (let i = 0; i < rewardTokensAddresses.length; i++) {
+    if (rewardTokensAddresses[i].equals(event.params.reward)) {
       rewardBalancesDelta.push(event.params.amount)
     } else {
       rewardBalancesDelta.push(ZERO_BI)
@@ -182,6 +183,7 @@ function updateUserPosition(
   const positionRewardPoolBalances = position.rewardPoolBalances // required by thegraph
   for (let i = 0; i < rewardPoolBalancesDelta.length; i++) {
     if (positionRewardPoolBalances.length <= i) {
+      // happens when position is created before the second reward pool is added
       positionRewardPoolBalances.push(ZERO_BI)
     }
     positionRewardPoolBalances[i] = positionRewardPoolBalances[i].plus(rewardPoolBalancesDelta[i])

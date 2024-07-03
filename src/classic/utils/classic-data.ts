@@ -13,7 +13,7 @@ import {
   PYTH_PRICE_FEED_ADDRESS,
   WNATIVE_TOKEN_ADDRESS,
 } from "../../config"
-import { Multicall3Params, multicall } from "../../common/utils/multicall"
+import { Multicall3Params, MulticallResult, multicall } from "../../common/utils/multicall"
 import { CLASSIC_SNAPSHOT_PERIODS } from "./snapshot"
 import { getClassicSnapshot } from "../entity/classic"
 import { getCLM, getClmRewardPool, isClmManager, isClmRewardPool } from "../../clm/entity/clm"
@@ -21,6 +21,7 @@ import { getToken } from "../../common/entity/token"
 
 export function fetchClassicData(classic: Classic): ClassicData {
   const vaultAddress = classic.vault
+  const boostRewardTokenAddresses = classic.boostRewardTokensOrder
 
   const calls = [
     new Multicall3Params(vaultAddress, "totalSupply()", "uint256"),
@@ -46,20 +47,22 @@ export function fetchClassicData(classic: Classic): ClassicData {
     throw new Error("Unsupported price oracle type")
   }
 
-  calls.push(
-    new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
-      ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
-    ]),
-  )
-  const boostRewardTokens = classic.boostRewardTokens
-  for (let i = 0; i < boostRewardTokens.length; i++) {
-    const boostTokenAddress = Address.fromBytes(boostRewardTokens[i])
-    const boostToken = getToken(boostTokenAddress)
+  const tokensToRefresh = new Array<Address>()
+  tokensToRefresh.push(WNATIVE_TOKEN_ADDRESS)
+  for (let i = 0; i < boostRewardTokenAddresses.length; i++) {
+    tokensToRefresh.push(Address.fromBytes(boostRewardTokenAddresses[i]))
+  }
+  for (let i = 0; i < tokensToRefresh.length; i++) {
     calls.push(
       new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
-        ethereum.Value.fromAddress(boostTokenAddress),
+        ethereum.Value.fromAddress(tokensToRefresh[i]),
       ]),
     )
+  }
+
+  for (let i = 0; i < boostRewardTokenAddresses.length; i++) {
+    const boostTokenAddress = Address.fromBytes(boostRewardTokenAddresses[i])
+    const boostToken = getToken(boostTokenAddress)
     const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, boostToken.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
     calls.push(
       new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
@@ -71,10 +74,18 @@ export function fetchClassicData(classic: Classic): ClassicData {
   }
 
   const results = multicall(calls)
-  const vaultTotalSupplyRes = results[0]
-  const underlyingTokenBalanceRes = results[1]
-  const priceFeedRes = results[2]
-  const boostTokenOutputAmountsRes = results.filter((_, i) => i >= 4).filter((_, i) => i % 2 == 1)
+
+  let idx = 0
+  const vaultTotalSupplyRes = results[idx++]
+  const underlyingTokenBalanceRes = results[idx++]
+  const priceFeedRes = results[idx++]
+  for (let i = 0; i < tokensToRefresh.length; i++) {
+    idx++
+  }
+  const boostRewardTokenOutputAmountsRes = new Array<MulticallResult>()
+  for (let i = 0; i < boostRewardTokenAddresses.length; i++) {
+    boostRewardTokenOutputAmountsRes.push(results[idx++])
+  }
 
   let vaultSharesTotalSupply = ZERO_BI
   if (!vaultTotalSupplyRes.reverted) {
@@ -135,8 +146,8 @@ export function fetchClassicData(classic: Classic): ClassicData {
   }
 
   let boostRewardToNativePrices: BigInt[] = []
-  for (let i = 0; i < boostTokenOutputAmountsRes.length; i++) {
-    const amountOutRes = boostTokenOutputAmountsRes[i]
+  for (let i = 0; i < boostRewardTokenOutputAmountsRes.length; i++) {
+    const amountOutRes = boostRewardTokenOutputAmountsRes[i]
     if (!amountOutRes.reverted) {
       const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
       boostRewardToNativePrices.push(amountOut)

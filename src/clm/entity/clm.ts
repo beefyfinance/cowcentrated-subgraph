@@ -24,11 +24,14 @@ export function getCLM(managerAddress: Bytes): CLM {
 
     clm.managerToken = managerAddress
     clm.rewardPoolTokens = []
+    clm.rewardPoolTokensOrder = []
 
     clm.underlyingToken0 = ADDRESS_ZERO
     clm.underlyingToken1 = ADDRESS_ZERO
     clm.outputTokens = []
+    clm.outputTokensOrder = []
     clm.rewardTokens = []
+    clm.rewardTokensOrder = []
 
     clm.managerTotalSupply = ZERO_BI
     clm.rewardPoolsTotalSupply = []

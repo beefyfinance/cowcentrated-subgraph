@@ -68,9 +68,10 @@ export function handleClassicBoostRewardPaid(event: ClassicBoostRewardPaid): voi
   const investorAddress = event.params.user
   const amount = event.params.reward
 
+  const boostRewardTokenAddresses = classic.boostRewardTokensOrder
   let boostRewardBalancesDelta = new Array<BigInt>()
-  for (let i = 0; i < classic.boostRewardTokens.length; i++) {
-    const rewardTokenAddress = classic.boostRewardTokens[i]
+  for (let i = 0; i < boostRewardTokenAddresses.length; i++) {
+    const rewardTokenAddress = boostRewardTokenAddresses[i]
     if (rewardTokenAddress.equals(boost.rewardToken)) {
       boostRewardBalancesDelta.push(amount)
     } else {

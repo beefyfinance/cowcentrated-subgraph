@@ -25,6 +25,9 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   const token0 = getToken(clm.underlyingToken0)
   const token1 = getToken(clm.underlyingToken1)
+  const outputTokenAddresses = clm.outputTokensOrder
+  const rewardTokenAddresses = clm.rewardTokensOrder
+  const rewardPoolTokenAddresses = clm.rewardPoolTokensOrder
 
   const calls = [
     new Multicall3Params(managerAddress, "totalSupply()", "uint256"),
@@ -34,7 +37,6 @@ export function fetchCLMData(clm: CLM): CLMData {
     new Multicall3Params(strategyAddress, "range()", "(uint256,uint256)"),
   ]
 
-  const rewardPoolTokenAddresses = clm.rewardPoolTokens
   for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
     const rewardPoolTokenAddress = Address.fromBytes(rewardPoolTokenAddresses[i])
     calls.push(new Multicall3Params(rewardPoolTokenAddress, "totalSupply()", "uint256"))
@@ -65,11 +67,11 @@ export function fetchCLMData(clm: CLM): CLMData {
   tokensToRefresh.push(WNATIVE_TOKEN_ADDRESS)
   tokensToRefresh.push(Address.fromBytes(clm.underlyingToken0))
   tokensToRefresh.push(Address.fromBytes(clm.underlyingToken1))
-  for (let i = 0; i < clm.outputTokens.length; i++) {
-    tokensToRefresh.push(Address.fromBytes(clm.outputTokens[i]))
+  for (let i = 0; i < outputTokenAddresses.length; i++) {
+    tokensToRefresh.push(Address.fromBytes(outputTokenAddresses[i]))
   }
-  for (let i = 0; i < clm.rewardTokens.length; i++) {
-    tokensToRefresh.push(Address.fromBytes(clm.rewardTokens[i]))
+  for (let i = 0; i < rewardTokenAddresses.length; i++) {
+    tokensToRefresh.push(Address.fromBytes(rewardTokenAddresses[i]))
   }
   for (let i = 0; i < tokensToRefresh.length; i++) {
     const tokenAddress = tokensToRefresh[i]
@@ -98,9 +100,8 @@ export function fetchCLMData(clm: CLM): CLMData {
     ]),
   )
 
-  const rewardTokens = clm.rewardTokens
-  for (let i = 0; i < rewardTokens.length; i++) {
-    const rewardTokenAddress = Address.fromBytes(rewardTokens[i])
+  for (let i = 0; i < rewardTokenAddresses.length; i++) {
+    const rewardTokenAddress = Address.fromBytes(rewardTokenAddresses[i])
     const rewardToken = getToken(rewardTokenAddress)
     const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, rewardToken.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
     calls.push(
@@ -112,9 +113,8 @@ export function fetchCLMData(clm: CLM): CLMData {
     )
   }
 
-  const outputTokens = clm.outputTokens
-  for (let i = 0; i < outputTokens.length; i++) {
-    const outputTokenAddress = Address.fromBytes(outputTokens[i])
+  for (let i = 0; i < outputTokenAddresses.length; i++) {
+    const outputTokenAddress = Address.fromBytes(outputTokenAddresses[i])
     const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, WNATIVE_DECIMALS).div(BEEFY_SWAPPER_VALUE_SCALER)
     calls.push(
       new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
@@ -145,11 +145,11 @@ export function fetchCLMData(clm: CLM): CLMData {
   const token0ToNativePriceRes = results[idx++]
   const token1ToNativePriceRes = results[idx++]
   const rewardTokenOutputAmountsRes = new Array<MulticallResult>()
-  for (let i = 0; i < rewardTokens.length; i++) {
+  for (let i = 0; i < rewardTokenAddresses.length; i++) {
     rewardTokenOutputAmountsRes.push(results[idx++])
   }
   const outputTokenOutputAmountsRes = new Array<MulticallResult>()
-  for (let i = 0; i < outputTokens.length; i++) {
+  for (let i = 0; i < outputTokenAddresses.length; i++) {
     outputTokenOutputAmountsRes.push(results[idx++])
   }
 
