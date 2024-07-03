@@ -75,7 +75,7 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
   const rewardPool = getClmRewardPool(event.address)
   const clm = getCLM(rewardPool.clm)
   const managerAddress = clm.manager
-  
+
   const rewardPoolAddresses = clm.rewardPoolTokens
   let isRewardPoolFrom = false
   let isRewardPoolTo = false

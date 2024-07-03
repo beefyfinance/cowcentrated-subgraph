@@ -385,7 +385,7 @@ type CLM @entity {
   "The strategy of the CLM. The strategy is responsible for managing the CLM's assets."
   strategy: ClmStrategy!
   """
-  The reward pool of the CLM. 
+  The reward pool of the CLM.
   The reward pool is where the CLM's earnings are sent if the ClmManager does not automatically compound.
   It only makes sense to have one reward pool per CLM, but it is possible to have multiple by design.
   """
