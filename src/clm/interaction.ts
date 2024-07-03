@@ -27,25 +27,37 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
 
   const clm = getCLM(event.address)
   const managerAddress = clm.manager
-  const rewardPoolAddress = clm.rewardPoolToken
+  const rewardPoolAddresses = clm.rewardPoolTokens
+
+  let isRewardPoolFrom = false
+  let isRewardPoolTo = false
+  for (let i = 0; i < rewardPoolAddresses.length; i++) {
+    const rewardPoolAddress = rewardPoolAddresses[i]
+    if (event.params.from.equals(rewardPoolAddress)) {
+      isRewardPoolFrom = true
+    }
+    if (event.params.to.equals(rewardPoolAddress)) {
+      isRewardPoolTo = true
+    }
+  }
 
   // don't store transfers to/from the share token mint address
   if (
     !event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) &&
     !event.params.from.equals(BURN_ADDRESS) &&
     !event.params.from.equals(managerAddress) &&
-    !event.params.from.equals(rewardPoolAddress)
+    !isRewardPoolFrom
   ) {
-    updateUserPosition(clm, event, event.params.from, event.params.value.neg(), ZERO_BI, [])
+    updateUserPosition(clm, event, event.params.from, event.params.value.neg(), [], [])
   }
 
   if (
     !event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) &&
     !event.params.to.equals(BURN_ADDRESS) &&
     !event.params.to.equals(managerAddress) &&
-    !event.params.to.equals(rewardPoolAddress)
+    !isRewardPoolTo
   ) {
-    updateUserPosition(clm, event, event.params.to, event.params.value, ZERO_BI, [])
+    updateUserPosition(clm, event, event.params.to, event.params.value, [], [])
   }
 }
 
@@ -63,25 +75,49 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
   const rewardPool = getClmRewardPool(event.address)
   const clm = getCLM(rewardPool.clm)
   const managerAddress = clm.manager
-  const rewardPoolAddress = clm.rewardPoolToken
-
-  // don't store transfers to/from the share token mint address or to self
-  if (
-    !event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) &&
-    !event.params.from.equals(BURN_ADDRESS) &&
-    !event.params.to.equals(managerAddress) &&
-    !event.params.to.equals(rewardPoolAddress)
-  ) {
-    updateUserPosition(clm, event, event.params.from, ZERO_BI, event.params.value.neg(), [])
+  
+  const rewardPoolAddresses = clm.rewardPoolTokens
+  let isRewardPoolFrom = false
+  let isRewardPoolTo = false
+  for (let i = 0; i < rewardPoolAddresses.length; i++) {
+    const rewardPoolAddress = rewardPoolAddresses[i]
+    if (event.params.from.equals(rewardPoolAddress)) {
+      isRewardPoolFrom = true
+    }
+    if (event.params.to.equals(rewardPoolAddress)) {
+      isRewardPoolTo = true
+    }
   }
 
+  const rewardPoolBalancesDelta = new Array<BigInt>()
+  for (let i = 0; i < rewardPoolAddresses.length; i++) {
+    if (rewardPoolAddresses[i].equals(event.address)) {
+      rewardPoolBalancesDelta.push(event.params.value)
+    } else {
+      rewardPoolBalancesDelta.push(ZERO_BI)
+    }
+  }
+
+  // don't store transfers to/from the share token mint address or to self
   if (
     !event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) &&
     !event.params.to.equals(BURN_ADDRESS) &&
     !event.params.to.equals(managerAddress) &&
-    !event.params.to.equals(rewardPoolAddress)
+    !isRewardPoolTo
   ) {
-    updateUserPosition(clm, event, event.params.to, ZERO_BI, event.params.value, [])
+    updateUserPosition(clm, event, event.params.to, ZERO_BI, rewardPoolBalancesDelta, [])
+  }
+
+  if (
+    !event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) &&
+    !event.params.from.equals(BURN_ADDRESS) &&
+    !event.params.from.equals(managerAddress) &&
+    !isRewardPoolFrom
+  ) {
+    for (let i = 0; i < rewardPoolBalancesDelta.length; i++) {
+      rewardPoolBalancesDelta[i] = rewardPoolBalancesDelta[i].neg()
+    }
+    updateUserPosition(clm, event, event.params.from, ZERO_BI, rewardPoolBalancesDelta, [])
   }
 }
 
@@ -99,7 +135,7 @@ export function handleRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent): vo
     }
   }
 
-  updateUserPosition(clm, event, event.params.user, ZERO_BI, ZERO_BI, rewardBalancesDelta)
+  updateUserPosition(clm, event, event.params.user, ZERO_BI, [], rewardBalancesDelta)
 }
 
 function updateUserPosition(
@@ -107,7 +143,7 @@ function updateUserPosition(
   event: ethereum.Event,
   investorAddress: Address,
   managerBalanceDelta: BigInt,
-  rewardPoolBalanceDelta: BigInt,
+  rewardPoolBalancesDelta: Array<BigInt>,
   rewardBalancesDelta: Array<BigInt>,
 ): void {
   if (!isClmInitialized(clm)) {
@@ -131,18 +167,38 @@ function updateUserPosition(
 
   ///////
   // investor position
-  if (position.managerBalance.equals(ZERO_BI) && position.rewardPoolBalance.equals(ZERO_BI)) {
+  let hasPreviousRewardPoolBalance = false
+  for (let i = 0; i < rewardPoolBalancesDelta.length; i++) {
+    if (rewardPoolBalancesDelta[i].notEqual(ZERO_BI)) {
+      hasPreviousRewardPoolBalance = true
+      break
+    }
+  }
+  if (position.managerBalance.equals(ZERO_BI) && !hasPreviousRewardPoolBalance) {
     position.createdWith = event.transaction.hash
   }
+
   position.managerBalance = position.managerBalance.plus(managerBalanceDelta)
-  position.rewardPoolBalance = position.rewardPoolBalance.plus(rewardPoolBalanceDelta)
-  position.totalBalance = position.managerBalance.plus(position.rewardPoolBalance)
+  const positionRewardPoolBalances = position.rewardPoolBalances // required by thegraph
+  for (let i = 0; i < rewardPoolBalancesDelta.length; i++) {
+    if (positionRewardPoolBalances.length <= i) {
+      positionRewardPoolBalances.push(ZERO_BI)
+    }
+    positionRewardPoolBalances[i] = positionRewardPoolBalances[i].plus(rewardPoolBalancesDelta[i])
+  }
+  position.rewardPoolBalances = positionRewardPoolBalances
+
+  let totalBalance = position.managerBalance
+  for (let i = 0; i < positionRewardPoolBalances.length; i++) {
+    totalBalance = totalBalance.plus(positionRewardPoolBalances[i])
+  }
+  position.totalBalance = totalBalance
   position.save()
 
   ///////
   // interaction
   const isSharesTransfer = !managerBalanceDelta.equals(ZERO_BI)
-  const isRewardPoolTransfer = !rewardPoolBalanceDelta.equals(ZERO_BI)
+  const isRewardPoolTransfer = rewardPoolBalancesDelta.length > 0
   const isRewardClaim = rewardBalancesDelta.some((delta) => !delta.equals(ZERO_BI))
 
   // if both shares and reward pool are transferred, we will create two interactions
@@ -164,16 +220,17 @@ function updateUserPosition(
   if (isSharesTransfer) {
     interaction.type = managerBalanceDelta.gt(ZERO_BI) ? "MANAGER_DEPOSIT" : "MANAGER_WITHDRAW"
   } else if (isRewardPoolTransfer) {
-    interaction.type = rewardPoolBalanceDelta.gt(ZERO_BI) ? "REWARD_POOL_STAKE" : "REWARD_POOL_UNSTAKE"
+    const isRewardPoolStake = rewardPoolBalancesDelta.some((delta) => delta.gt(ZERO_BI))
+    interaction.type = isRewardPoolStake ? "REWARD_POOL_STAKE" : "REWARD_POOL_UNSTAKE"
   } else if (isRewardClaim) {
     interaction.type = "REWARD_POOL_CLAIM"
   }
 
   interaction.managerBalance = position.managerBalance
-  interaction.rewardPoolBalance = position.rewardPoolBalance
+  interaction.rewardPoolBalances = position.rewardPoolBalances
   interaction.totalBalance = position.totalBalance
   interaction.managerBalanceDelta = managerBalanceDelta
-  interaction.rewardPoolBalanceDelta = rewardPoolBalanceDelta
+  interaction.rewardPoolBalancesDelta = rewardPoolBalancesDelta
   interaction.rewardBalancesDelta = rewardBalancesDelta
 
   interaction.underlyingBalance0 = ZERO_BI
@@ -191,12 +248,16 @@ function updateUserPosition(
     )
 
     // assumption: 1 rewardPool token === 1 manager token
-    const managerBalanceDeltaToAccountFor = isSharesTransfer ? managerBalanceDelta : rewardPoolBalanceDelta
+    let totalRewardPoolBalanceDelta = ZERO_BI
+    for (let i = 0; i < rewardPoolBalancesDelta.length; i++) {
+      totalRewardPoolBalanceDelta = totalRewardPoolBalanceDelta.plus(rewardPoolBalancesDelta[i])
+    }
+    const positionEquivalentInManagerBalance = managerBalanceDelta.plus(totalRewardPoolBalanceDelta)
     interaction.underlyingBalance0Delta = interaction.underlyingBalance0Delta.plus(
-      clmData.token0Balance.times(managerBalanceDeltaToAccountFor).div(clmData.managerTotalSupply),
+      clmData.token0Balance.times(positionEquivalentInManagerBalance).div(clmData.managerTotalSupply),
     )
     interaction.underlyingBalance1Delta = interaction.underlyingBalance1Delta.plus(
-      clmData.token1Balance.times(managerBalanceDeltaToAccountFor).div(clmData.managerTotalSupply),
+      clmData.token1Balance.times(positionEquivalentInManagerBalance).div(clmData.managerTotalSupply),
     )
   }
   interaction.token0ToNativePrice = clmData.token0ToNativePrice

@@ -20,11 +20,10 @@ export function getCLM(managerAddress: Bytes): CLM {
     clm.protocol = getBeefyCLProtocol().id
     clm.manager = managerAddress
     clm.strategy = ADDRESS_ZERO
-    clm.rewardPool = null
     clm.lifecycle = PRODUCT_LIFECYCLE_INITIALIZING
 
     clm.managerToken = managerAddress
-    clm.rewardPoolToken = getNullToken().id
+    clm.rewardPoolTokens = []
 
     clm.underlyingToken0 = ADDRESS_ZERO
     clm.underlyingToken1 = ADDRESS_ZERO
@@ -32,7 +31,7 @@ export function getCLM(managerAddress: Bytes): CLM {
     clm.rewardTokens = []
 
     clm.managerTotalSupply = ZERO_BI
-    clm.rewardPoolTotalSupply = ZERO_BI
+    clm.rewardPoolsTotalSupply = []
 
     clm.token0ToNativePrice = ZERO_BI
     clm.token1ToNativePrice = ZERO_BI
@@ -109,7 +108,7 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
     snapshot.roundedTimestamp = interval
 
     snapshot.managerTotalSupply = ZERO_BI
-    snapshot.rewardPoolTotalSupply = ZERO_BI
+    snapshot.rewardPoolsTotalSupply = []
 
     snapshot.token0ToNativePrice = ZERO_BI
     snapshot.token1ToNativePrice = ZERO_BI
@@ -131,7 +130,7 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
     const previousSnapshot = ClmSnapshot.load(previousSnapshotId)
     if (previousSnapshot) {
       snapshot.managerTotalSupply = previousSnapshot.managerTotalSupply
-      snapshot.rewardPoolTotalSupply = previousSnapshot.rewardPoolTotalSupply
+      snapshot.rewardPoolsTotalSupply = previousSnapshot.rewardPoolsTotalSupply
       snapshot.token0ToNativePrice = previousSnapshot.token0ToNativePrice
       snapshot.token1ToNativePrice = previousSnapshot.token1ToNativePrice
       snapshot.outputToNativePrices = previousSnapshot.outputToNativePrices

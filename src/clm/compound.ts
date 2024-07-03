@@ -68,7 +68,7 @@ function handleClmStrategyHarvest(
   harvest.compoundedAmount1 = compoundedAmount1
   harvest.collectedOutputAmounts = collectedOutputAmounts
   harvest.managerTotalSupply = clmData.managerTotalSupply
-  harvest.rewardPoolTotalSupply = clmData.rewardPoolTotalSupply
+  harvest.rewardPoolsTotalSupply = clmData.rewardPoolsTotalSupply
   harvest.token0ToNativePrice = clmData.token0ToNativePrice
   harvest.token1ToNativePrice = clmData.token1ToNativePrice
   harvest.outputToNativePrices = clmData.outputToNativePrices

@@ -384,16 +384,20 @@ type CLM @entity {
   manager: ClmManager!
   "The strategy of the CLM. The strategy is responsible for managing the CLM's assets."
   strategy: ClmStrategy!
-  "The reward pool of the CLM. The reward pool is where the CLM's earnings are sent if the ClmManager does not automatically compound."
-  rewardPool: ClmRewardPool
+  """
+  The reward pool of the CLM. 
+  The reward pool is where the CLM's earnings are sent if the ClmManager does not automatically compound.
+  It only makes sense to have one reward pool per CLM, but it is possible to have multiple by design.
+  """
+  rewardPools: [ClmRewardPool!]! @derivedFrom(field: "clm")
 
   "The current lifecycle status of the CLM"
   lifecycle: ProductLifecycle!
 
   "The manager token data of the CLM. The ClmManager is also an ERC20 token. This tokens represents the shares of the manager."
   managerToken: Token!
-  "The reward pool token of the CLM. This is where the CLM's earnings are sent if the CLM does not automatically compound."
-  rewardPoolToken: Token!
+  "The reward pool tokens of the CLM. This is where the CLM's earnings are sent if the CLM does not automatically compound."
+  rewardPoolTokens: [Token!]!
 
   "The underlying tokens contained in the CLM. This is the first token."
   underlyingToken0: Token!
@@ -409,8 +413,8 @@ type CLM @entity {
 
   "The total supply of the CLM shares token in circulation. Express with `managerToken.decimals` decimals."
   managerTotalSupply: BigInt!
-  "Total supply of the reward pool token. Express with `rewardPoolToken.decimals` decimals."
-  rewardPoolTotalSupply: BigInt!
+  "Total supply of the reward pool token. Express with `rewardPoolTokens[idx].decimals` decimals."
+  rewardPoolsTotalSupply: [BigInt!]!
 
   "Latest token 0 price in native we have seen. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
@@ -487,8 +491,8 @@ type ClmSnapshot @entity {
 
   "The total supply of the manager token in circulation. Express with `sharesToken.decimals` decimals."
   managerTotalSupply: BigInt!
-  "Total supply of the reward pool token. Express with `rewardPoolToken.decimals` decimals."
-  rewardPoolTotalSupply: BigInt!
+  "Total supply of the reward pool token. Express with `rewardPoolTokens[idx].decimals` decimals."
+  rewardPoolsTotalSupply: [BigInt!]!
 
   "Latest token 0 price in native of this snapshot. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
@@ -607,8 +611,8 @@ type ClmHarvestEvent @entity(immutable: true) {
 
   "Total amount of liquidity in the manager at time of harvest"
   managerTotalSupply: BigInt!
-  "Total amount of reward pool shares at time of harvest"
-  rewardPoolTotalSupply: BigInt!
+  "Total amount of reward pool shares at time of harvest. Ordered by clm.rewardPoolTokens."
+  rewardPoolsTotalSupply: [BigInt!]!
 
   "Token 0 price in native at the time of harvest. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
@@ -687,8 +691,8 @@ type ClmPosition @entity {
 
   "The amount of manager shares the investor holds"
   managerBalance: BigInt!
-  "Amount of reward pool shares the investor holds"
-  rewardPoolBalance: BigInt!
+  "Amount of reward pool shares the investor holds. Ordered by clm.rewardPoolTokens."
+  rewardPoolBalances: [BigInt!]!
   "Total amount of CLM shares the investor holds. Should always equal to managerBalance + rewardPoolBalance. This is mostly used for filtering."
   totalBalance: BigInt!
 
@@ -733,8 +737,8 @@ type ClmPositionInteraction @entity(immutable: true) {
 
   "The amount of manager shares the investor holds at the time of the interaction"
   managerBalance: BigInt!
-  "The amount of reward pool shares the investor holds at the time of the interaction"
-  rewardPoolBalance: BigInt!
+  "The amount of reward pool shares the investor holds at the time of the interaction. Ordered by clm.rewardPoolTokens."
+  rewardPoolBalances: [BigInt!]!
   "Total amount of CLM shares the investor holds. Should always equal to managerBalance + rewardPoolBalance. This is mostly used for filtering."
   totalBalance: BigInt!
   "The amount of first underlying tokens the investor is entitled to at the time of the interaction"
@@ -744,8 +748,8 @@ type ClmPositionInteraction @entity(immutable: true) {
 
   "Amount of manager shares change in the interaction"
   managerBalanceDelta: BigInt!
-  "Amount of reward pool shares change in the interaction"
-  rewardPoolBalanceDelta: BigInt!
+  "Amount of reward pool shares change in the interaction. Ordered by clm.rewardPoolTokens."
+  rewardPoolBalancesDelta: [BigInt!]!
   "Amount of reward tokens change in the interaction. Ordered by clm.rewardTokens."
   rewardBalancesDelta: [BigInt!]!
   "Amount of underlying token 0 change in the interaction"

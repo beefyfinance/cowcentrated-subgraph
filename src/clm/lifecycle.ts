@@ -268,8 +268,7 @@ export function handleRewardPoolInitialized(event: RewardPoolInitialized): void 
   const rewardPoolToken = fetchAndSaveTokenData(rewardPoolAddress)
 
   const clm = getCLM(managerAddress)
-  clm.rewardPool = rewardPool.id
-  clm.rewardPoolToken = rewardPoolToken.id
+  clm.rewardPoolTokens.push(rewardPoolToken.id)
   clm.save()
 
   log.info("handleRewardPoolInitialized: Reward pool {} initialized for CLM {} on block {}", [

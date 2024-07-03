@@ -22,12 +22,9 @@ import { getClmSnapshot } from "../entity/clm"
 export function fetchCLMData(clm: CLM): CLMData {
   const managerAddress = clm.id
   const strategyAddress = clm.strategy
-  const rewardPoolAddress = clm.rewardPoolToken
 
   const token0 = getToken(clm.underlyingToken0)
   const token1 = getToken(clm.underlyingToken1)
-  const rewardPoolToken = getToken(clm.rewardPoolToken)
-  const hasRewardPool = !isNullToken(rewardPoolToken)
 
   const calls = [
     new Multicall3Params(managerAddress, "totalSupply()", "uint256"),
@@ -35,8 +32,13 @@ export function fetchCLMData(clm: CLM): CLMData {
     new Multicall3Params(strategyAddress, "balancesOfPool()", "(uint256,uint256,uint256,uint256,uint256,uint256)"),
     new Multicall3Params(strategyAddress, "price()", "uint256"),
     new Multicall3Params(strategyAddress, "range()", "(uint256,uint256)"),
-    new Multicall3Params(rewardPoolAddress, "totalSupply()", "uint256"),
   ]
+
+  const rewardPoolTokenAddresses = clm.rewardPoolTokens
+  for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
+    const rewardPoolTokenAddress = Address.fromBytes(rewardPoolTokenAddresses[i])
+    calls.push(new Multicall3Params(rewardPoolTokenAddress, "totalSupply()", "uint256"))
+  }
 
   // wnative price to usd
   if (PRICE_ORACLE_TYPE == "chainlink") {
@@ -132,7 +134,10 @@ export function fetchCLMData(clm: CLM): CLMData {
   const balanceOfPoolRes = results[idx++]
   const priceRes = results[idx++]
   const rangeRes = results[idx++]
-  const rewardPoolTotalSupplyRes = results[idx++]
+  const rewardPoolsTotalSupplyRes = new Array<MulticallResult>()
+  for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
+    rewardPoolsTotalSupplyRes.push(results[idx++])
+  }
   const priceFeedRes = results[idx++]
   for (let i = 0; i < tokensToRefresh.length; i++) {
     idx++
@@ -222,16 +227,14 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   // only some strategies have this
   let rewardToNativePrices = new Array<BigInt>()
-  if (hasRewardPool) {
-    for (let i = 0; i < rewardTokenOutputAmountsRes.length; i++) {
-      const amountOutRes = rewardTokenOutputAmountsRes[i]
-      if (!amountOutRes.reverted) {
-        const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-        rewardToNativePrices.push(amountOut)
-      } else {
-        rewardToNativePrices.push(ZERO_BI)
-        log.error("Failed to fetch rewardToNativePrices for CLM {}", [clm.id.toHexString()])
-      }
+  for (let i = 0; i < rewardTokenOutputAmountsRes.length; i++) {
+    const amountOutRes = rewardTokenOutputAmountsRes[i]
+    if (!amountOutRes.reverted) {
+      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+      rewardToNativePrices.push(amountOut)
+    } else {
+      rewardToNativePrices.push(ZERO_BI)
+      log.error("Failed to fetch rewardToNativePrices for CLM {}", [clm.id.toHexString()])
     }
   }
 
@@ -260,12 +263,14 @@ export function fetchCLMData(clm: CLM): CLMData {
   }
 
   // only some clms have a reward pool token
-  let rewardPoolTotalSupply = ZERO_BI
-  if (hasRewardPool) {
-    if (!rewardPoolTotalSupplyRes.reverted) {
-      rewardPoolTotalSupply = rewardPoolTotalSupplyRes.value.toBigInt()
+  let rewardPoolsTotalSupply = new Array<BigInt>()
+  for (let i = 0; i < rewardPoolsTotalSupplyRes.length; i++) {
+    const totalSupplyRes = rewardPoolsTotalSupplyRes[i]
+    if (!totalSupplyRes.reverted) {
+      rewardPoolsTotalSupply.push(totalSupplyRes.value.toBigInt())
     } else {
-      log.error("Failed to fetch rewardPoolTotalSupply for CLM {}", [clm.id.toHexString()])
+      rewardPoolsTotalSupply.push(ZERO_BI)
+      log.error("Failed to fetch rewardPoolsTotalSupply for CLM {}", [clm.id.toHexString()])
     }
   }
 
@@ -283,7 +288,7 @@ export function fetchCLMData(clm: CLM): CLMData {
 
   return new CLMData(
     managerTotalSupply,
-    rewardPoolTotalSupply,
+    rewardPoolsTotalSupply,
     token0Balance,
     token1Balance,
 
@@ -307,7 +312,7 @@ export function fetchCLMData(clm: CLM): CLMData {
 class CLMData {
   constructor(
     public managerTotalSupply: BigInt,
-    public rewardPoolTotalSupply: BigInt,
+    public rewardPoolsTotalSupply: Array<BigInt>,
     public token0Balance: BigInt,
     public token1Balance: BigInt,
 
@@ -331,7 +336,7 @@ class CLMData {
 export function updateCLMDataAndSnapshots(clm: CLM, clmData: CLMData, nowTimestamp: BigInt): CLM {
   // update CLM data
   clm.managerTotalSupply = clmData.managerTotalSupply
-  clm.rewardPoolTotalSupply = clmData.rewardPoolTotalSupply
+  clm.rewardPoolsTotalSupply = clmData.rewardPoolsTotalSupply
   clm.token0ToNativePrice = clmData.token0ToNativePrice
   clm.token1ToNativePrice = clmData.token1ToNativePrice
   clm.outputToNativePrices = clmData.outputToNativePrices
@@ -356,7 +361,7 @@ export function updateCLMDataAndSnapshots(clm: CLM, clmData: CLMData, nowTimesta
     const period = CLM_SNAPSHOT_PERIODS[i]
     const snapshot = getClmSnapshot(clm, nowTimestamp, period)
     snapshot.managerTotalSupply = clm.managerTotalSupply
-    snapshot.rewardPoolTotalSupply = clm.rewardPoolTotalSupply
+    snapshot.rewardPoolsTotalSupply = clm.rewardPoolsTotalSupply
     snapshot.token0ToNativePrice = clm.token0ToNativePrice
     snapshot.token1ToNativePrice = clm.token1ToNativePrice
     snapshot.outputToNativePrices = clm.outputToNativePrices
