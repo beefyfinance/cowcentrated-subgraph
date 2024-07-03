@@ -36,6 +36,7 @@ import {
   PRODUCT_LIFECYCLE_RUNNING,
 } from "../common/entity/lifecycle"
 import { getNullToken } from "../common/entity/token"
+import { ZERO_BI } from "../common/utils/decimal"
 
 export function handleClmManagerCreated(event: CLMManagerCreatedEvent): void {
   const tx = getTransaction(event.block, event.transaction)
@@ -269,6 +270,7 @@ export function handleRewardPoolInitialized(event: RewardPoolInitialized): void 
 
   const clm = getCLM(managerAddress)
   clm.rewardPoolTokens.push(rewardPoolToken.id)
+  clm.rewardPoolsTotalSupply.push(ZERO_BI)
   clm.save()
 
   log.info("handleRewardPoolInitialized: Reward pool {} initialized for CLM {} on block {}", [
