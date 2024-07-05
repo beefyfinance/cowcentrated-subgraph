@@ -24,26 +24,7 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
   let params: Array<ethereum.Tuple> = []
   for (let i = 0; i < callParams.length; i++) {
     const callParam = callParams[i]
-    const signature = Bytes.fromUint8Array(
-      crypto.keccak256(ByteArray.fromUTF8(callParam.functionSignature)).slice(0, 4),
-    )
-
-    let functionCall = signature
-    if (callParam.args.length > 0) {
-      const calldata = ethereum.encode(
-        ethereum.Value.fromTuple(
-          // @ts-expect-error assemblyscript native function
-          changetype<ethereum.Tuple>(callParam.args),
-        ),
-      )
-
-      if (calldata) {
-        functionCall = functionCall.concat(calldata)
-      } else {
-        log.error("Failed to encode calldata for function {}", [callParam.functionSignature])
-      }
-    }
-
+    const functionCall = _multicall3ParamsToCallData(callParam)
     params.push(
       // @ts-expect-error assemblyscript native function
       changetype<ethereum.Tuple>([
@@ -73,6 +54,7 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
   }
 
   const multiResults: Array<ethereum.Tuple> = callResult.value[0].toTupleArray<ethereum.Tuple>()
+
   for (let i = 0; i < callParams.length; i++) {
     const callParam = callParams[i]
     const res = multiResults[i]
@@ -100,4 +82,26 @@ export function multicall(callParams: Array<Multicall3Params>): Array<MulticallR
   }
 
   return results
+}
+
+export function _multicall3ParamsToCallData(callParam: Multicall3Params): Bytes {
+  const signature = Bytes.fromUint8Array(crypto.keccak256(ByteArray.fromUTF8(callParam.functionSignature)).slice(0, 4))
+
+  let functionCall = signature
+  if (callParam.args.length > 0) {
+    const calldata = ethereum.encode(
+      ethereum.Value.fromTuple(
+        // @ts-expect-error assemblyscript native function
+        changetype<ethereum.Tuple>(callParam.args),
+      ),
+    )
+
+    if (calldata) {
+      functionCall = functionCall.concat(calldata)
+    } else {
+      log.error("Failed to encode calldata for function {}", [callParam.functionSignature])
+    }
+  }
+
+  return functionCall
 }
