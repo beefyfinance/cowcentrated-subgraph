@@ -9,9 +9,7 @@ export function handleClockTick(block: ethereum.Block): void {
 
   let tickRes1h = getClockTick(timestamp, HOUR)
   if (!tickRes1h.isNew) {
-    log.debug("handleClockTick: tick already exists for {}", [
-      tickRes1h.tick.id.toHexString(),
-    ])
+    log.debug("handleClockTick: tick already exists for {}", [tickRes1h.tick.id.toHexString()])
     return
   }
   tickRes1h.tick.save()
