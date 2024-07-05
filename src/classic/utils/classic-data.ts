@@ -38,7 +38,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
     )
   } else if (PRICE_ORACLE_TYPE === "pyth") {
     calls.push(
-      new Multicall3Params(PYTH_PRICE_FEED_ADDRESS, "getPriceUnsafe()", "(int64,uint64,int32,uint256)", [
+      new Multicall3Params(PYTH_PRICE_FEED_ADDRESS, "getPriceUnsafe(bytes32)", "(int64,uint64,int32,uint256)", [
         ethereum.Value.fromBytes(PYTH_NATIVE_PRICE_ID),
       ]),
     )
