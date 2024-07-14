@@ -68,11 +68,9 @@ function handleClmStrategyHarvest(
   harvest.compoundedAmount1 = compoundedAmount1
   harvest.collectedOutputAmounts = collectedOutputAmounts
   harvest.managerTotalSupply = clmData.managerTotalSupply
-  harvest.rewardPoolsTotalSupply = clmData.rewardPoolsTotalSupply
   harvest.token0ToNativePrice = clmData.token0ToNativePrice
   harvest.token1ToNativePrice = clmData.token1ToNativePrice
   harvest.outputToNativePrices = clmData.outputToNativePrices
-  harvest.rewardToNativePrices = clmData.rewardToNativePrices
   harvest.nativeToUSDPrice = clmData.nativeToUSDPrice
   harvest.save()
 }
@@ -141,7 +139,6 @@ function handleClmStrategyFees(
   collect.token0ToNativePrice = clmData.token0ToNativePrice
   collect.token1ToNativePrice = clmData.token1ToNativePrice
   collect.outputToNativePrices = clmData.outputToNativePrices
-  collect.rewardToNativePrices = clmData.rewardToNativePrices
   collect.nativeToUSDPrice = clmData.nativeToUSDPrice
   collect.save()
 

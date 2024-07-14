@@ -26,7 +26,7 @@ dataSources:
         - ClmSnapshot
         - ClmManager
         - ClmManagerCollectionEvent
-        - ClmRewardPool
+        - RewardPool
         - ClmStrategy
         - ClockTick
         - Investor
@@ -43,9 +43,9 @@ dataSources:
         - name: ClmStrategy
           file: ./abis/beefy/clm/ClmStrategy.json
         - name: RewardPoolFactory
-          file: ./abis/beefy/clm/RewardPoolFactory.json
+          file: ./abis/beefy/reward-pool/RewardPoolFactory.json
         - name: RewardPool
-          file: ./abis/beefy/clm/RewardPool.json
+          file: ./abis/beefy/reward-pool/RewardPool.json
 
         - name: ClassicVaultFactory
           file: ./abis/beefy/classic/ClassicVaultFactory.json
@@ -95,7 +95,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/clm/mapping/reward-pool-factory.ts
+      file: ./src/reward-pool/mapping/reward-pool-factory.ts
       entities: *clmEntities
       abis: *abis
       eventHandlers:
@@ -220,7 +220,7 @@ templates:
           handler: handleClmStrategyClaimedRewards
 
   
-  - name: ClmRewardPool
+  - name: RewardPool
     kind: ethereum/contract
     network: {{network}}
     source:
@@ -229,7 +229,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/clm/mapping/reward-pool.ts
+      file: ./src/reward-pool/mapping/reward-pool.ts
       entities: *clmEntities
       abis: *abis
       eventHandlers:

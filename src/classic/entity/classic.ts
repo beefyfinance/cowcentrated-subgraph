@@ -11,6 +11,10 @@ export function isClassicInitialized(classic: Classic): boolean {
   return classic.lifecycle != PRODUCT_LIFECYCLE_INITIALIZING
 }
 
+export function isClassicVault(address: Bytes): boolean {
+  return ClassicVault.load(address) != null
+}
+
 export function getClassic(vaultAddress: Bytes): Classic {
   let classic = Classic.load(vaultAddress)
   if (!classic) {
