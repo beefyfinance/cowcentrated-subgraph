@@ -56,7 +56,7 @@ function updateUserPosition(
   rewardPool: RewardPool,
   event: ethereum.Event,
   investorAddress: Address,
-  sharesBalanceDelta: BigInt,
+  rewardPoolBalanceDelta: BigInt,
   rewardBalancesDelta: Array<BigInt>,
 ): void {
   if (!isRewardPoolInitialized(rewardPool.id)) {
@@ -80,17 +80,17 @@ function updateUserPosition(
 
   ///////
   // investor position
-  if (position.sharesBalance.equals(ZERO_BI)) {
+  if (position.rewardPoolBalance.equals(ZERO_BI)) {
     position.createdWith = event.transaction.hash
   }
 
-  position.sharesBalance = position.sharesBalance.plus(sharesBalanceDelta)
-  position.totalBalance = position.sharesBalance
+  position.rewardPoolBalance = position.rewardPoolBalance.plus(rewardPoolBalanceDelta)
+  position.totalBalance = position.rewardPoolBalance
   position.save()
 
   ///////
   // interaction
-  const isSharesTransfer = !sharesBalanceDelta.equals(ZERO_BI)
+  const isSharesTransfer = !rewardPoolBalanceDelta.equals(ZERO_BI)
   const isRewardClaim = rewardBalancesDelta.some((delta) => !delta.equals(ZERO_BI))
 
   // if both shares and reward pool are transferred, we will create two interactions
@@ -108,28 +108,27 @@ function updateUserPosition(
   interaction.blockNumber = event.block.number
   interaction.timestamp = event.block.timestamp
   if (isSharesTransfer) {
-    interaction.type = sharesBalanceDelta.gt(ZERO_BI) ? "REWARD_POOL_DEPOSIT" : "REWARD_POOL_WITHDRAW"
+    interaction.type = rewardPoolBalanceDelta.gt(ZERO_BI) ? "REWARD_POOL_DEPOSIT" : "REWARD_POOL_WITHDRAW"
   } else if (isRewardClaim) {
     interaction.type = "REWARD_CLAIM"
   }
 
-  interaction.sharesBalance = position.sharesBalance
+  interaction.rewardPoolBalance = position.rewardPoolBalance
   interaction.totalBalance = position.totalBalance
-  interaction.sharesBalanceDelta = sharesBalanceDelta
+  interaction.rewardPoolBalanceDelta = rewardPoolBalanceDelta
 
   // set the underlying balances at the time of the transaction
   interaction.underlyingBalance = ZERO_BI
   interaction.underlyingBalanceDelta = ZERO_BI
-  if (!rewardPoolData.sharesTotalSupply.equals(ZERO_BI)) {
+  if (!rewardPoolData.rewardPoolTotalSupply.equals(ZERO_BI)) {
     interaction.underlyingBalance = interaction.underlyingBalance.plus(
-      rewardPoolData.underlyingTokenBalance.times(position.totalBalance).div(rewardPoolData.sharesTotalSupply),
+      rewardPoolData.underlyingTokenBalance.times(position.totalBalance).div(rewardPoolData.rewardPoolTotalSupply),
     )
 
     interaction.underlyingBalanceDelta = interaction.underlyingBalanceDelta.plus(
-      rewardPoolData.underlyingTokenBalance.times(sharesBalanceDelta).div(rewardPoolData.sharesTotalSupply),
+      rewardPoolData.underlyingTokenBalance.times(rewardPoolBalanceDelta).div(rewardPoolData.rewardPoolTotalSupply),
     )
   }
-  interaction.rewardBalancesDelta = rewardBalancesDelta
   interaction.underlyingToNativePrice = rewardPoolData.underlyingToNativePrice
   interaction.rewardToNativePrices = rewardPoolData.rewardToNativePrices
   interaction.nativeToUSDPrice = rewardPoolData.nativeToUSDPrice

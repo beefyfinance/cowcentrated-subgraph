@@ -27,7 +27,7 @@ export function getRewardPool(rewardPoolAddress: Bytes): RewardPool {
     rewardPool.rewardTokens = []
     rewardPool.rewardTokensOrder = []
     rewardPool.underlyingToken = ADDRESS_ZERO
-    rewardPool.sharesTotalSupply = ZERO_BI
+    rewardPool.rewardPoolSharesTotalSupply = ZERO_BI
     rewardPool.underlyingToNativePrice = ZERO_BI
     rewardPool.rewardToNativePrices = []
     rewardPool.nativeToUSDPrice = ZERO_BI
@@ -48,7 +48,7 @@ export function getRewardPoolSnapshot(rewardPool: RewardPool, timestamp: BigInt,
     snapshot.timestamp = timestamp
     snapshot.roundedTimestamp = interval
 
-    snapshot.sharesTotalSupply = ZERO_BI
+    snapshot.rewardPoolSharesTotalSupply = ZERO_BI
 
     snapshot.underlyingToNativePrice = ZERO_BI
     snapshot.rewardToNativePrices = []
@@ -60,7 +60,7 @@ export function getRewardPoolSnapshot(rewardPool: RewardPool, timestamp: BigInt,
     const previousSnapshotId = rewardPool.id.concat(getPreviousSnapshotIdSuffix(period, interval))
     const previousSnapshot = RewardPoolSnapshot.load(previousSnapshotId)
     if (previousSnapshot) {
-      snapshot.sharesTotalSupply = previousSnapshot.sharesTotalSupply
+      snapshot.rewardPoolSharesTotalSupply = previousSnapshot.rewardPoolSharesTotalSupply
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
       snapshot.rewardToNativePrices = previousSnapshot.rewardToNativePrices
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
