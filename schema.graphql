@@ -754,7 +754,7 @@ type RewardPool @entity {
   # ----- PRICES & STATS -----
 
   "The total supply of the reward pool shares token in circulation. Express with `sharesToken.decimals` decimals."
-  rewardPoolSharesTotalSupply: BigInt!
+  sharesTotalSupply: BigInt!
 
   "Latest LP token price in native we have seen. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
@@ -803,7 +803,7 @@ type RewardPoolSnapshot @entity {
   timestamp: BigInt!
 
   "The total supply of the reward pool shares token in circulation. Express with `sharesToken.decimals` decimals."
-  rewardPoolSharesTotalSupply: BigInt!
+  sharesTotalSupply: BigInt!
 
   "Latest LP token price in native of this snapshot. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
@@ -831,7 +831,7 @@ type RewardPoolPosition @entity {
   createdWith: Transaction!
 
   "The amount of reward pool shares the investor holds"
-  rewardPoolBalance: BigInt!
+  sharesBalance: BigInt!
   "Total amount of reward pool shares the investor holds. This is mostly used for filtering."
   totalBalance: BigInt!
 
@@ -871,14 +871,16 @@ type RewardPoolPositionInteraction @entity(immutable: true) {
   type: RewardPoolPositionInteractionType!
 
   "The amount of reward pool shares the investor holds at the time of the interaction"
-  rewardPoolBalance: BigInt!
+  sharesBalance: BigInt!
   "Total amount of reward pool shares the investor holds. This is mostly used for filtering."
   totalBalance: BigInt!
   "Amount of underlying token the investor is entitled to at the time of the interaction"
   underlyingBalance: BigInt!
 
   "Amount of reward pool shares change in the interaction"
-  rewardPoolBalanceDelta: BigInt!
+  sharesBalanceDelta: BigInt!
+  "Amount of reward tokens change in the interaction. Ordered by rewardPool.rewardTokensOrder."
+  rewardBalancesDelta: [BigInt!]!
   "Amount of underlying token change in the interaction"
   underlyingBalanceDelta: BigInt!
 

@@ -103,9 +103,9 @@ export function fetchRewardPoolData(rewardPool: RewardPool): RewardPoolData {
   }
 
   // extract the data
-  let rewardPoolTotalSupply = ZERO_BI
+  let sharesTotalSupply = ZERO_BI
   if (!totalSupplyRes.reverted) {
-    rewardPoolTotalSupply = totalSupplyRes.value.toBigInt()
+    sharesTotalSupply = totalSupplyRes.value.toBigInt()
   } else {
     log.error("Failed to fetch totalSupply for Reward Pool {}", [rewardPool.id.toHexString()])
   }
@@ -162,7 +162,7 @@ export function fetchRewardPoolData(rewardPool: RewardPool): RewardPoolData {
   }
 
   return new RewardPoolData(
-    rewardPoolTotalSupply,
+    sharesTotalSupply,
     underlyingTokenBalance,
     underlyingToNativePrice,
     rewardToNativePrices,
@@ -172,7 +172,7 @@ export function fetchRewardPoolData(rewardPool: RewardPool): RewardPoolData {
 
 class RewardPoolData {
   constructor(
-    public rewardPoolTotalSupply: BigInt,
+    public sharesTotalSupply: BigInt,
     public underlyingTokenBalance: BigInt,
     public underlyingToNativePrice: BigInt,
     public rewardToNativePrices: Array<BigInt>,
@@ -186,7 +186,7 @@ export function updateRewardPoolDataAndSnapshots(
   nowTimestamp: BigInt,
 ): RewardPool {
   // update reward pool data
-  rewardPool.rewardPoolSharesTotalSupply = rewardPoolData.rewardPoolTotalSupply
+  rewardPool.sharesTotalSupply = rewardPoolData.sharesTotalSupply
   rewardPool.underlyingAmount = rewardPoolData.underlyingTokenBalance
   rewardPool.underlyingToNativePrice = rewardPoolData.underlyingToNativePrice
   rewardPool.rewardToNativePrices = rewardPoolData.rewardToNativePrices
@@ -195,14 +195,14 @@ export function updateRewardPoolDataAndSnapshots(
 
   // don't save a snapshot if we don't have a deposit yet
   // or if the vault becomes empty
-  if (rewardPool.rewardPoolSharesTotalSupply.equals(ZERO_BI)) {
+  if (rewardPool.sharesTotalSupply.equals(ZERO_BI)) {
     return rewardPool
   }
 
   for (let i = 0; i < REWARD_POOL_SNAPSHOT_PERIODS.length; i++) {
     const period = REWARD_POOL_SNAPSHOT_PERIODS[i]
     const snapshot = getRewardPoolSnapshot(rewardPool, nowTimestamp, period)
-    snapshot.rewardPoolSharesTotalSupply = rewardPoolData.rewardPoolTotalSupply
+    snapshot.sharesTotalSupply = rewardPoolData.sharesTotalSupply
     snapshot.underlyingAmount = rewardPoolData.underlyingTokenBalance
     snapshot.underlyingToNativePrice = rewardPoolData.underlyingToNativePrice
     snapshot.rewardToNativePrices = rewardPoolData.rewardToNativePrices

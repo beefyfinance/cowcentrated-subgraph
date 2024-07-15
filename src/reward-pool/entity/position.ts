@@ -17,7 +17,7 @@ export function getRewardPoolPosition(rewardPool: RewardPool, investor: Investor
     position.rewardPool = rewardPool.id
     position.investor = investor.id
     position.createdWith = ADDRESS_ZERO
-    position.rewardPoolBalance = ZERO_BI
+    position.sharesBalance = ZERO_BI
     position.totalBalance = ZERO_BI
   }
   return position
