@@ -4,13 +4,9 @@ import {
   ClmManager as ClmManagerContract,
   Initialized as ClmManagerInitialized,
 } from "../../generated/templates/ClmManager/ClmManager"
-import { getClmRewardPool, getClmStrategy, getCLM, getClmManager } from "./entity/clm"
+import { getClmStrategy, getCLM, getClmManager } from "./entity/clm"
 import { log } from "@graphprotocol/graph-ts"
-import {
-  ClmStrategy as ClmStrategyTemplate,
-  ClmManager as ClmManagerTemplate,
-  ClmRewardPool as ClmRewardPoolTemplate,
-} from "../../generated/templates"
+import { ClmStrategy as ClmStrategyTemplate, ClmManager as ClmManagerTemplate } from "../../generated/templates"
 import { ADDRESS_ZERO } from "../common/utils/address"
 import {
   Initialized as ClmStrategyInitializedEvent,
@@ -20,13 +16,6 @@ import {
 } from "../../generated/templates/ClmStrategy/ClmStrategy"
 import { ProxyCreated as CLMManagerCreatedEvent } from "../../generated/ClmManagerFactory/ClmManagerFactory"
 import { GlobalPause as ClmStrategyFactoryGlobalPauseEvent } from "../../generated/ClmStrategyFactory/ClmStrategyFactory"
-import { ProxyCreated as RewardPoolCreatedEvent } from "../../generated/RewardPoolFactory/RewardPoolFactory"
-import {
-  Initialized as RewardPoolInitialized,
-  RewardPool as ClmRewardPoolContract,
-  AddReward as RewardPoolAddRewardEvent,
-  RemoveReward as RewardPoolRemoveRewardEvent,
-} from "../../generated/RewardPoolFactory/RewardPool"
 import { getTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { getBeefyCLProtocol } from "../common/entity/protocol"
@@ -35,8 +24,6 @@ import {
   PRODUCT_LIFECYCLE_PAUSED,
   PRODUCT_LIFECYCLE_RUNNING,
 } from "../common/entity/lifecycle"
-import { getNullToken } from "../common/entity/token"
-import { ZERO_BI } from "../common/utils/decimal"
 
 export function handleClmManagerCreated(event: CLMManagerCreatedEvent): void {
   const tx = getTransaction(event.block, event.transaction)
@@ -234,91 +221,5 @@ export function handleClmStrategyUnpaused(event: ClmStrategyUnpausedEvent): void
   const strategy = getClmStrategy(event.address)
   const clm = getCLM(strategy.clm)
   clm.lifecycle = PRODUCT_LIFECYCLE_RUNNING
-  clm.save()
-}
-
-export function handleRewardPoolCreated(event: RewardPoolCreatedEvent): void {
-  const rewardPoolAddress = event.params.proxy
-
-  const rewardPool = getClmRewardPool(rewardPoolAddress)
-  rewardPool.isInitialized = false
-  rewardPool.save()
-
-  // start indexing the new reward pool
-  ClmRewardPoolTemplate.create(rewardPoolAddress)
-}
-
-export function handleRewardPoolInitialized(event: RewardPoolInitialized): void {
-  const rewardPoolAddress = event.address
-  const rewardPoolContract = ClmRewardPoolContract.bind(rewardPoolAddress)
-  const managerAddressRes = rewardPoolContract.try_stakedToken()
-  if (managerAddressRes.reverted) {
-    log.error("handleRewardPoolInitialized: Manager address is not available for reward pool {}", [
-      rewardPoolAddress.toHexString(),
-    ])
-    return
-  }
-  const managerAddress = managerAddressRes.value
-
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
-
-  const rewardPool = getClmRewardPool(rewardPoolAddress)
-  rewardPool.isInitialized = true
-  rewardPool.clm = managerAddress
-  rewardPool.manager = managerAddress
-  rewardPool.createdWith = tx.id
-  rewardPool.save()
-
-  const rewardPoolToken = fetchAndSaveTokenData(rewardPoolAddress)
-
-  const clm = getCLM(managerAddress)
-  const rewardPoolTokens = clm.rewardPoolTokens
-  const rewardPoolTokensOrder = clm.rewardPoolTokensOrder
-  rewardPoolTokens.push(rewardPoolToken.id)
-  rewardPoolTokensOrder.push(rewardPoolToken.id)
-  clm.rewardPoolTokens = rewardPoolTokens
-  clm.rewardPoolTokensOrder = rewardPoolTokensOrder
-  const rewardPoolsTotalSupply = clm.rewardPoolsTotalSupply
-  rewardPoolsTotalSupply.push(ZERO_BI)
-  clm.rewardPoolsTotalSupply = rewardPoolsTotalSupply
-  clm.save()
-
-  log.info("handleRewardPoolInitialized: Reward pool {} initialized for CLM {} on block {}", [
-    rewardPool.id.toHexString(),
-    clm.id.toHexString(),
-    event.block.number.toString(),
-  ])
-}
-
-export function handleRewardPoolAddReward(event: RewardPoolAddRewardEvent): void {
-  const rewardPoolAddress = event.address
-  const rewardPool = getClmRewardPool(rewardPoolAddress)
-  const clm = getCLM(rewardPool.clm)
-
-  const rewardTokens = clm.rewardTokens
-  const rewardTokensOrder = clm.rewardTokensOrder
-  rewardTokens.push(event.params.reward)
-  rewardTokensOrder.push(event.params.reward)
-  clm.rewardTokens = rewardTokens
-  clm.rewardTokensOrder = rewardTokensOrder
-  clm.save()
-}
-
-export function handleRewardPoolRemoveReward(event: RewardPoolRemoveRewardEvent): void {
-  const rewardPoolAddress = event.address
-  const rewardPool = getClmRewardPool(rewardPoolAddress)
-  const clm = getCLM(rewardPool.clm)
-  const rewardTokenAddresses = clm.rewardTokensOrder
-  const tokens = new Array<Bytes>()
-  for (let i = 0; i < rewardTokenAddresses.length; i++) {
-    if (rewardTokenAddresses[i].equals(event.params.reward)) {
-      tokens.push(getNullToken().id)
-    } else {
-      tokens.push(rewardTokenAddresses[i])
-    }
-  }
-  clm.rewardTokens = tokens
-  clm.rewardTokensOrder = tokens
   clm.save()
 }

@@ -1,5 +1,12 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
-import { Classic, ClassicVault, ClassicStrategy, ClassicBoost, ClassicSnapshot } from "../../../generated/schema"
+import {
+  Classic,
+  ClassicVault,
+  ClassicStrategy,
+  ClassicBoost,
+  ClassicSnapshot,
+  ClassicRewardPool,
+} from "../../../generated/schema"
 import { ADDRESS_ZERO } from "../../common/utils/address"
 import { ZERO_BI } from "../../common/utils/decimal"
 import { getIntervalFromTimestamp } from "../../common/utils/time"
@@ -9,6 +16,10 @@ import { PRODUCT_LIFECYCLE_INITIALIZING } from "../../common/entity/lifecycle"
 
 export function isClassicInitialized(classic: Classic): boolean {
   return classic.lifecycle != PRODUCT_LIFECYCLE_INITIALIZING
+}
+
+export function isClassicVaultAddress(vaultAddress: Bytes): boolean {
+  return ClassicVault.load(vaultAddress) != null
 }
 
 export function getClassic(vaultAddress: Bytes): Classic {
@@ -26,11 +37,17 @@ export function getClassic(vaultAddress: Bytes): Classic {
     classic.underlyingToken = ADDRESS_ZERO
     classic.boostRewardTokens = []
     classic.boostRewardTokensOrder = []
+    classic.rewardPoolTokens = []
+    classic.rewardPoolTokensOrder = []
+    classic.rewardTokens = []
+    classic.rewardTokensOrder = []
 
     classic.vaultSharesTotalSupply = ZERO_BI
+    classic.rewardPoolsTotalSupply = []
 
     classic.underlyingToNativePrice = ZERO_BI
     classic.boostRewardToNativePrices = []
+    classic.rewardToNativePrices = []
     classic.nativeToUSDPrice = ZERO_BI
 
     classic.underlyingAmount = ZERO_BI
@@ -74,6 +91,22 @@ export function getClassicBoost(boostAddress: Bytes): ClassicBoost {
   return boost
 }
 
+export function isClassicRewardPool(rewardPoolAddress: Bytes): boolean {
+  return ClassicRewardPool.load(rewardPoolAddress) != null
+}
+
+export function getClassicRewardPool(rewardPoolAddress: Bytes): ClassicRewardPool {
+  let rewardPool = ClassicRewardPool.load(rewardPoolAddress)
+  if (!rewardPool) {
+    rewardPool = new ClassicRewardPool(rewardPoolAddress)
+    rewardPool.classic = ADDRESS_ZERO
+    rewardPool.vault = ADDRESS_ZERO
+    rewardPool.createdWith = ADDRESS_ZERO
+    rewardPool.isInitialized = false
+  }
+  return rewardPool
+}
+
 export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: BigInt): ClassicSnapshot {
   const interval = getIntervalFromTimestamp(timestamp, period)
   const snapshotId = classic.id.concat(getSnapshotIdSuffix(period, interval))
@@ -87,9 +120,11 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
     snapshot.roundedTimestamp = interval
 
     snapshot.vaultSharesTotalSupply = ZERO_BI
+    snapshot.rewardPoolsTotalSupply = []
 
     snapshot.underlyingToNativePrice = ZERO_BI
     snapshot.boostRewardToNativePrices = []
+    snapshot.rewardToNativePrices = []
     snapshot.nativeToUSDPrice = ZERO_BI
 
     snapshot.underlyingAmount = ZERO_BI
@@ -101,6 +136,7 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
       snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
       snapshot.boostRewardToNativePrices = previousSnapshot.boostRewardToNativePrices
+      snapshot.rewardToNativePrices = previousSnapshot.rewardToNativePrices
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
       snapshot.underlyingAmount = previousSnapshot.underlyingAmount
     }

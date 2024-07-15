@@ -95,7 +95,7 @@ dataSources:
       kind: ethereum/events
       apiVersion: 0.0.7 # 0xgraph's version
       language: wasm/assemblyscript
-      file: ./src/clm/mapping/reward-pool-factory.ts
+      file: ./src/reward-pool/mapping/reward-pool-factory.ts
       entities: *clmEntities
       abis: *abis
       eventHandlers:
@@ -219,7 +219,22 @@ templates:
         - event: ClaimedRewards(uint256)
           handler: handleClmStrategyClaimedRewards
 
-  
+  - name: RewardPool
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: RewardPool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/reward-pool/mapping/reward-pool.ts
+      entities: *clmEntities
+      abis: *abis
+      eventHandlers:
+        - event: Initialized(uint8)
+          handler: handleRewardPoolInitialized
+
   - name: ClmRewardPool
     kind: ethereum/contract
     network: {{network}}
@@ -233,8 +248,28 @@ templates:
       entities: *clmEntities
       abis: *abis
       eventHandlers:
-        - event: Initialized(uint8)
-          handler: handleRewardPoolInitialized
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleRewardPoolTransfer
+        - event: RewardPaid(indexed address,indexed address,uint256)
+          handler: handleRewardPoolRewardPaid
+        - event: AddReward(address)
+          handler: handleRewardPoolAddReward
+        - event: RemoveReward(address,address)
+          handler: handleRewardPoolRemoveReward
+
+  - name: ClassicRewardPool
+    kind: ethereum/contract
+    network: {{network}}
+    source:
+      abi: RewardPool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/reward-pool.ts
+      entities: *clmEntities
+      abis: *abis
+      eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleRewardPoolTransfer
         - event: RewardPaid(indexed address,indexed address,uint256)

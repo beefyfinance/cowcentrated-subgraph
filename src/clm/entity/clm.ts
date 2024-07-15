@@ -12,6 +12,10 @@ export function isClmInitialized(clm: CLM): boolean {
   return clm.lifecycle != PRODUCT_LIFECYCLE_INITIALIZING
 }
 
+export function isClmManagerAddress(managerAddress: Bytes): boolean {
+  return ClmManager.load(managerAddress) != null
+}
+
 export function getCLM(managerAddress: Bytes): CLM {
   let clm = CLM.load(managerAddress)
   if (!clm) {

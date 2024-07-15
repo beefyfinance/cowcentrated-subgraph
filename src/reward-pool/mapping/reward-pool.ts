@@ -1,0 +1,1 @@
+export { handleRewardPoolInitialized } from "../lifecycle"

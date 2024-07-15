@@ -119,12 +119,20 @@ type Classic @entity {
   strategy: ClassicStrategy!
   "The vault boosts"
   boosts: [ClassicBoost!]! @derivedFrom(field: "classic")
+  """
+  The reward pools of this vault.
+  """
+  rewardPools: [ClassicRewardPool!]! @derivedFrom(field: "classic")
 
   "The current lifecycle status of the vault"
   lifecycle: ProductLifecycle!
 
   "The vault's share token"
   vaultSharesToken: Token!
+  "The reward pool tokens of the CLM. This is where the CLM's earnings are sent if the CLM does not automatically compound."
+  rewardPoolTokens: [Token!]!
+  "The reward pool token addresses of the CLM. This is the source of truth for other tables reward ordering."
+  rewardPoolTokensOrder: [Bytes!]!
 
   "The vault's underlying LP token"
   underlyingToken: Token!
@@ -133,16 +141,24 @@ type Classic @entity {
   boostRewardTokens: [Token!]!
   "The boost token addresses of the vault. This is the source of truth for other tables reward ordering."
   boostRewardTokensOrder: [Bytes!]!
+  "The reward tokens of the CLM's rewardpool. These will be rewarded to positions when the CLM earns non-compounding yield."
+  rewardTokens: [Token!]!
+  "The reward token addresses of the CLM. This is the source of truth for other tables reward ordering."
+  rewardTokensOrder: [Bytes!]!
 
   # ----- PRICES & STATS -----
 
   "The total supply of the vault shares token in circulation. Express with `sharesToken.decimals` decimals."
   vaultSharesTotalSupply: BigInt!
+  "Total supply of the reward pool token. Express with `clm.rewardTokensOrder[idx].decimals` decimals."
+  rewardPoolsTotalSupply: [BigInt!]!
 
   "Latest LP token price in native we have seen. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
   "Latest boost token prices in native we have seen. Ordered by classic.boostRewardTokensOrder. Expressed with 18 decimals."
   boostRewardToNativePrices: [BigInt!]!
+  "Latest reward token prices in native we have seen. Ordered by classic.rewardTokensOrder. Expressed with 18 decimals."
+  rewardToNativePrices: [BigInt!]!
   "Latest native token price we have seen. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
@@ -190,11 +206,15 @@ type ClassicSnapshot @entity {
 
   "The total supply of the vault shares token in circulation. Express with `sharesToken.decimals` decimals."
   vaultSharesTotalSupply: BigInt!
+  "Total supply of the reward pool token. Express with `clm.rewardTokensOrder[idx].decimals` decimals."
+  rewardPoolsTotalSupply: [BigInt!]!
 
   "Latest LP token price in native of this snapshot. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
   "Latest boost token prices in native of this snapshot. Ordered by classic.boostRewardTokensOrder. Expressed with 18 decimals."
   boostRewardToNativePrices: [BigInt!]!
+  "Latest reward token prices in native of this snapshot. Ordered by classic.rewardTokensOrder. Expressed with 18 decimals."
+  rewardToNativePrices: [BigInt!]!
   "Latest native token price of this snapshot. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 
@@ -254,6 +274,23 @@ type ClassicBoost @entity {
 }
 
 """
+Some Classic do not automatically compound their earnings. Those earnings are sent to the reward pool instead.
+This entity is mostly used to start tracking the events and link them to the Classic on new event
+"""
+type ClassicRewardPool @entity {
+  "The strategy address"
+  id: Bytes!
+  "The classic product the reward pool is for"
+  classic: Classic!
+  "The vault the reward pool is linked to"
+  vault: ClassicVault!
+  "The transaction that created the reward pool"
+  createdWith: Transaction!
+  "Technical field to remember if the strategy was already initialized"
+  isInitialized: Boolean!
+}
+
+"""
 Classic products are harvested by the strategy. This event is emitted when the strategy harvests the vault.
 """
 type ClassicHarvestEvent @entity(immutable: true) {
@@ -281,11 +318,15 @@ type ClassicHarvestEvent @entity(immutable: true) {
 
   "Total amount of liquidity in the vault at time of harvest"
   vaultSharesTotalSupply: BigInt!
+  "Total amount of reward pool shares at time of harvest. Ordered by classic.rewardPoolTokensOrder."
+  rewardPoolsTotalSupply: [BigInt!]!
 
   "LP token price in native at the time of harvest. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
   "Boost token prices in native at the time of harvest. Ordered by classic.boostRewardTokensOrder. Expressed with 18 decimals."
   boostRewardToNativePrices: [BigInt!]!
+  "Reward token prices in native at the time of harvest. Ordered by classic.rewardTokensOrder. Expressed with 18 decimals."
+  rewardToNativePrices: [BigInt!]!
   "Native token price at the time of harvest. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }
@@ -308,6 +349,8 @@ type ClassicPosition @entity {
   vaultBalance: BigInt!
   "The amount of vault shares the investor holds in a boost"
   boostBalance: BigInt!
+  "Amount of reward pool shares the investor holds. Ordered by clm.rewardPoolTokensOrder."
+  rewardPoolBalances: [BigInt!]!
   "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance. This is mostly used for filtering."
   totalBalance: BigInt!
 
@@ -326,6 +369,12 @@ enum ClassicPositionInteractionType {
   BOOST_UNSTAKE
   "The investor claimed their rewards from the vault"
   BOOST_REWARD_CLAIM
+  "The investor staked in the reward pool of the CLM and received reward pool shares"
+  REWARD_POOL_STAKE
+  "The investor unstaked from the reward pool of the CLM and received underlying tokens"
+  REWARD_POOL_UNSTAKE
+  "The investor claimed their rewards from the reward pool of the CLM"
+  REWARD_POOL_CLAIM
 }
 
 type ClassicPositionInteraction @entity(immutable: true) {
@@ -354,6 +403,8 @@ type ClassicPositionInteraction @entity(immutable: true) {
   vaultBalance: BigInt!
   "The amount of vault shares the investor holds in a boost at the time of the interaction"
   boostBalance: BigInt!
+  "The amount of reward pool shares the investor holds at the time of the interaction. Ordered by clm.rewardPoolTokensOrder."
+  rewardPoolBalances: [BigInt!]!
   "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance. This is mostly used for filtering."
   totalBalance: BigInt!
 
@@ -363,11 +414,17 @@ type ClassicPositionInteraction @entity(immutable: true) {
   boostBalanceDelta: BigInt!
   "Amount of boost tokens change in the interaction. Ordered by classic.boostRewardTokensOrder."
   boostRewardBalancesDelta: [BigInt!]!
+  "Amount of reward pool shares change in the interaction. Ordered by clm.rewardPoolTokensOrder."
+  rewardPoolBalancesDelta: [BigInt!]!
+  "Amount of reward tokens change in the interaction. Ordered by clm.rewardTokensOrder."
+  rewardBalancesDelta: [BigInt!]!
 
   "LP token price in native at the time of the interaction. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
   "Boost token prices in native at the time of the interaction. Ordered by classic.boostRewardTokensOrder. Expressed with 18 decimals."
   boostRewardToNativePrices: [BigInt!]!
+  "Reward token prices in native at the time of the interaction. Expressed with 18 decimals. Ordered by clm.rewardTokensOrder."
+  rewardToNativePrices: [BigInt!]!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }
