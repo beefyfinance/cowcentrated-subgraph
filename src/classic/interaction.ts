@@ -277,6 +277,7 @@ function updateUserPosition(
 
   interaction.underlyingToNativePrice = classicData.underlyingToNativePrice
   interaction.boostRewardToNativePrices = classicData.boostRewardToNativePrices
+  interaction.rewardToNativePrices = classicData.rewardToNativePrices
   interaction.nativeToUSDPrice = classicData.nativeToUSDPrice
   interaction.save()
 }
