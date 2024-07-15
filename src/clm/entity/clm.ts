@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { BigInt, Bytes, store } from "@graphprotocol/graph-ts"
 import { ClmRewardPool, ClmStrategy, ClmManager, ClmSnapshot, CLM } from "../../../generated/schema"
 import { ADDRESS_ZERO } from "../../common/utils/address"
 import { ZERO_BI } from "../../common/utils/decimal"
@@ -88,6 +88,11 @@ export function getClmStrategy(strategyAddress: Bytes): ClmStrategy {
 
 export function isClmRewardPool(rewardPoolAddress: Bytes): boolean {
   return ClmRewardPool.load(rewardPoolAddress) != null
+}
+
+export function removeClmRewardPool(rewardPoolAddress: Bytes): void {
+  const id = rewardPoolAddress
+  store.remove("ClmRewardPool", id.toHexString())
 }
 
 export function getClmRewardPool(rewardPoolAddress: Bytes): ClmRewardPool {

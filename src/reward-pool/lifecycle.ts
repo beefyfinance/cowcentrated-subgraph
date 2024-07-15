@@ -14,8 +14,14 @@ import {
 import { getTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { ZERO_BI } from "../common/utils/decimal"
-import { getCLM, getClmRewardPool, isClmManagerAddress, isClmRewardPool } from "../clm/entity/clm"
-import { getClassic, getClassicRewardPool, isClassicRewardPool, isClassicVaultAddress } from "../classic/entity/classic"
+import { getCLM, getClmRewardPool, isClmManagerAddress, isClmRewardPool, removeClmRewardPool } from "../clm/entity/clm"
+import {
+  getClassic,
+  getClassicRewardPool,
+  isClassicRewardPool,
+  isClassicVaultAddress,
+  removeClassicRewardPool,
+} from "../classic/entity/classic"
 import { getNullToken } from "../common/entity/token"
 
 export function handleRewardPoolCreated(event: RewardPoolCreatedEvent): void {
@@ -70,6 +76,7 @@ export function handleRewardPoolInitialized(event: RewardPoolInitialized): void 
     clm.rewardPoolsTotalSupply = rewardPoolsTotalSupply
     clm.save()
 
+    removeClassicRewardPool(rewardPoolAddress)
     ClmRewardPoolTemplate.create(rewardPoolAddress)
 
     log.info("handleRewardPoolInitialized: Reward pool {} initialized for CLM {} on block {}", [
@@ -97,6 +104,7 @@ export function handleRewardPoolInitialized(event: RewardPoolInitialized): void 
     classic.rewardPoolsTotalSupply = rewardPoolsTotalSupply
     classic.save()
 
+    removeClmRewardPool(rewardPoolAddress)
     ClassicRewardPoolTemplate.create(rewardPoolAddress)
 
     log.info("handleRewardPoolInitialized: Reward pool {} initialized for Classic {} on block {}", [

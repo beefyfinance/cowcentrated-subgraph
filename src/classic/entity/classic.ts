@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { BigInt, Bytes, store } from "@graphprotocol/graph-ts"
 import {
   Classic,
   ClassicVault,
@@ -93,6 +93,11 @@ export function getClassicBoost(boostAddress: Bytes): ClassicBoost {
 
 export function isClassicRewardPool(rewardPoolAddress: Bytes): boolean {
   return ClassicRewardPool.load(rewardPoolAddress) != null
+}
+
+export function removeClassicRewardPool(rewardPoolAddress: Bytes): void {
+  const id = rewardPoolAddress
+  store.remove("ClassicRewardPool", id.toHexString())
 }
 
 export function getClassicRewardPool(rewardPoolAddress: Bytes): ClassicRewardPool {
