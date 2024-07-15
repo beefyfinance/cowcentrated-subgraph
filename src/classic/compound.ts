@@ -35,8 +35,10 @@ function _handleClassicStrategyHarvest(event: ethereum.Event, compoundedAmount: 
   harvest.underlyingAmount = classicData.underlyingAmount
   harvest.compoundedAmount = compoundedAmount
   harvest.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
+  harvest.rewardPoolsTotalSupply = classicData.rewardPoolsTotalSupply
   harvest.underlyingToNativePrice = classicData.underlyingToNativePrice
   harvest.boostRewardToNativePrices = classicData.boostRewardToNativePrices
+  harvest.rewardToNativePrices = classicData.rewardToNativePrices
   harvest.nativeToUSDPrice = classicData.nativeToUSDPrice
   harvest.save()
 }

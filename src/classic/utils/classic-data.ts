@@ -22,11 +22,18 @@ import { getToken } from "../../common/entity/token"
 export function fetchClassicData(classic: Classic): ClassicData {
   const vaultAddress = classic.vault
   const boostRewardTokenAddresses = classic.boostRewardTokensOrder
+  const rewardTokenAddresses = classic.rewardTokensOrder
+  const rewardPoolTokenAddresses = classic.rewardPoolTokensOrder
 
   const calls = [
     new Multicall3Params(vaultAddress, "totalSupply()", "uint256"),
     new Multicall3Params(vaultAddress, "balance()", "uint256"),
   ]
+
+  for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
+    const rewardPoolTokenAddress = Address.fromBytes(rewardPoolTokenAddresses[i])
+    calls.push(new Multicall3Params(rewardPoolTokenAddress, "totalSupply()", "uint256"))
+  }
 
   if (PRICE_ORACLE_TYPE == "chainlink") {
     calls.push(
@@ -52,6 +59,9 @@ export function fetchClassicData(classic: Classic): ClassicData {
   for (let i = 0; i < boostRewardTokenAddresses.length; i++) {
     tokensToRefresh.push(Address.fromBytes(boostRewardTokenAddresses[i]))
   }
+  for (let i = 0; i < rewardTokenAddresses.length; i++) {
+    tokensToRefresh.push(Address.fromBytes(rewardTokenAddresses[i]))
+  }
   for (let i = 0; i < tokensToRefresh.length; i++) {
     calls.push(
       new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
@@ -73,11 +83,28 @@ export function fetchClassicData(classic: Classic): ClassicData {
     )
   }
 
+  for (let i = 0; i < rewardTokenAddresses.length; i++) {
+    const rewardTokenAddress = Address.fromBytes(rewardTokenAddresses[i])
+    const rewardToken = getToken(rewardTokenAddress)
+    const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, rewardToken.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
+    calls.push(
+      new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
+        ethereum.Value.fromAddress(rewardTokenAddress),
+        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+        ethereum.Value.fromUnsignedBigInt(amountIn),
+      ]),
+    )
+  }
+
   const results = multicall(calls)
 
   let idx = 0
   const vaultTotalSupplyRes = results[idx++]
   const underlyingTokenBalanceRes = results[idx++]
+  const rewardPoolsTotalSupplyRes = new Array<MulticallResult>()
+  for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
+    rewardPoolsTotalSupplyRes.push(results[idx++])
+  }
   const priceFeedRes = results[idx++]
   for (let i = 0; i < tokensToRefresh.length; i++) {
     idx++
@@ -86,6 +113,11 @@ export function fetchClassicData(classic: Classic): ClassicData {
   for (let i = 0; i < boostRewardTokenAddresses.length; i++) {
     boostRewardTokenOutputAmountsRes.push(results[idx++])
   }
+  const rewardTokenOutputAmountsRes = new Array<MulticallResult>()
+  for (let i = 0; i < rewardTokenAddresses.length; i++) {
+    rewardTokenOutputAmountsRes.push(results[idx++])
+  }
+
 
   let vaultSharesTotalSupply = ZERO_BI
   if (!vaultTotalSupplyRes.reverted) {
@@ -157,11 +189,39 @@ export function fetchClassicData(classic: Classic): ClassicData {
     }
   }
 
+  // only some clms have a reward pool token
+  let rewardPoolsTotalSupply = new Array<BigInt>()
+  for (let i = 0; i < rewardPoolsTotalSupplyRes.length; i++) {
+    const totalSupplyRes = rewardPoolsTotalSupplyRes[i]
+    if (!totalSupplyRes.reverted) {
+      rewardPoolsTotalSupply.push(totalSupplyRes.value.toBigInt())
+    } else {
+      rewardPoolsTotalSupply.push(ZERO_BI)
+      log.error("Failed to fetch rewardPoolsTotalSupply for Classic {}", [classic.id.toHexString()])
+    }
+  }
+
+
+  // only some strategies have this
+  let rewardToNativePrices = new Array<BigInt>()
+  for (let i = 0; i < rewardTokenOutputAmountsRes.length; i++) {
+    const amountOutRes = rewardTokenOutputAmountsRes[i]
+    if (!amountOutRes.reverted) {
+      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+      rewardToNativePrices.push(amountOut)
+    } else {
+      rewardToNativePrices.push(ZERO_BI)
+      log.error("Failed to fetch rewardToNativePrices for Classic {}", [classic.id.toHexString()])
+    }
+  }
+
   return new ClassicData(
     vaultSharesTotalSupply,
+    rewardPoolsTotalSupply,
     underlyingAmount,
     underlyingToNativePrice,
     boostRewardToNativePrices,
+    rewardToNativePrices,
     nativeToUSDPrice,
   )
 }
@@ -169,9 +229,11 @@ export function fetchClassicData(classic: Classic): ClassicData {
 class ClassicData {
   constructor(
     public vaultSharesTotalSupply: BigInt,
+    public rewardPoolsTotalSupply: Array<BigInt>,
     public underlyingAmount: BigInt,
     public underlyingToNativePrice: BigInt,
-    public boostRewardToNativePrices: BigInt[],
+    public boostRewardToNativePrices: Array<BigInt>,
+    public rewardToNativePrices: Array<BigInt>,
     public nativeToUSDPrice: BigInt,
   ) {}
 }

@@ -15,7 +15,7 @@ import {
   WNATIVE_DECIMALS,
 } from "../../config"
 import { Multicall3Params, MulticallResult, multicall } from "../../common/utils/multicall"
-import { getToken, isNullToken } from "../../common/entity/token"
+import { getToken } from "../../common/entity/token"
 import { CLM_SNAPSHOT_PERIODS } from "./snapshot"
 import { getClmSnapshot } from "../entity/clm"
 
