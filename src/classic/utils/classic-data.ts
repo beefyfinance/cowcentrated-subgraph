@@ -118,7 +118,6 @@ export function fetchClassicData(classic: Classic): ClassicData {
     rewardTokenOutputAmountsRes.push(results[idx++])
   }
 
-
   let vaultSharesTotalSupply = ZERO_BI
   if (!vaultTotalSupplyRes.reverted) {
     vaultSharesTotalSupply = vaultTotalSupplyRes.value.toBigInt()
@@ -200,7 +199,6 @@ export function fetchClassicData(classic: Classic): ClassicData {
       log.error("Failed to fetch rewardPoolsTotalSupply for Classic {}", [classic.id.toHexString()])
     }
   }
-
 
   // only some strategies have this
   let rewardToNativePrices = new Array<BigInt>()
