@@ -1,5 +1,5 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts"
-import { ClmStrategy, ClmManager, ClmSnapshot, CLM } from "../../../generated/schema"
+import { ClmRewardPool, ClmStrategy, ClmManager, ClmSnapshot, CLM } from "../../../generated/schema"
 import { ADDRESS_ZERO } from "../../common/utils/address"
 import { ZERO_BI } from "../../common/utils/decimal"
 import { getIntervalFromTimestamp } from "../../common/utils/time"
@@ -10,10 +10,6 @@ import { PRODUCT_LIFECYCLE_INITIALIZING } from "../../common/entity/lifecycle"
 
 export function isClmInitialized(clm: CLM): boolean {
   return clm.lifecycle != PRODUCT_LIFECYCLE_INITIALIZING
-}
-
-export function isCLMManager(managerAddress: Bytes): boolean {
-  return CLM.load(managerAddress) != null
 }
 
 export function getCLM(managerAddress: Bytes): CLM {
@@ -27,17 +23,23 @@ export function getCLM(managerAddress: Bytes): CLM {
     clm.lifecycle = PRODUCT_LIFECYCLE_INITIALIZING
 
     clm.managerToken = managerAddress
+    clm.rewardPoolTokens = []
+    clm.rewardPoolTokensOrder = []
 
     clm.underlyingToken0 = ADDRESS_ZERO
     clm.underlyingToken1 = ADDRESS_ZERO
     clm.outputTokens = []
     clm.outputTokensOrder = []
+    clm.rewardTokens = []
+    clm.rewardTokensOrder = []
 
     clm.managerTotalSupply = ZERO_BI
+    clm.rewardPoolsTotalSupply = []
 
     clm.token0ToNativePrice = ZERO_BI
     clm.token1ToNativePrice = ZERO_BI
     clm.outputToNativePrices = []
+    clm.rewardToNativePrices = []
     clm.nativeToUSDPrice = ZERO_BI
 
     clm.priceOfToken0InToken1 = ZERO_BI
@@ -80,6 +82,22 @@ export function getClmStrategy(strategyAddress: Bytes): ClmStrategy {
   return strategy
 }
 
+export function isClmRewardPool(rewardPoolAddress: Bytes): boolean {
+  return ClmRewardPool.load(rewardPoolAddress) != null
+}
+
+export function getClmRewardPool(rewardPoolAddress: Bytes): ClmRewardPool {
+  let rewardPool = ClmRewardPool.load(rewardPoolAddress)
+  if (!rewardPool) {
+    rewardPool = new ClmRewardPool(rewardPoolAddress)
+    rewardPool.clm = ADDRESS_ZERO
+    rewardPool.manager = ADDRESS_ZERO
+    rewardPool.createdWith = ADDRESS_ZERO
+    rewardPool.isInitialized = false
+  }
+  return rewardPool
+}
+
 export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): ClmSnapshot {
   const interval = getIntervalFromTimestamp(timestamp, period)
   const snapshotId = clm.id.concat(getSnapshotIdSuffix(period, interval))
@@ -93,10 +111,12 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
     snapshot.roundedTimestamp = interval
 
     snapshot.managerTotalSupply = ZERO_BI
+    snapshot.rewardPoolsTotalSupply = []
 
     snapshot.token0ToNativePrice = ZERO_BI
     snapshot.token1ToNativePrice = ZERO_BI
     snapshot.outputToNativePrices = []
+    snapshot.rewardToNativePrices = []
     snapshot.nativeToUSDPrice = ZERO_BI
 
     snapshot.priceOfToken0InToken1 = ZERO_BI
@@ -113,9 +133,11 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
     const previousSnapshot = ClmSnapshot.load(previousSnapshotId)
     if (previousSnapshot) {
       snapshot.managerTotalSupply = previousSnapshot.managerTotalSupply
+      snapshot.rewardPoolsTotalSupply = previousSnapshot.rewardPoolsTotalSupply
       snapshot.token0ToNativePrice = previousSnapshot.token0ToNativePrice
       snapshot.token1ToNativePrice = previousSnapshot.token1ToNativePrice
       snapshot.outputToNativePrices = previousSnapshot.outputToNativePrices
+      snapshot.rewardToNativePrices = previousSnapshot.rewardToNativePrices
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
       snapshot.priceOfToken0InToken1 = previousSnapshot.priceOfToken0InToken1
       snapshot.priceRangeMin1 = previousSnapshot.priceRangeMin1

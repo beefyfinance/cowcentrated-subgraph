@@ -16,9 +16,8 @@ import {
 import { Multicall3Params, MulticallResult, multicall } from "../../common/utils/multicall"
 import { CLASSIC_SNAPSHOT_PERIODS } from "./snapshot"
 import { getClassicSnapshot } from "../entity/classic"
-import { getCLM, isClmManager } from "../../clm/entity/clm"
+import { getCLM, getClmRewardPool, isClmManager, isClmRewardPool } from "../../clm/entity/clm"
 import { getToken } from "../../common/entity/token"
-import { getRewardPool, isRewardPool } from "../../reward-pool/entity/reward-pool"
 
 export function fetchClassicData(classic: Classic): ClassicData {
   const vaultAddress = classic.vault
@@ -127,17 +126,9 @@ export function fetchClassicData(classic: Classic): ClassicData {
 
   let underlyingToNativePrice = ZERO_BI
   let clm: CLM | null = null
-  if (isRewardPool(classic.underlyingToken)) {
-    const rewardPool = getRewardPool(classic.underlyingToken)
-    const rpClm = rewardPool.clm
-    if (!rpClm) {
-      log.error(
-        "Reward Pool {} does not have a CLM when fetching data for a vault clearly on top of a reward pool. Check RP init function and set the correct address in the clm field",
-        [rewardPool.id.toHexString()],
-      )
-    } else {
-      clm = getCLM(rpClm)
-    }
+  if (isClmRewardPool(classic.underlyingToken)) {
+    const rewardPool = getClmRewardPool(classic.underlyingToken)
+    clm = getCLM(rewardPool.clm)
   }
 
   if (isClmManager(classic.underlyingToken)) {
