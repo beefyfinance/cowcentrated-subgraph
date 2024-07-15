@@ -249,13 +249,13 @@ templates:
       abis: *abis
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleRewardPoolTransfer
+          handler: handleClmRewardPoolTransfer
         - event: RewardPaid(indexed address,indexed address,uint256)
-          handler: handleRewardPoolRewardPaid
+          handler: handleClmRewardPoolRewardPaid
         - event: AddReward(address)
-          handler: handleRewardPoolAddReward
+          handler: handleClmRewardPoolAddReward
         - event: RemoveReward(address,address)
-          handler: handleRewardPoolRemoveReward
+          handler: handleClmRewardPoolRemoveReward
 
   - name: ClassicRewardPool
     kind: ethereum/contract
@@ -271,13 +271,13 @@ templates:
       abis: *abis
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleRewardPoolTransfer
+          handler: handleClassicRewardPoolTransfer
         - event: RewardPaid(indexed address,indexed address,uint256)
-          handler: handleRewardPoolRewardPaid
+          handler: handleClassicRewardPoolRewardPaid
         - event: AddReward(address)
-          handler: handleRewardPoolAddReward
+          handler: handleClassicRewardPoolAddReward
         - event: RemoveReward(address,address)
-          handler: handleRewardPoolRemoveReward
+          handler: handleClassicRewardPoolRemoveReward
 
 
 

@@ -116,79 +116,102 @@ export function handleRewardPoolInitialized(event: RewardPoolInitialized): void 
     log.error("handleRewardPoolInitialized: Staked token address {} is not a CLM or Classic vault", [
       stakedTokenAddress.toHexString(),
     ])
-
+    removeClmRewardPool(rewardPoolAddress)
+    removeClassicRewardPool(rewardPoolAddress)
     return
   }
 }
 
-export function handleRewardPoolAddReward(event: RewardPoolAddRewardEvent): void {
+export function handleClassicRewardPoolAddReward(event: RewardPoolAddRewardEvent): void {
   const rewardPoolAddress = event.address
-
-  if (isClmRewardPool(rewardPoolAddress)) {
-    const rewardPool = getClmRewardPool(rewardPoolAddress)
-    const clm = getCLM(rewardPool.clm)
-
-    const rewardTokens = clm.rewardTokens
-    const rewardTokensOrder = clm.rewardTokensOrder
-    rewardTokens.push(event.params.reward)
-    rewardTokensOrder.push(event.params.reward)
-    clm.rewardTokens = rewardTokens
-    clm.rewardTokensOrder = rewardTokensOrder
-    clm.save()
-  } else if (isClassicRewardPool(rewardPoolAddress)) {
-    const rewardPool = getClassicRewardPool(rewardPoolAddress)
-    const classic = getClassic(rewardPool.classic)
-
-    const rewardTokens = classic.rewardTokens
-    const rewardTokensOrder = classic.rewardTokensOrder
-    rewardTokens.push(event.params.reward)
-    rewardTokensOrder.push(event.params.reward)
-    classic.rewardTokens = rewardTokens
-    classic.rewardTokensOrder = rewardTokensOrder
-    classic.save()
-  } else {
-    log.error("handleRewardPoolAddReward: Reward pool address {} is not a CLM or Classic reward pool", [
+  if (!isClassicRewardPool(rewardPoolAddress)) {
+    log.error("handleClassicRewardPoolAddReward: Reward pool address {} is not a Classic reward pool", [
       rewardPoolAddress.toHexString(),
     ])
+    return
   }
+  const rewardPool = getClassicRewardPool(rewardPoolAddress)
+  const classic = getClassic(rewardPool.classic)
+
+  const rewardTokens = classic.rewardTokens
+  const rewardTokensOrder = classic.rewardTokensOrder
+  rewardTokens.push(event.params.reward)
+  rewardTokensOrder.push(event.params.reward)
+  classic.rewardTokens = rewardTokens
+  classic.rewardTokensOrder = rewardTokensOrder
+  classic.save()
 }
 
-export function handleRewardPoolRemoveReward(event: RewardPoolRemoveRewardEvent): void {
+export function handleClmRewardPoolAddReward(event: RewardPoolAddRewardEvent): void {
   const rewardPoolAddress = event.address
 
-  if (isClmRewardPool(rewardPoolAddress)) {
-    const rewardPool = getClmRewardPool(rewardPoolAddress)
-    const clm = getCLM(rewardPool.clm)
-    const rewardTokenAddresses = clm.rewardTokensOrder
-    const tokens = new Array<Bytes>()
-    for (let i = 0; i < rewardTokenAddresses.length; i++) {
-      if (rewardTokenAddresses[i].equals(event.params.reward)) {
-        tokens.push(getNullToken().id)
-      } else {
-        tokens.push(rewardTokenAddresses[i])
-      }
-    }
-    clm.rewardTokens = tokens
-    clm.rewardTokensOrder = tokens
-    clm.save()
-  } else if (isClassicRewardPool(rewardPoolAddress)) {
-    const rewardPool = getClassicRewardPool(rewardPoolAddress)
-    const classic = getClassic(rewardPool.classic)
-    const rewardTokenAddresses = classic.rewardTokensOrder
-    const tokens = new Array<Bytes>()
-    for (let i = 0; i < rewardTokenAddresses.length; i++) {
-      if (rewardTokenAddresses[i].equals(event.params.reward)) {
-        tokens.push(getNullToken().id)
-      } else {
-        tokens.push(rewardTokenAddresses[i])
-      }
-    }
-    classic.rewardTokens = tokens
-    classic.rewardTokensOrder = tokens
-    classic.save()
-  } else {
-    log.error("handleRewardPoolRemoveReward: Reward pool address {} is not a CLM or Classic reward pool", [
+  if (!isClmRewardPool(rewardPoolAddress)) {
+    log.error("handleClmRewardPoolAddReward: Reward pool address {} is not a CLM reward pool", [
       rewardPoolAddress.toHexString(),
     ])
+    return
   }
+
+  const rewardPool = getClmRewardPool(rewardPoolAddress)
+  const clm = getCLM(rewardPool.clm)
+
+  const rewardTokens = clm.rewardTokens
+  const rewardTokensOrder = clm.rewardTokensOrder
+  rewardTokens.push(event.params.reward)
+  rewardTokensOrder.push(event.params.reward)
+  clm.rewardTokens = rewardTokens
+  clm.rewardTokensOrder = rewardTokensOrder
+  clm.save()
+}
+
+export function handleClassicRewardPoolRemoveReward(event: RewardPoolRemoveRewardEvent): void {
+  const rewardPoolAddress = event.address
+
+  if (!isClassicRewardPool(rewardPoolAddress)) {
+    log.error("handleClassicRewardPoolRemoveReward: Reward pool address {} is not a Classic reward pool", [
+      rewardPoolAddress.toHexString(),
+    ])
+    return
+  }
+
+  const rewardPool = getClassicRewardPool(rewardPoolAddress)
+  const classic = getClassic(rewardPool.classic)
+  const rewardTokenAddresses = classic.rewardTokensOrder
+  const tokens = new Array<Bytes>()
+  for (let i = 0; i < rewardTokenAddresses.length; i++) {
+    if (rewardTokenAddresses[i].equals(event.params.reward)) {
+      tokens.push(getNullToken().id)
+    } else {
+      tokens.push(rewardTokenAddresses[i])
+    }
+  }
+  classic.rewardTokens = tokens
+  classic.rewardTokensOrder = tokens
+  classic.save()
+}
+
+export function handleClmRewardPoolRemoveReward(event: RewardPoolRemoveRewardEvent): void {
+  const rewardPoolAddress = event.address
+
+  if (!isClmRewardPool(rewardPoolAddress)) {
+    log.error("handleClmRewardPoolRemoveReward: Reward pool address {} is not a CLM reward pool", [
+      rewardPoolAddress.toHexString(),
+    ])
+    return
+  }
+
+  const rewardPool = getClmRewardPool(rewardPoolAddress)
+  const clm = getCLM(rewardPool.clm)
+  const rewardTokenAddresses = clm.rewardTokensOrder
+  const tokens = new Array<Bytes>()
+  for (let i = 0; i < rewardTokenAddresses.length; i++) {
+    if (rewardTokenAddresses[i].equals(event.params.reward)) {
+      tokens.push(getNullToken().id)
+    } else {
+      tokens.push(rewardTokenAddresses[i])
+    }
+  }
+  clm.rewardTokens = tokens
+  clm.rewardTokensOrder = tokens
+  clm.save()
 }

@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
+import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
 import { Transfer as ClassicVaultTransfer } from "../../generated/templates/ClassicVault/ClassicVault"
 import {
   Staked as ClassicBoostStaked,
@@ -31,13 +31,37 @@ export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
   }
 
   const classic = getClassic(event.address)
+  const vaultAddress = classic.vault
+  const rewardPoolAddresses = classic.rewardPoolTokensOrder
+
+  let isRewardPoolFrom = false
+  let isRewardPoolTo = false
+  for (let i = 0; i < rewardPoolAddresses.length; i++) {
+    const rewardPoolAddress = rewardPoolAddresses[i]
+    if (event.params.from.equals(rewardPoolAddress)) {
+      isRewardPoolFrom = true
+    }
+    if (event.params.to.equals(rewardPoolAddress)) {
+      isRewardPoolTo = true
+    }
+  }
 
   // don't store transfers to/from the share token mint address
-  if (!event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.from.equals(BURN_ADDRESS)) {
+  if (
+    !event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) &&
+    !event.params.from.equals(BURN_ADDRESS) &&
+    !event.params.from.equals(vaultAddress) &&
+    !isRewardPoolFrom
+  ) {
     updateUserPosition(classic, event, event.params.from, event.params.value.neg(), ZERO_BI, [], [], [])
   }
 
-  if (!event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) && !event.params.to.equals(BURN_ADDRESS)) {
+  if (
+    !event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) &&
+    !event.params.to.equals(BURN_ADDRESS) &&
+    !event.params.to.equals(vaultAddress) &&
+    !isRewardPoolTo
+  ) {
     updateUserPosition(classic, event, event.params.to, event.params.value, ZERO_BI, [], [], [])
   }
 }
@@ -86,7 +110,7 @@ export function handleClassicBoostRewardPaid(event: ClassicBoostRewardPaid): voi
   updateUserPosition(classic, event, investorAddress, ZERO_BI, ZERO_BI, boostRewardBalancesDelta, [], [])
 }
 
-export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
+export function handleClassicRewardPoolTransfer(event: RewardPoolTransferEvent): void {
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
@@ -147,7 +171,7 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
   }
 }
 
-export function handleRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent): void {
+export function handleClassicRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent): void {
   const rewardPool = getClassicRewardPool(event.address)
   const classic = getClassic(rewardPool.classic)
 

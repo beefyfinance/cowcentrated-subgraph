@@ -61,7 +61,7 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
   }
 }
 
-export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
+export function handleClmRewardPoolTransfer(event: RewardPoolTransferEvent): void {
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
@@ -122,7 +122,7 @@ export function handleRewardPoolTransfer(event: RewardPoolTransferEvent): void {
   }
 }
 
-export function handleRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent): void {
+export function handleClmRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent): void {
   const rewardPool = getClmRewardPool(event.address)
   const clm = getCLM(rewardPool.clm)
 
