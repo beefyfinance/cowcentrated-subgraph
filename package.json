@@ -23,7 +23,8 @@
     "prepare:moonbeam": "./bin/prepare.sh moonbeam",
     "prepare:optimism": "./bin/prepare.sh optimism",
     "prepare:polygon": "./bin/prepare.sh polygon",
-    "prepare:zksync": "./bin/prepare.sh zksync"
+    "prepare:zksync": "./bin/prepare.sh zksync",
+    "prepare:mantle": "./bin/prepare.sh mantle"
   },
   "main": "./bin/index.js",
   "bin": {

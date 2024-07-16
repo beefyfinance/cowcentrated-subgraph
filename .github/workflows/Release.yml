@@ -21,6 +21,7 @@ jobs:
           - "optimism"
           - "polygon"
           - "zksync"
+          - "mantle"
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
