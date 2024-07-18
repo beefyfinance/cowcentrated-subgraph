@@ -21,12 +21,19 @@ import {
   ClassicStrategy as ClassicStrategyTemplate,
   ClassicBoost as ClassicBoostTemplate,
 } from "../../generated/templates"
-import { getClassic, getClassicBoost, getClassicStrategy, getClassicVault } from "./entity/classic"
+import {
+  getClassic,
+  getClassicBoost,
+  getClassicStrategy,
+  getClassicVault,
+  removeClassicAndDependencies,
+} from "./entity/classic"
 import { Classic } from "../../generated/schema"
 import { getTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { PRODUCT_LIFECYCLE_PAUSED, PRODUCT_LIFECYCLE_RUNNING } from "../common/entity/lifecycle"
 import { ADDRESS_ZERO } from "../common/utils/address"
+import { isClmRewardPool } from "../clm/entity/clm"
 
 export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreated): void {
   const address = event.params.proxy
@@ -143,6 +150,12 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
     return
   }
   const underlyingTokenAddress = underlyingTokenAddressRes.value
+
+  if (!isClmRewardPool(underlyingTokenAddress)) {
+    log.error("Underlying token address is not related to clm: {}", [underlyingTokenAddress.toHexString()])
+    removeClassicAndDependencies(classic)
+    return
+  }
 
   const vaultSharesToken = fetchAndSaveTokenData(vaultAddress)
   const underlyingToken = fetchAndSaveTokenData(underlyingTokenAddress)

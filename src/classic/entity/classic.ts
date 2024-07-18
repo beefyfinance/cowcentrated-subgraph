@@ -55,6 +55,14 @@ export function getClassic(vaultAddress: Bytes): Classic {
   return classic
 }
 
+export function removeClassicAndDependencies(classic: Classic): void {
+  removeClassicVault(classic.vault)
+  removeClassicStrategy(classic.strategy)
+
+  const id = classic.id
+  store.remove("Classic", id.toHexString())
+}
+
 export function getClassicVault(vaultAddress: Bytes): ClassicVault {
   let vault = ClassicVault.load(vaultAddress)
   if (!vault) {
@@ -64,6 +72,11 @@ export function getClassicVault(vaultAddress: Bytes): ClassicVault {
     vault.isInitialized = false
   }
   return vault
+}
+
+export function removeClassicVault(vaultAddress: Bytes): void {
+  const id = vaultAddress
+  store.remove("ClassicVault", id.toHexString())
 }
 
 export function getClassicStrategy(strategyAddress: Bytes): ClassicStrategy {
@@ -76,6 +89,11 @@ export function getClassicStrategy(strategyAddress: Bytes): ClassicStrategy {
     strategy.isInitialized = false
   }
   return strategy
+}
+
+export function removeClassicStrategy(strategyAddress: Bytes): void {
+  const id = strategyAddress
+  store.remove("ClassicStrategy", id.toHexString())
 }
 
 export function getClassicBoost(boostAddress: Bytes): ClassicBoost {
