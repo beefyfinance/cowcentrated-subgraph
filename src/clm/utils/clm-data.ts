@@ -161,12 +161,12 @@ export function fetchCLMData(clm: CLM): CLMData {
     log.error("Failed to fetch totalSupply for CLM {}", [clm.id.toHexString()])
   }
 
-  let token0Balance = ZERO_BI
-  let token1Balance = ZERO_BI
+  let totalUnderlyingAmount0 = ZERO_BI
+  let totalUnderlyingAmount1 = ZERO_BI
   if (!balanceRes.reverted) {
     const balances = balanceRes.value.toTuple()
-    token0Balance = balances[0].toBigInt()
-    token1Balance = balances[1].toBigInt()
+    totalUnderlyingAmount0 = balances[0].toBigInt()
+    totalUnderlyingAmount1 = balances[1].toBigInt()
   } else {
     log.error("Failed to fetch balance for CLM {}", [clm.id.toHexString()])
   }
@@ -289,8 +289,8 @@ export function fetchCLMData(clm: CLM): CLMData {
   return new CLMData(
     managerTotalSupply,
     rewardPoolsTotalSupply,
-    token0Balance,
-    token1Balance,
+    totalUnderlyingAmount0,
+    totalUnderlyingAmount1,
 
     token0PositionMainBalance,
     token1PositionMainBalance,
@@ -313,8 +313,8 @@ class CLMData {
   constructor(
     public managerTotalSupply: BigInt,
     public rewardPoolsTotalSupply: Array<BigInt>,
-    public token0Balance: BigInt,
-    public token1Balance: BigInt,
+    public totalUnderlyingAmount0: BigInt,
+    public totalUnderlyingAmount1: BigInt,
 
     public token0PositionMainBalance: BigInt,
     public token1PositionMainBalance: BigInt,
@@ -345,6 +345,8 @@ export function updateCLMDataAndSnapshots(clm: CLM, clmData: CLMData, nowTimesta
   clm.priceOfToken0InToken1 = clmData.priceOfToken0InToken1
   clm.priceRangeMin1 = clmData.priceRangeMin1
   clm.priceRangeMax1 = clmData.priceRangeMax1
+  clm.totalUnderlyingAmount0 = clmData.totalUnderlyingAmount0
+  clm.totalUnderlyingAmount1 = clmData.totalUnderlyingAmount1
   clm.underlyingMainAmount0 = clmData.token0PositionMainBalance
   clm.underlyingMainAmount1 = clmData.token1PositionMainBalance
   clm.underlyingAltAmount0 = clmData.token0PositionAltBalance
@@ -370,6 +372,8 @@ export function updateCLMDataAndSnapshots(clm: CLM, clmData: CLMData, nowTimesta
     snapshot.priceOfToken0InToken1 = clm.priceOfToken0InToken1
     snapshot.priceRangeMin1 = clm.priceRangeMin1
     snapshot.priceRangeMax1 = clm.priceRangeMax1
+    snapshot.totalUnderlyingAmount0 = clm.totalUnderlyingAmount0
+    snapshot.totalUnderlyingAmount1 = clm.totalUnderlyingAmount1
     snapshot.underlyingMainAmount0 = clm.underlyingMainAmount0
     snapshot.underlyingMainAmount1 = clm.underlyingMainAmount1
     snapshot.underlyingAltAmount0 = clm.underlyingAltAmount0

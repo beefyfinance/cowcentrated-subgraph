@@ -62,8 +62,8 @@ function handleClmStrategyHarvest(
   harvest.createdWith = tx.id
   harvest.logIndex = event.logIndex
   harvest.timestamp = event.block.timestamp
-  harvest.underlyingAmount0 = clmData.token0Balance
-  harvest.underlyingAmount1 = clmData.token1Balance
+  harvest.underlyingAmount0 = clmData.totalUnderlyingAmount0
+  harvest.underlyingAmount1 = clmData.totalUnderlyingAmount1
   harvest.compoundedAmount0 = compoundedAmount0
   harvest.compoundedAmount1 = compoundedAmount1
   harvest.collectedOutputAmounts = collectedOutputAmounts

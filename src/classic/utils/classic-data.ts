@@ -11,6 +11,7 @@ import {
   PRICE_STORE_DECIMALS_USD,
   PYTH_NATIVE_PRICE_ID,
   PYTH_PRICE_FEED_ADDRESS,
+  WNATIVE_DECIMALS,
   WNATIVE_TOKEN_ADDRESS,
 } from "../../config"
 import { Multicall3Params, MulticallResult, multicall } from "../../common/utils/multicall"
@@ -167,8 +168,18 @@ export function fetchClassicData(classic: Classic): ClassicData {
   }
 
   if (clm) {
-    const totalNativeAmount0 = clm.underlyingMainAmount0.plus(clm.underlyingAltAmount0).times(clm.token0ToNativePrice)
-    const totalNativeAmount1 = clm.underlyingMainAmount1.plus(clm.underlyingAltAmount1).times(clm.token1ToNativePrice)
+    const token0 = getToken(clm.underlyingToken0)
+    const token1 = getToken(clm.underlyingToken1)
+    const totalNativeAmount0 = changeValueEncoding(
+      clm.totalUnderlyingAmount0.times(clm.token0ToNativePrice),
+      token0.decimals.plus(WNATIVE_DECIMALS),
+      WNATIVE_DECIMALS,
+    )
+    const totalNativeAmount1 = changeValueEncoding(
+      clm.totalUnderlyingAmount1.times(clm.token1ToNativePrice),
+      token1.decimals.plus(WNATIVE_DECIMALS),
+      WNATIVE_DECIMALS,
+    )
     const totalNativeAmountInClm = totalNativeAmount0.plus(totalNativeAmount1)
     // assumption: 1 rewardPool token === 1 manager token
     underlyingToNativePrice = clm.managerTotalSupply.equals(ZERO_BI)

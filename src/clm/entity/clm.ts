@@ -50,6 +50,9 @@ export function getCLM(managerAddress: Bytes): CLM {
     clm.priceRangeMin1 = ZERO_BI
     clm.priceRangeMax1 = ZERO_BI
 
+    clm.totalUnderlyingAmount0 = ZERO_BI
+    clm.totalUnderlyingAmount1 = ZERO_BI
+
     clm.underlyingMainAmount0 = ZERO_BI
     clm.underlyingMainAmount1 = ZERO_BI
     clm.underlyingAltAmount0 = ZERO_BI
@@ -132,6 +135,9 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
     snapshot.priceRangeMin1 = ZERO_BI
     snapshot.priceRangeMax1 = ZERO_BI
 
+    snapshot.totalUnderlyingAmount0 = ZERO_BI
+    snapshot.totalUnderlyingAmount1 = ZERO_BI
+
     snapshot.underlyingMainAmount0 = ZERO_BI
     snapshot.underlyingMainAmount1 = ZERO_BI
     snapshot.underlyingAltAmount0 = ZERO_BI
@@ -151,6 +157,8 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
       snapshot.priceOfToken0InToken1 = previousSnapshot.priceOfToken0InToken1
       snapshot.priceRangeMin1 = previousSnapshot.priceRangeMin1
       snapshot.priceRangeMax1 = previousSnapshot.priceRangeMax1
+      snapshot.totalUnderlyingAmount0 = previousSnapshot.totalUnderlyingAmount0
+      snapshot.totalUnderlyingAmount1 = previousSnapshot.totalUnderlyingAmount1
       snapshot.underlyingMainAmount0 = previousSnapshot.underlyingMainAmount0
       snapshot.underlyingMainAmount1 = previousSnapshot.underlyingMainAmount1
       snapshot.underlyingAltAmount0 = previousSnapshot.underlyingAltAmount0

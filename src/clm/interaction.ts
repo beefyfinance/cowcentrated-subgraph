@@ -243,10 +243,10 @@ function updateUserPosition(
   // set the underlying balances at the time of the transaction
   if (!clmData.managerTotalSupply.equals(ZERO_BI)) {
     interaction.underlyingBalance0 = interaction.underlyingBalance0.plus(
-      clmData.token0Balance.times(position.totalBalance).div(clmData.managerTotalSupply),
+      clmData.totalUnderlyingAmount0.times(position.totalBalance).div(clmData.managerTotalSupply),
     )
     interaction.underlyingBalance1 = interaction.underlyingBalance1.plus(
-      clmData.token1Balance.times(position.totalBalance).div(clmData.managerTotalSupply),
+      clmData.totalUnderlyingAmount1.times(position.totalBalance).div(clmData.managerTotalSupply),
     )
 
     // assumption: 1 rewardPool token === 1 manager token
@@ -256,10 +256,10 @@ function updateUserPosition(
     }
     const positionEquivalentInManagerBalance = managerBalanceDelta.plus(totalRewardPoolBalanceDelta)
     interaction.underlyingBalance0Delta = interaction.underlyingBalance0Delta.plus(
-      clmData.token0Balance.times(positionEquivalentInManagerBalance).div(clmData.managerTotalSupply),
+      clmData.totalUnderlyingAmount0.times(positionEquivalentInManagerBalance).div(clmData.managerTotalSupply),
     )
     interaction.underlyingBalance1Delta = interaction.underlyingBalance1Delta.plus(
-      clmData.token1Balance.times(positionEquivalentInManagerBalance).div(clmData.managerTotalSupply),
+      clmData.totalUnderlyingAmount1.times(positionEquivalentInManagerBalance).div(clmData.managerTotalSupply),
     )
   }
   interaction.token0ToNativePrice = clmData.token0ToNativePrice

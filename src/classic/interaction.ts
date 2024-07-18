@@ -293,6 +293,8 @@ function updateUserPosition(
   interaction.boostBalance = position.boostBalance
   interaction.rewardPoolBalances = position.rewardPoolBalances
   interaction.totalBalance = position.totalBalance
+  interaction.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
+  interaction.vaultUnderlyingAmount = classicData.underlyingAmount
   interaction.vaultBalanceDelta = vaultBalanceDelta
   interaction.boostBalanceDelta = boostBalanceDelta
   interaction.boostRewardBalancesDelta = boostRewardBalancesDelta

@@ -408,6 +408,11 @@ type ClassicPositionInteraction @entity(immutable: true) {
   "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance. This is mostly used for filtering."
   totalBalance: BigInt!
 
+  "The vault total supply of shares at the time of the interaction"
+  vaultSharesTotalSupply: BigInt!
+  "The amount of underlying the vault contains at the time of the interaction"
+  vaultUnderlyingAmount: BigInt!
+
   "Amount of vault shares change in the interaction"
   vaultBalanceDelta: BigInt!
   "Amount of vault shares token change on the boost contract in the interaction"
@@ -503,6 +508,11 @@ type CLM @entity {
   "Price range end this CLM is currently configured to operate in, in token 1"
   priceRangeMax1: BigInt!
 
+  "Total amount of token0 in the CLM. Can be slightly higher than main + alt amounts due to vested tokens."
+  totalUnderlyingAmount0: BigInt!
+  "Total amount of token1 in the CLM. Can be slightly higher than main + alt amounts due to vested tokens."
+  totalUnderlyingAmount1: BigInt!
+
   "Amount of underlying tokens in the CLM assigned to the main position in the first token."
   underlyingMainAmount0: BigInt!
   "Amount of underlying tokens in the CLM assigned to the main position in the second token."
@@ -580,6 +590,11 @@ type ClmSnapshot @entity {
   priceRangeMin1: BigInt!
   "Price range end this CLM is currently configured to operate in, in token 1"
   priceRangeMax1: BigInt!
+
+  "Total amount of token0 in the CLM. Can be slightly higher than main + alt amounts due to vested tokens."
+  totalUnderlyingAmount0: BigInt!
+  "Total amount of token1 in the CLM. Can be slightly higher than main + alt amounts due to vested tokens."
+  totalUnderlyingAmount1: BigInt!
 
   "Amount of underlying tokens in the CLM assigned to the main position in the first token."
   underlyingMainAmount0: BigInt!
