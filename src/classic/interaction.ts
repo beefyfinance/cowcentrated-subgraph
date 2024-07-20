@@ -284,9 +284,9 @@ function updateUserPosition(
     interaction.type = "BOOST_REWARD_CLAIM"
   } else if (isRewardPoolTransfer) {
     const isRewardPoolStake = rewardPoolBalancesDelta.some((delta) => delta.gt(ZERO_BI))
-    interaction.type = isRewardPoolStake ? "REWARD_POOL_STAKE" : "REWARD_POOL_UNSTAKE"
+    interaction.type = isRewardPoolStake ? "CLASSIC_REWARD_POOL_STAKE" : "CLASSIC_REWARD_POOL_UNSTAKE"
   } else if (isRewardClaim) {
-    interaction.type = "REWARD_POOL_CLAIM"
+    interaction.type = "CLASSIC_REWARD_POOL_CLAIM"
   }
 
   interaction.vaultBalance = position.vaultBalance

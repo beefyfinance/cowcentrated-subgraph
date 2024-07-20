@@ -26,10 +26,25 @@ export function fetchClassicData(classic: Classic): ClassicData {
   const rewardTokenAddresses = classic.rewardTokensOrder
   const rewardPoolTokenAddresses = classic.rewardPoolTokensOrder
 
+  let clm: CLM | null = null
+  if (isClmRewardPool(classic.underlyingToken)) {
+    const rewardPool = getClmRewardPool(classic.underlyingToken)
+    clm = getCLM(rewardPool.clm)
+  }
+
+  if (isClmManager(classic.underlyingToken)) {
+    clm = getCLM(classic.underlyingToken)
+  }
+
   const calls = [
     new Multicall3Params(vaultAddress, "totalSupply()", "uint256"),
     new Multicall3Params(vaultAddress, "balance()", "uint256"),
   ]
+
+  if (clm) {
+    calls.push(new Multicall3Params(clm.managerToken, "totalSupply()", "uint256"))
+    calls.push(new Multicall3Params(clm.managerToken, "balances()", "(uint256,uint256)"))
+  }
 
   for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
     const rewardPoolTokenAddress = Address.fromBytes(rewardPoolTokenAddresses[i])
@@ -63,6 +78,11 @@ export function fetchClassicData(classic: Classic): ClassicData {
   for (let i = 0; i < rewardTokenAddresses.length; i++) {
     tokensToRefresh.push(Address.fromBytes(rewardTokenAddresses[i]))
   }
+  if (clm) {
+    tokensToRefresh.push(Address.fromBytes(clm.underlyingToken0))
+    tokensToRefresh.push(Address.fromBytes(clm.underlyingToken1))
+  }
+
   for (let i = 0; i < tokensToRefresh.length; i++) {
     calls.push(
       new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
@@ -97,11 +117,38 @@ export function fetchClassicData(classic: Classic): ClassicData {
     )
   }
 
+  if (clm) {
+    const token0 = getToken(clm.underlyingToken0)
+    const token1 = getToken(clm.underlyingToken1)
+    const amountIn0 = changeValueEncoding(ONE_BI, ZERO_BI, token0.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
+    const amountIn1 = changeValueEncoding(ONE_BI, ZERO_BI, token1.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
+    calls.push(
+      new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
+        ethereum.Value.fromAddress(Address.fromBytes(clm.underlyingToken0)),
+        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+        ethereum.Value.fromUnsignedBigInt(amountIn0),
+      ]),
+    )
+    calls.push(
+      new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
+        ethereum.Value.fromAddress(Address.fromBytes(clm.underlyingToken1)),
+        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+        ethereum.Value.fromUnsignedBigInt(amountIn1),
+      ]),
+    )
+  }
+
   const results = multicall(calls)
 
   let idx = 0
   const vaultTotalSupplyRes = results[idx++]
   const underlyingTokenBalanceRes = results[idx++]
+  let clmManagerTotalSupplyRes: MulticallResult | null = null
+  let clmManagerBalancesRes: MulticallResult | null = null
+  if (clm) {
+    clmManagerTotalSupplyRes = results[idx++]
+    clmManagerBalancesRes = results[idx++]
+  }
   const rewardPoolsTotalSupplyRes = new Array<MulticallResult>()
   for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
     rewardPoolsTotalSupplyRes.push(results[idx++])
@@ -117,6 +164,12 @@ export function fetchClassicData(classic: Classic): ClassicData {
   const rewardTokenOutputAmountsRes = new Array<MulticallResult>()
   for (let i = 0; i < rewardTokenAddresses.length; i++) {
     rewardTokenOutputAmountsRes.push(results[idx++])
+  }
+  let token0ToNativePriceRes: MulticallResult | null = null
+  let token1ToNativePriceRes: MulticallResult | null = null
+  if (clm) {
+    token0ToNativePriceRes = results[idx++]
+    token1ToNativePriceRes = results[idx++]
   }
 
   let vaultSharesTotalSupply = ZERO_BI
@@ -157,34 +210,64 @@ export function fetchClassicData(classic: Classic): ClassicData {
   }
 
   let underlyingToNativePrice = ZERO_BI
-  let clm: CLM | null = null
-  if (isClmRewardPool(classic.underlyingToken)) {
-    const rewardPool = getClmRewardPool(classic.underlyingToken)
-    clm = getCLM(rewardPool.clm)
-  }
-
-  if (isClmManager(classic.underlyingToken)) {
-    clm = getCLM(classic.underlyingToken)
-  }
-
-  if (clm) {
+  if (
+    clm &&
+    clm.managerTotalSupply.notEqual(ZERO_BI) &&
+    clmManagerTotalSupplyRes &&
+    clmManagerBalancesRes &&
+    token0ToNativePriceRes &&
+    token1ToNativePriceRes
+  ) {
     const token0 = getToken(clm.underlyingToken0)
     const token1 = getToken(clm.underlyingToken1)
+
+    let token0ToNativePrice = ZERO_BI
+    if (!token0ToNativePriceRes.reverted) {
+      token0ToNativePrice = token0ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+    } else {
+      log.error("Failed to fetch token0ToNativePrice for Classic {}", [classic.id.toHexString()])
+    }
+
+    let token1ToNativePrice = ZERO_BI
+    if (!token1ToNativePriceRes.reverted) {
+      token1ToNativePrice = token1ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+    } else {
+      log.error("Failed to fetch token1ToNativePrice for Classic {}", [classic.id.toHexString()])
+    }
+
+    let clmManagerTotalSupply = ZERO_BI
+    if (!clmManagerTotalSupplyRes.reverted) {
+      clmManagerTotalSupply = clmManagerTotalSupplyRes.value.toBigInt()
+    } else {
+      log.error("Failed to fetch clmManagerTotalSupply for Classic {}", [classic.id.toHexString()])
+    }
+
+    let clmToken0Balance = ZERO_BI
+    let clmToken1Balance = ZERO_BI
+    if (!clmManagerBalancesRes.reverted) {
+      const clmManagerBalancesTuple = clmManagerBalancesRes.value.toTuple()
+      clmToken0Balance = clmManagerBalancesTuple[0].toBigInt()
+      clmToken1Balance = clmManagerBalancesTuple[1].toBigInt()
+    } else {
+      log.error("Failed to fetch clmManagerBalances for Classic {}", [classic.id.toHexString()])
+    }
+
     const totalNativeAmount0 = changeValueEncoding(
-      clm.totalUnderlyingAmount0.times(clm.token0ToNativePrice),
+      clmToken0Balance.times(token0ToNativePrice),
       token0.decimals.plus(WNATIVE_DECIMALS),
       WNATIVE_DECIMALS,
     )
     const totalNativeAmount1 = changeValueEncoding(
-      clm.totalUnderlyingAmount1.times(clm.token1ToNativePrice),
+      clmToken1Balance.times(token1ToNativePrice),
       token1.decimals.plus(WNATIVE_DECIMALS),
       WNATIVE_DECIMALS,
     )
     const totalNativeAmountInClm = totalNativeAmount0.plus(totalNativeAmount1)
-    // assumption: 1 rewardPool token === 1 manager token
-    underlyingToNativePrice = clm.managerTotalSupply.equals(ZERO_BI)
-      ? ZERO_BI
-      : totalNativeAmountInClm.div(clm.managerTotalSupply)
+    const clmManagerToken = getToken(clm.managerToken)
+
+    underlyingToNativePrice = totalNativeAmountInClm
+      .times(WNATIVE_DECIMALS)
+      .div(changeValueEncoding(clmManagerTotalSupply, clmManagerToken.decimals, WNATIVE_DECIMALS))
   }
 
   let boostRewardToNativePrices: BigInt[] = []

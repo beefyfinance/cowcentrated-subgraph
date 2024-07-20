@@ -370,11 +370,11 @@ enum ClassicPositionInteractionType {
   "The investor claimed their rewards from the vault"
   BOOST_REWARD_CLAIM
   "The investor staked in the reward pool of the CLM and received reward pool shares"
-  REWARD_POOL_STAKE
+  CLASSIC_REWARD_POOL_STAKE
   "The investor unstaked from the reward pool of the CLM and received underlying tokens"
-  REWARD_POOL_UNSTAKE
+  CLASSIC_REWARD_POOL_UNSTAKE
   "The investor claimed their rewards from the reward pool of the CLM"
-  REWARD_POOL_CLAIM
+  CLASSIC_REWARD_POOL_CLAIM
 }
 
 type ClassicPositionInteraction @entity(immutable: true) {
@@ -786,11 +786,11 @@ enum ClmPositionInteractionType {
   "The investor withdrew funds from the CLM"
   MANAGER_WITHDRAW
   "The investor staked in the reward pool of the CLM and received reward pool shares"
-  REWARD_POOL_STAKE
+  CLM_REWARD_POOL_STAKE
   "The investor unstaked from the reward pool of the CLM and received underlying tokens"
-  REWARD_POOL_UNSTAKE
+  CLM_REWARD_POOL_UNSTAKE
   "The investor claimed their rewards from the reward pool of the CLM"
-  REWARD_POOL_CLAIM
+  CLM_REWARD_POOL_CLAIM
 }
 
 type ClmPositionInteraction @entity(immutable: true) {

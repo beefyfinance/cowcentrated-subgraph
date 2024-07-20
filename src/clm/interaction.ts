@@ -223,9 +223,9 @@ function updateUserPosition(
     interaction.type = managerBalanceDelta.gt(ZERO_BI) ? "MANAGER_DEPOSIT" : "MANAGER_WITHDRAW"
   } else if (isRewardPoolTransfer) {
     const isRewardPoolStake = rewardPoolBalancesDelta.some((delta) => delta.gt(ZERO_BI))
-    interaction.type = isRewardPoolStake ? "REWARD_POOL_STAKE" : "REWARD_POOL_UNSTAKE"
+    interaction.type = isRewardPoolStake ? "CLM_REWARD_POOL_STAKE" : "CLM_REWARD_POOL_UNSTAKE"
   } else if (isRewardClaim) {
-    interaction.type = "REWARD_POOL_CLAIM"
+    interaction.type = "CLM_REWARD_POOL_CLAIM"
   }
 
   interaction.managerBalance = position.managerBalance
