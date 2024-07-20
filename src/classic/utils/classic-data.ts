@@ -266,7 +266,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
     const clmManagerToken = getToken(clm.managerToken)
 
     underlyingToNativePrice = totalNativeAmountInClm
-      .times(WNATIVE_DECIMALS)
+      .times(changeValueEncoding(ONE_BI, ZERO_BI, WNATIVE_DECIMALS))
       .div(changeValueEncoding(clmManagerTotalSupply, clmManagerToken.decimals, WNATIVE_DECIMALS))
   }
 
