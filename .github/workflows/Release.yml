@@ -22,6 +22,7 @@ jobs:
           - "polygon"
           - "zksync"
           - "mantle"
+          - "sei"
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
