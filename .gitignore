@@ -10,3 +10,6 @@ subgraph.yaml
 src/config.ts
 
 tests/.latest.json
+
+random.json
+src/random.ts

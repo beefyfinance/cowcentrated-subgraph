@@ -17,3 +17,7 @@ set -e
 
 yarn --silent run mustache config/$CHAIN.json subgraph.template.yaml > subgraph.yaml 
 yarn --silent run mustache config/$CHAIN.json src/config.template.ts > src/config.ts 
+
+RNG=$((1 + $RANDOM % 100000))
+echo '{"random": '$RNG'}' > random.json
+yarn --silent run mustache random.json src/random.template.ts > src/random.ts 
