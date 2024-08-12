@@ -15,6 +15,7 @@ jobs:
           - "arbitrum-beta"
           - "arbitrum"
           - "base"
+          - "bsc"
           - "linea"
           - "manta"
           - "moonbeam"
