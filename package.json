@@ -18,6 +18,7 @@
     "prepare:arbitrum-beta": "./bin/prepare.sh arbitrum-beta",
     "prepare:arbitrum": "./bin/prepare.sh arbitrum",
     "prepare:base": "./bin/prepare.sh base",
+    "prepare:bsc": "./bin/prepare.sh bsc",
     "prepare:linea": "./bin/prepare.sh linea",
     "prepare:manta": "./bin/prepare.sh manta",
     "prepare:moonbeam": "./bin/prepare.sh moonbeam",
