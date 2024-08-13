@@ -34,6 +34,7 @@ import { fetchAndSaveTokenData } from "../common/utils/token"
 import { PRODUCT_LIFECYCLE_PAUSED, PRODUCT_LIFECYCLE_RUNNING } from "../common/entity/lifecycle"
 import { ADDRESS_ZERO } from "../common/utils/address"
 import { isClmManager, isClmRewardPool } from "../clm/entity/clm"
+import { fetchClassicUnderlyingCLM } from "./utils/classic-data"
 
 export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreated): void {
   const address = event.params.proxy
@@ -164,6 +165,16 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
   classic.vaultSharesToken = vaultSharesToken.id
   classic.underlyingToken = underlyingToken.id
   classic.lifecycle = PRODUCT_LIFECYCLE_RUNNING
+  classic.save()
+
+  const clm = fetchClassicUnderlyingCLM(classic)
+  if (clm == null) {
+    log.error("Failed to fetch CLM data for Classic: {}", [classic.id.toHexString()])
+    removeClassicAndDependencies(classic)
+    return
+  }
+  classic.underlyingBreakdownTokens = [clm.underlyingToken0, clm.underlyingToken1]
+  classic.underlyingBreakdownTokensOrder = [clm.underlyingToken0, clm.underlyingToken1]
   classic.save()
 }
 
