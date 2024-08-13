@@ -35,6 +35,7 @@ export function getClassic(vaultAddress: Bytes): Classic {
 
     classic.vaultSharesToken = vaultAddress
     classic.underlyingToken = ADDRESS_ZERO
+    classic.underlyingBreakdownTokens = []
     classic.boostRewardTokens = []
     classic.boostRewardTokensOrder = []
     classic.rewardPoolTokens = []

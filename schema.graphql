@@ -137,7 +137,9 @@ type Classic @entity {
   "The vault's underlying LP token"
   underlyingToken: Token!
   "The vault underlying token breakdown. If that token is composed of multiple tokens, they are listed here."
-  underlyingTokenBreakdown: [Token!]!
+  underlyingBreakdownTokens: [Token!]!
+  "The vault underlying token breakdown addresses. This is the source of truth for other tables breakdown ordering."
+  underlyingBreakdownTokensOrder: [Bytes!]!
 
   "The boost tokens of the vault. Tokens earned by staking in the boost."
   boostRewardTokens: [Token!]!
@@ -152,11 +154,17 @@ type Classic @entity {
 
   "The total supply of the vault shares token in circulation. Express with `sharesToken.decimals` decimals."
   vaultSharesTotalSupply: BigInt!
+  "Latest total supply of the underlying token in the vault. Expressed with `underlyingToken.decimals` decimals."
+  vaultUnderlyingTotalSupply: BigInt!
+  "Latest total supply of the underlying tokens in the vault. Ordered by classic.underlyingBreakdownTokensOrder. Expressed with `underlyingBreakdownTokens[idx].decimals` decimals."
+  vaultUnderlyingBreakdownBalances: [BigInt!]!
   "Total supply of the reward pool token. Express with `clm.rewardTokensOrder[idx].decimals` decimals."
   rewardPoolsTotalSupply: [BigInt!]!
 
   "Latest LP token price in native we have seen. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
+  "Latest underlying token prices in native we have seen. Ordered by classic.underlyingBreakdownTokensOrder. Expressed with 18 decimals."
+  underlyingBreakdownToNativePrices: [BigInt!]!
   "Latest boost token prices in native we have seen. Ordered by classic.boostRewardTokensOrder. Expressed with 18 decimals."
   boostRewardToNativePrices: [BigInt!]!
   "Latest reward token prices in native we have seen. Ordered by classic.rewardTokensOrder. Expressed with 18 decimals."
@@ -208,11 +216,17 @@ type ClassicSnapshot @entity {
 
   "The total supply of the vault shares token in circulation. Express with `sharesToken.decimals` decimals."
   vaultSharesTotalSupply: BigInt!
-  "Total supply of the reward pool token. Express with `clm.rewardTokensOrder[idx].decimals` decimals."
+  "Latest total supply of the underlying token in the vault. Expressed with `underlyingToken.decimals` decimals."
+  vaultUnderlyingTotalSupply: BigInt!
+  "Latest total supply of the underlying tokens in the vault. Ordered by classic.underlyingBreakdownTokensOrder. Expressed with `underlyingBreakdownTokens[idx].decimals` decimals."
+  vaultUnderlyingBreakdownBalances: [BigInt!]!
+  "Total supply of the reward pool token. Ordered by clm.rewardTokensOrder. Express with `clm.rewardTokensOrder[idx].decimals` decimals."
   rewardPoolsTotalSupply: [BigInt!]!
 
   "Latest LP token price in native of this snapshot. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
+  "Latest underlying token prices in native of this snapshot. Ordered by classic.underlyingBreakdownTokensOrder. Expressed with 18 decimals."
+  underlyingBreakdownToNativePrices: [BigInt!]!
   "Latest boost token prices in native of this snapshot. Ordered by classic.boostRewardTokensOrder. Expressed with 18 decimals."
   boostRewardToNativePrices: [BigInt!]!
   "Latest reward token prices in native of this snapshot. Ordered by classic.rewardTokensOrder. Expressed with 18 decimals."
@@ -412,6 +426,10 @@ type ClassicPositionInteraction @entity(immutable: true) {
 
   "The vault total supply of shares at the time of the interaction"
   vaultSharesTotalSupply: BigInt!
+  "The underlying token total supply at the time of the interaction"
+  vaultUnderlyingTotalSupply: BigInt!
+  "The underlying breakdown token balances at the time of the interaction. Ordered by classic.underlyingBreakdownTokensOrder."
+  vaultUnderlyingBreakdownBalances: [BigInt!]!
   "The amount of underlying the vault contains at the time of the interaction"
   vaultUnderlyingAmount: BigInt!
 
@@ -425,14 +443,10 @@ type ClassicPositionInteraction @entity(immutable: true) {
   rewardPoolBalancesDelta: [BigInt!]!
   "Amount of reward tokens change in the interaction. Ordered by clm.rewardTokensOrder."
   rewardBalancesDelta: [BigInt!]!
-  "Approx amount of underlying token change in the interaction"
-  underlyingBalanceDelta: BigInt!
-  "Approx amount of each underlying token change in the interaction. Ordered by clm.underlyingTokenBreakdown."
-  underlyingBreakdownBalancesDelta: [BigInt!]!
 
   "LP token price in native at the time of the interaction. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
-  "Breakdown token prices in native at the time of the interaction. Expressed with 18 decimals. Ordered by clm.underlyingTokenBreakdown."
+  "Breakdown token prices in native at the time of the interaction. Expressed with 18 decimals. Ordered by clm.underlyingBreakdownTokensOrder."
   underlyingBreakdownToNativePrices: [BigInt!]!
   "Boost token prices in native at the time of the interaction. Ordered by classic.boostRewardTokensOrder. Expressed with 18 decimals."
   boostRewardToNativePrices: [BigInt!]!
