@@ -142,28 +142,11 @@ export function fetchClassicData(classic: Classic): ClassicData {
     )
   }
 
-  if (clm) {
-    const token0 = getToken(clm.underlyingToken0)
-    const token1 = getToken(clm.underlyingToken1)
-    const amountIn0 = changeValueEncoding(ONE_BI, ZERO_BI, token0.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
-    const amountIn1 = changeValueEncoding(ONE_BI, ZERO_BI, token1.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
-    calls.push(
-      new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
-        ethereum.Value.fromAddress(Address.fromBytes(clm.underlyingToken0)),
-        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
-        ethereum.Value.fromUnsignedBigInt(amountIn0),
-      ]),
-    )
-    calls.push(
-      new Multicall3Params(BEEFY_SWAPPER_ADDRESS, "getAmountOut(address,address,uint256)", "uint256", [
-        ethereum.Value.fromAddress(Address.fromBytes(clm.underlyingToken1)),
-        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
-        ethereum.Value.fromUnsignedBigInt(amountIn1),
-      ]),
-    )
-  }
+  // -----------------------------------------------------------------
 
   const results = multicall(calls)
+
+  // -----------------------------------------------------------------
 
   let idx = 0
   const vaultTotalSupplyRes = results[idx++]
@@ -195,12 +178,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
     underlyingBreakdownToNativeRes.push(results[idx++])
   }
 
-  let token0ToNativePriceRes: MulticallResult | null = null
-  let token1ToNativePriceRes: MulticallResult | null = null
-  if (clm) {
-    token0ToNativePriceRes = results[idx++]
-    token1ToNativePriceRes = results[idx++]
-  }
+  // -----------------------------------------------------------------
 
   let vaultSharesTotalSupply = ZERO_BI
   if (!vaultTotalSupplyRes.reverted) {
@@ -247,12 +225,12 @@ export function fetchClassicData(classic: Classic): ClassicData {
     clm.managerTotalSupply.notEqual(ZERO_BI) &&
     clmManagerTotalSupplyRes &&
     clmManagerBalancesRes &&
-    token0ToNativePriceRes &&
-    token1ToNativePriceRes
+    underlyingBreakdownToNativeRes.length == 2
   ) {
     const token0 = getToken(clm.underlyingToken0)
     const token1 = getToken(clm.underlyingToken1)
 
+    const token0ToNativePriceRes = underlyingBreakdownToNativeRes[0]
     let token0ToNativePrice = ZERO_BI
     if (!token0ToNativePriceRes.reverted) {
       token0ToNativePrice = token0ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
@@ -260,6 +238,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
       log.error("Failed to fetch token0ToNativePrice for Classic {}", [classic.id.toHexString()])
     }
 
+    const token1ToNativePriceRes = underlyingBreakdownToNativeRes[1]
     let token1ToNativePrice = ZERO_BI
     if (!token1ToNativePriceRes.reverted) {
       token1ToNativePrice = token1ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
