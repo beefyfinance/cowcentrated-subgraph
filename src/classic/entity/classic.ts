@@ -36,6 +36,7 @@ export function getClassic(vaultAddress: Bytes): Classic {
     classic.vaultSharesToken = vaultAddress
     classic.underlyingToken = ADDRESS_ZERO
     classic.underlyingBreakdownTokens = []
+    classic.underlyingBreakdownTokensOrder = []
     classic.boostRewardTokens = []
     classic.boostRewardTokensOrder = []
     classic.rewardPoolTokens = []
@@ -44,9 +45,12 @@ export function getClassic(vaultAddress: Bytes): Classic {
     classic.rewardTokensOrder = []
 
     classic.vaultSharesTotalSupply = ZERO_BI
+    classic.vaultUnderlyingTotalSupply = ZERO_BI
+    classic.vaultUnderlyingBreakdownBalances = []
     classic.rewardPoolsTotalSupply = []
 
     classic.underlyingToNativePrice = ZERO_BI
+    classic.underlyingBreakdownToNativePrices = []
     classic.boostRewardToNativePrices = []
     classic.rewardToNativePrices = []
     classic.nativeToUSDPrice = ZERO_BI
@@ -144,9 +148,12 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
     snapshot.roundedTimestamp = interval
 
     snapshot.vaultSharesTotalSupply = ZERO_BI
+    snapshot.vaultUnderlyingTotalSupply = ZERO_BI
+    snapshot.vaultUnderlyingBreakdownBalances = []
     snapshot.rewardPoolsTotalSupply = []
 
     snapshot.underlyingToNativePrice = ZERO_BI
+    snapshot.underlyingBreakdownToNativePrices = []
     snapshot.boostRewardToNativePrices = []
     snapshot.rewardToNativePrices = []
     snapshot.nativeToUSDPrice = ZERO_BI
@@ -158,7 +165,10 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
     const previousSnapshot = ClassicSnapshot.load(previousSnapshotId)
     if (previousSnapshot) {
       snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
+      snapshot.vaultUnderlyingTotalSupply = previousSnapshot.vaultUnderlyingTotalSupply
+      snapshot.vaultUnderlyingBreakdownBalances = previousSnapshot.vaultUnderlyingBreakdownBalances
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
+      snapshot.underlyingBreakdownToNativePrices = previousSnapshot.underlyingBreakdownToNativePrices
       snapshot.boostRewardToNativePrices = previousSnapshot.boostRewardToNativePrices
       snapshot.rewardToNativePrices = previousSnapshot.rewardToNativePrices
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
