@@ -184,13 +184,13 @@ export function fetchClassicData(classic: Classic): ClassicData {
   if (!vaultTotalSupplyRes.reverted) {
     vaultSharesTotalSupply = vaultTotalSupplyRes.value.toBigInt()
   } else {
-    log.error("Failed to fetch vaultSharesTotalSupply for Classic {}", [classic.id.toString()])
+    log.error("Failed to fetch vaultSharesTotalSupply for Classic {}", [classic.id.toHexString()])
   }
   let underlyingAmount = ZERO_BI
   if (!underlyingTokenBalanceRes.reverted) {
     underlyingAmount = underlyingTokenBalanceRes.value.toBigInt()
   } else {
-    log.error("Failed to fetch underlyingAmount for Classic {}", [classic.id.toString()])
+    log.error("Failed to fetch underlyingAmount for Classic {}", [classic.id.toHexString()])
   }
 
   // and have a native price in USD
@@ -214,7 +214,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
       throw new Error("Unsupported price oracle type")
     }
   } else {
-    log.error("Failed to fetch nativeToUSDPrice for Classic {}", [classic.id.toString()])
+    log.error("Failed to fetch nativeToUSDPrice for Classic {}", [classic.id.toHexString()])
   }
 
   let underlyingToNativePrice = ZERO_BI
