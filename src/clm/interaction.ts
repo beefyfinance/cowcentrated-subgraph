@@ -8,7 +8,7 @@ import { getClmRewardPool, getCLM, isClmInitialized } from "./entity/clm"
 import { getTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
 import { getClmPosition } from "./entity/position"
-import { CLM, ClmPositionInteraction } from "../../generated/schema"
+import { CLM, ClmPositionInteraction, ClmRewardPool } from "../../generated/schema"
 import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
 import { ZERO_BI } from "../common/utils/decimal"
 import { fetchCLMData, updateCLMDataAndSnapshots } from "./utils/clm-data"
@@ -127,12 +127,18 @@ export function handleClmRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent):
   const clm = getCLM(rewardPool.clm)
 
   const rewardTokensAddresses = clm.rewardTokensOrder
-  const rewardBalancesDelta = new Array<BigInt>()
+  const rewardBalancesDelta = new Array<{ claimed: BigInt; rewardPool: ClmRewardPool }>()
   for (let i = 0; i < rewardTokensAddresses.length; i++) {
     if (rewardTokensAddresses[i].equals(event.params.reward)) {
-      rewardBalancesDelta.push(event.params.amount)
+      rewardBalancesDelta.push({
+        claimed: event.params.amount,
+        rewardPool: rewardPool,
+      })
     } else {
-      rewardBalancesDelta.push(ZERO_BI)
+      rewardBalancesDelta.push({
+        claimed: ZERO_BI,
+        rewardPool: rewardPool,
+      })
     }
   }
 
@@ -145,7 +151,7 @@ function updateUserPosition(
   investorAddress: Address,
   managerBalanceDelta: BigInt,
   rewardPoolBalancesDelta: Array<BigInt>,
-  rewardBalancesDelta: Array<BigInt>,
+  rewardBalancesDelta: Array<{ claimed: BigInt; rewardPool: ClmRewardPool }>,
 ): void {
   if (!isClmInitialized(clm)) {
     return
@@ -233,7 +239,8 @@ function updateUserPosition(
   interaction.totalBalance = position.totalBalance
   interaction.managerBalanceDelta = managerBalanceDelta
   interaction.rewardPoolBalancesDelta = rewardPoolBalancesDelta
-  interaction.rewardBalancesDelta = rewardBalancesDelta
+  interaction.rewardBalancesDelta = rewardBalancesDelta.map((delta) => delta.claimed)
+  interaction.claimedRewardPool = rewardBalancesDelta.length > 0 ? rewardBalancesDelta[0].rewardPool.id : null
 
   interaction.underlyingBalance0 = ZERO_BI
   interaction.underlyingBalance1 = ZERO_BI
