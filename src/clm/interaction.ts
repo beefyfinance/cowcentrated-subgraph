@@ -8,7 +8,7 @@ import { getClmRewardPool, getCLM, isClmInitialized } from "./entity/clm"
 import { getTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
 import { getClmPosition } from "./entity/position"
-import { CLM, ClmPositionInteraction } from "../../generated/schema"
+import { CLM, ClmPositionInteraction, ClmRewardPool } from "../../generated/schema"
 import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
 import { ZERO_BI } from "../common/utils/decimal"
 import { fetchCLMData, updateCLMDataAndSnapshots } from "./utils/clm-data"
@@ -48,7 +48,7 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
     !event.params.from.equals(managerAddress) &&
     !isRewardPoolFrom
   ) {
-    updateUserPosition(clm, event, event.params.from, event.params.value.neg(), [], [])
+    updateUserPosition(clm, event, event.params.from, event.params.value.neg(), [], [], null)
   }
 
   if (
@@ -57,7 +57,7 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
     !event.params.to.equals(managerAddress) &&
     !isRewardPoolTo
   ) {
-    updateUserPosition(clm, event, event.params.to, event.params.value, [], [])
+    updateUserPosition(clm, event, event.params.to, event.params.value, [], [], null)
   }
 }
 
@@ -105,7 +105,7 @@ export function handleClmRewardPoolTransfer(event: RewardPoolTransferEvent): voi
     !event.params.to.equals(managerAddress) &&
     !isRewardPoolTo
   ) {
-    updateUserPosition(clm, event, event.params.to, ZERO_BI, rewardPoolBalancesDelta, [])
+    updateUserPosition(clm, event, event.params.to, ZERO_BI, rewardPoolBalancesDelta, [], null)
   }
 
   if (
@@ -118,7 +118,7 @@ export function handleClmRewardPoolTransfer(event: RewardPoolTransferEvent): voi
     for (let i = 0; i < rewardPoolBalancesDelta.length; i++) {
       negRewardPoolBalancesDelta.push(rewardPoolBalancesDelta[i].neg())
     }
-    updateUserPosition(clm, event, event.params.from, ZERO_BI, negRewardPoolBalancesDelta, [])
+    updateUserPosition(clm, event, event.params.from, ZERO_BI, negRewardPoolBalancesDelta, [], null)
   }
 }
 
@@ -136,7 +136,7 @@ export function handleClmRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent):
     }
   }
 
-  updateUserPosition(clm, event, event.params.user, ZERO_BI, [], rewardBalancesDelta)
+  updateUserPosition(clm, event, event.params.user, ZERO_BI, [], rewardBalancesDelta, rewardPool)
 }
 
 function updateUserPosition(
@@ -146,6 +146,7 @@ function updateUserPosition(
   managerBalanceDelta: BigInt,
   rewardPoolBalancesDelta: Array<BigInt>,
   rewardBalancesDelta: Array<BigInt>,
+  claimedRewardPool: ClmRewardPool | null,
 ): void {
   if (!isClmInitialized(clm)) {
     return
@@ -234,6 +235,7 @@ function updateUserPosition(
   interaction.managerBalanceDelta = managerBalanceDelta
   interaction.rewardPoolBalancesDelta = rewardPoolBalancesDelta
   interaction.rewardBalancesDelta = rewardBalancesDelta
+  interaction.claimedRewardPool = claimedRewardPool ? claimedRewardPool.id : null
 
   interaction.underlyingBalance0 = ZERO_BI
   interaction.underlyingBalance1 = ZERO_BI
