@@ -854,7 +854,10 @@ type ClmPositionInteraction @entity(immutable: true) {
   rewardPoolBalancesDelta: [BigInt!]!
   "Amount of reward tokens change in the interaction. Ordered by clm.rewardTokensOrder."
   rewardBalancesDelta: [BigInt!]!
-  "RewardPool from which rewards were claimed."
+  """
+  RewardPool from which rewards were claimed.
+  TODO: this is required because rewardBalancesDelta and clm.rewardTokensOrder contains all reward tokens of all potential rewardpools. Maybe rewardBalancesDelta should be  an array of array of bigint. Or smth else altogether.
+  """
   claimedRewardPool: ClmRewardPool
   "Amount of underlying token 0 change in the interaction"
   underlyingBalance0Delta: BigInt!
