@@ -131,6 +131,10 @@ function handleClmStrategyFees(
   collect.createdWith = tx.id
   collect.logIndex = event.logIndex
   collect.timestamp = event.block.timestamp
+  collect.underlyingMainAmount0 = clmData.token0PositionMainBalance
+  collect.underlyingMainAmount1 = clmData.token1PositionMainBalance
+  collect.underlyingAltAmount0 = clmData.token0PositionAltBalance
+  collect.underlyingAltAmount1 = clmData.token1PositionAltBalance
   collect.underlyingAmount0 = clmData.totalUnderlyingAmount0
   collect.underlyingAmount1 = clmData.totalUnderlyingAmount1
   collect.collectedAmount0 = collectedAmount0
