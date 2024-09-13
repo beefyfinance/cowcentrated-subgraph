@@ -135,6 +135,8 @@ function handleClmStrategyFees(
   collect.underlyingMainAmount1 = clmData.token1PositionMainBalance
   collect.underlyingAltAmount0 = clmData.token0PositionAltBalance
   collect.underlyingAltAmount1 = clmData.token1PositionAltBalance
+  collect.underlyingAmount0 = clmData.totalUnderlyingAmount0
+  collect.underlyingAmount1 = clmData.totalUnderlyingAmount1
   collect.collectedAmount0 = collectedAmount0
   collect.collectedAmount1 = collectedAmount1
   collect.collectedOutputAmounts = collectedOutputAmounts

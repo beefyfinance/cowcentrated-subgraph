@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # config
 valid_chains=($(ls config | sed 's/\.json//g'))

@@ -757,6 +757,10 @@ type ClmManagerCollectionEvent @entity(immutable: true) {
   underlyingAltAmount0: BigInt!
   "Amount of underlying tokens in the CLM assigned to the alt position in the second token."
   underlyingAltAmount1: BigInt!
+  "Underlying balance of the first token after event"
+  underlyingAmount0: BigInt!
+  "Underlying balance of the first token after event"
+  underlyingAmount1: BigInt!
 
   "Amount of collected fees in the first token"
   collectedAmount0: BigInt!
