@@ -149,6 +149,7 @@ function updateUserPosition(
   claimedRewardPool: ClmRewardPool | null,
 ): void {
   if (!isClmInitialized(clm)) {
+    log.warning("CLM {} is not initialized, ignoring updateUserPosition", [clm.id.toHexString()])
     return
   }
 

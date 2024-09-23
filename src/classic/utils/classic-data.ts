@@ -16,7 +16,7 @@ import {
 } from "../../config"
 import { Multicall3Params, MulticallResult, multicall } from "../../common/utils/multicall"
 import { CLASSIC_SNAPSHOT_PERIODS } from "./snapshot"
-import { getClassicSnapshot } from "../entity/classic"
+import { getClassicSnapshot, hasClassicBeenRemoved } from "../entity/classic"
 import { getCLM, getClmRewardPool, isClmManager, isClmRewardPool } from "../../clm/entity/clm"
 import { getToken } from "../../common/entity/token"
 
@@ -367,6 +367,10 @@ export function updateClassicDataAndSnapshots(
   classicData: ClassicData,
   nowTimestamp: BigInt,
 ): Classic {
+  if (hasClassicBeenRemoved(classic)) {
+    log.error("Classic vault {} has been removed, skipping updateClassicDataAndSnapshots", [classic.id.toHexString()])
+    return classic
+  }
   // update classic data
   classic.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
   classic.vaultUnderlyingTotalSupply = classicData.vaultUnderlyingTotalSupply

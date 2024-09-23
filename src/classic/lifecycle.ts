@@ -27,6 +27,7 @@ import {
   getClassicStrategy,
   getClassicVault,
   hasClassicBeenRemoved,
+  isClassicInitialized,
   removeClassicAndDependencies,
 } from "./entity/classic"
 import { Classic } from "../../generated/schema"
@@ -154,7 +155,7 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
 
   const isClmUnderlying = isClmRewardPool(underlyingTokenAddress) || isClmManager(underlyingTokenAddress)
   if (!isClmUnderlying) {
-    log.error("Underlying token address is not related to clm, removing: {}", [underlyingTokenAddress.toHexString()])
+    log.info("Underlying token address is not related to clm, removing: {}", [underlyingTokenAddress.toHexString()])
     removeClassicAndDependencies(classic)
     return
   }
@@ -184,8 +185,12 @@ export function handleClassicStrategyPaused(event: ClassicStrategyPaused): void 
 
   const strategy = getClassicStrategy(strategyAddress)
   let classic = getClassic(strategy.vault)
+  if (!isClassicInitialized(classic)) {
+    log.warning("Classic vault {} is not initialized, ignoring handleClassicStrategyPaused", [classic.id.toHexString()])
+    return
+  }
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring pause", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicStrategyPaused", [classic.id.toHexString()])
     return
   }
 
@@ -199,8 +204,14 @@ export function handleClassicStrategyUnpaused(event: ClassicStrategyUnpaused): v
 
   const strategy = getClassicStrategy(strategyAddress)
   let classic = getClassic(strategy.vault)
+  if (!isClassicInitialized(classic)) {
+    log.warning("Classic vault {} is not initialized, ignoring handleClassicStrategyUnpaused", [
+      classic.id.toHexString(),
+    ])
+    return
+  }
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring unpause", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicStrategyUnpaused", [classic.id.toHexString()])
     return
   }
   classic.lifecycle = PRODUCT_LIFECYCLE_RUNNING
@@ -211,7 +222,9 @@ export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStra
   const vaultAddress = event.address
   const classic = getClassic(vaultAddress)
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring upgrade", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicVaultUpgradeStrategy", [
+      classic.id.toHexString(),
+    ])
     return
   }
 
@@ -222,7 +235,13 @@ export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStra
 
   // create the new strategy entity
   const newStrategy = getClassicStrategy(newStrategyAddress)
-  newStrategy.isInitialized = true // once the vault is upgraded, the strategy is initialized
+  const newStrategyContract = ClassicStrategyContract.bind(newStrategyAddress)
+  let newStrategyInitialized = false
+  const vaultAddressRes = newStrategyContract.try_vault()
+  if (!vaultAddressRes.reverted && vaultAddressRes.value.equals(vaultAddress)) {
+    newStrategyInitialized = true
+  }
+  newStrategy.isInitialized = newStrategyInitialized
   newStrategy.vault = classic.id
   newStrategy.classic = classic.id
   if (newStrategy.createdWith.equals(ADDRESS_ZERO)) {
@@ -243,6 +262,11 @@ export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStra
     oldStrategy.vault = ADDRESS_ZERO
     oldStrategy.classic = ADDRESS_ZERO
     oldStrategy.save()
+  }
+
+  const vault = getClassicVault(vaultAddress)
+  if (!isClassicInitialized(classic) && newStrategy.isInitialized && vault.isInitialized) {
+    fetchInitialClassicDataAndSave(classic)
   }
 }
 
@@ -278,7 +302,7 @@ export function handleClassicBoostInitialized(event: ClassicBoostInitialized): v
 
   const classic = getClassic(stakedTokenAddress)
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring boost", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicBoostInitialized", [classic.id.toHexString()])
     return
   }
 

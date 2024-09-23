@@ -14,11 +14,13 @@ function _handleClassicStrategyHarvest(event: ethereum.Event, compoundedAmount: 
   let strategy = getClassicStrategy(event.address)
   let classic = getClassic(strategy.classic)
   if (!isClassicInitialized(classic)) {
-    log.warning("Classic vault {} is not initialized, ignoring harvest", [classic.id.toHexString()])
+    log.warning("Classic vault {} is not initialized, ignoring _handleClassicStrategyHarvest", [
+      classic.id.toHexString(),
+    ])
     return
   }
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring harvest", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring _handleClassicStrategyHarvest", [classic.id.toHexString()])
     return
   }
 

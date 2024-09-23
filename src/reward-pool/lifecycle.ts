@@ -1,4 +1,4 @@
-import { Bytes, log } from "@graphprotocol/graph-ts"
+import { Address, Bytes, log } from "@graphprotocol/graph-ts"
 import {
   RewardPool as RewardPoolTemplate,
   ClmRewardPool as ClmRewardPoolTemplate,
@@ -134,7 +134,9 @@ export function handleClassicRewardPoolAddReward(event: RewardPoolAddRewardEvent
   const rewardPool = getClassicRewardPool(rewardPoolAddress)
   const classic = getClassic(rewardPool.classic)
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring reward pool add reward", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicRewardPoolAddReward", [
+      classic.id.toHexString(),
+    ])
     return
   }
 
@@ -182,7 +184,9 @@ export function handleClassicRewardPoolRemoveReward(event: RewardPoolRemoveRewar
   const rewardPool = getClassicRewardPool(rewardPoolAddress)
   const classic = getClassic(rewardPool.classic)
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring reward pool remove reward", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicRewardPoolRemoveReward", [
+      classic.id.toHexString(),
+    ])
     return
   }
   const rewardTokenAddresses = classic.rewardTokensOrder

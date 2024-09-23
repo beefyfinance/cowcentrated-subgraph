@@ -37,8 +37,12 @@ export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
   }
 
   const classic = getClassic(event.address)
+  if (!isClassicInitialized(classic)) {
+    log.debug("Classic vault {} is not initialized, ignoring handleClassicVaultTransfer", [classic.id.toHexString()])
+    return
+  }
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring transfer", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicVaultTransfer", [classic.id.toHexString()])
     return
   }
 
@@ -81,8 +85,12 @@ export function handleClassicBoostStaked(event: ClassicBoostStaked): void {
   const boostAddress = event.address
   const boost = getClassicBoost(boostAddress)
   const classic = getClassic(boost.classic)
+  if (!isClassicInitialized(classic)) {
+    log.debug("Classic vault {} is not initialized, ignoring handleClassicBoostStaked", [classic.id.toHexString()])
+    return
+  }
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring boost staked", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicBoostStaked", [classic.id.toHexString()])
     return
   }
 
@@ -96,8 +104,12 @@ export function handleClassicBoostWithdrawn(event: ClassicBoostWithdrawn): void 
   const boostAddress = event.address
   const boost = getClassicBoost(boostAddress)
   const classic = getClassic(boost.classic)
+  if (!isClassicInitialized(classic)) {
+    log.debug("Classic vault {} is not initialized, ignoring handleClassicBoostWithdrawn", [classic.id.toHexString()])
+    return
+  }
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring boost withdrawn", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicBoostWithdrawn", [classic.id.toHexString()])
     return
   }
 
@@ -111,8 +123,12 @@ export function handleClassicBoostRewardPaid(event: ClassicBoostRewardPaid): voi
   const boostAddress = event.address
   const boost = getClassicBoost(boostAddress)
   const classic = getClassic(boost.classic)
+  if (!isClassicInitialized(classic)) {
+    log.debug("Classic vault {} is not initialized, ignoring handleClassicBoostRewardPaid", [classic.id.toHexString()])
+    return
+  }
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring boost reward paid", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicBoostRewardPaid", [classic.id.toHexString()])
     return
   }
 
@@ -146,8 +162,14 @@ export function handleClassicRewardPoolTransfer(event: RewardPoolTransferEvent):
 
   const rewardPool = getClassicRewardPool(event.address)
   const classic = getClassic(rewardPool.classic)
+  if (!isClassicInitialized(classic)) {
+    log.debug("Classic vault {} is not initialized, ignoring handleClassicRewardPoolTransfer", [
+      classic.id.toHexString(),
+    ])
+    return
+  }
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring reward pool transfer", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicRewardPoolTransfer", [classic.id.toHexString()])
     return
   }
   const vaultAddress = classic.vault
@@ -201,8 +223,16 @@ export function handleClassicRewardPoolTransfer(event: RewardPoolTransferEvent):
 export function handleClassicRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent): void {
   const rewardPool = getClassicRewardPool(event.address)
   const classic = getClassic(rewardPool.classic)
+  if (!isClassicInitialized(classic)) {
+    log.debug("Classic vault {} is not initialized, ignoring handleClassicRewardPoolRewardPaid", [
+      classic.id.toHexString(),
+    ])
+    return
+  }
   if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring reward pool reward paid", [classic.id.toHexString()])
+    log.debug("Classic vault {} has been removed, ignoring handleClassicRewardPoolRewardPaid", [
+      classic.id.toHexString(),
+    ])
     return
   }
 
@@ -230,6 +260,11 @@ function updateUserPosition(
   rewardBalancesDelta: Array<BigInt>,
 ): void {
   if (!isClassicInitialized(classic)) {
+    log.error("Classic vault {} is not initialized, ignoring updateUserPosition", [classic.id.toHexString()])
+    return
+  }
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring updateUserPosition", [classic.id.toHexString()])
     return
   }
 
