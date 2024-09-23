@@ -20,7 +20,7 @@ function delete_goldsky {
     VERSION=$2
     DEPLOY_KEY=$3
     echo "deleting $SUBGRAPH to goldsky"
-    goldsky subgraph delete $SUBGRAPH/$VERSION --token $DEPLOY_KEY
+    goldsky subgraph delete $SUBGRAPH/$VERSION --token $DEPLOY_KEY --force
 }
 
 function delete_subgraph {
