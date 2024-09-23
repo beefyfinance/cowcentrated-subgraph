@@ -26,7 +26,8 @@
     "prepare:polygon": "./bin/prepare.sh polygon",
     "prepare:zksync": "./bin/prepare.sh zksync",
     "prepare:mantle": "./bin/prepare.sh mantle",
-    "prepare:sei": "./bin/prepare.sh sei"
+    "prepare:sei": "./bin/prepare.sh sei",
+    "prepare:avax": "./bin/prepare.sh avax"
   },
   "main": "./bin/index.js",
   "bin": {

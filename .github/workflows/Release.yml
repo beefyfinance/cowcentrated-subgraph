@@ -24,6 +24,7 @@ jobs:
           - "zksync"
           - "mantle"
           - "sei"
+          - "avax"
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
