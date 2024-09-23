@@ -26,6 +26,7 @@ import {
   getClassicBoost,
   getClassicStrategy,
   getClassicVault,
+  hasClassicBeenRemoved,
   removeClassicAndDependencies,
 } from "./entity/classic"
 import { Classic } from "../../generated/schema"
@@ -64,7 +65,6 @@ export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreate
     log.debug("`vault()` method does not exist on contract: {}. It's not a strategy", [address.toHexString()])
   } else {
     log.info("Creating Classic Strategy: {}", [address.toHexString()])
-
     const strategy = getClassicStrategy(address)
     strategy.isInitialized = false
     strategy.createdWith = tx.id
@@ -154,7 +154,7 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
 
   const isClmUnderlying = isClmRewardPool(underlyingTokenAddress) || isClmManager(underlyingTokenAddress)
   if (!isClmUnderlying) {
-    log.error("Underlying token address is not related to clm: {}", [underlyingTokenAddress.toHexString()])
+    log.error("Underlying token address is not related to clm, removing: {}", [underlyingTokenAddress.toHexString()])
     removeClassicAndDependencies(classic)
     return
   }
@@ -184,6 +184,11 @@ export function handleClassicStrategyPaused(event: ClassicStrategyPaused): void 
 
   const strategy = getClassicStrategy(strategyAddress)
   let classic = getClassic(strategy.vault)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring pause", [classic.id.toHexString()])
+    return
+  }
+
   classic.lifecycle = PRODUCT_LIFECYCLE_PAUSED
   classic.save()
 }
@@ -194,6 +199,10 @@ export function handleClassicStrategyUnpaused(event: ClassicStrategyUnpaused): v
 
   const strategy = getClassicStrategy(strategyAddress)
   let classic = getClassic(strategy.vault)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring unpause", [classic.id.toHexString()])
+    return
+  }
   classic.lifecycle = PRODUCT_LIFECYCLE_RUNNING
   classic.save()
 }
@@ -201,6 +210,11 @@ export function handleClassicStrategyUnpaused(event: ClassicStrategyUnpaused): v
 export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStrategy): void {
   const vaultAddress = event.address
   const classic = getClassic(vaultAddress)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring upgrade", [classic.id.toHexString()])
+    return
+  }
+
   const newStrategyAddress = event.params.implementation
   const oldStrategyAddress = classic.strategy
   classic.strategy = newStrategyAddress
@@ -211,6 +225,11 @@ export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStra
   newStrategy.isInitialized = true // once the vault is upgraded, the strategy is initialized
   newStrategy.vault = classic.id
   newStrategy.classic = classic.id
+  if (newStrategy.createdWith.equals(ADDRESS_ZERO)) {
+    const tx = getTransaction(event.block, event.transaction)
+    tx.save()
+    newStrategy.createdWith = tx.id
+  }
   newStrategy.save()
 
   // we start watching the new strategy events
@@ -218,11 +237,13 @@ export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStra
 
   // make sure we deprecated the old strategy
   // so events are ignored
-  const oldStrategy = getClassicStrategy(oldStrategyAddress)
-  oldStrategy.isInitialized = false
-  oldStrategy.vault = ADDRESS_ZERO
-  oldStrategy.classic = ADDRESS_ZERO
-  oldStrategy.save()
+  if (!oldStrategyAddress.equals(ADDRESS_ZERO)) {
+    const oldStrategy = getClassicStrategy(oldStrategyAddress)
+    oldStrategy.isInitialized = false
+    oldStrategy.vault = ADDRESS_ZERO
+    oldStrategy.classic = ADDRESS_ZERO
+    oldStrategy.save()
+  }
 }
 
 export function handleClassicBoostCreated(event: ClassicBoostDeployed): void {
@@ -248,13 +269,26 @@ export function handleClassicBoostInitialized(event: ClassicBoostInitialized): v
   const rewardTokenAddress = rewardTokenAddressRes.value
   const rewardToken = fetchAndSaveTokenData(rewardTokenAddress)
 
+  const stakedTokenAddressRes = boostContract.try_stakedToken()
+  if (stakedTokenAddressRes.reverted) {
+    log.error("Failed to fetch staked token address for Classic Boost: {}", [boostAddress.toHexString()])
+    return
+  }
+  const stakedTokenAddress = stakedTokenAddressRes.value
+
+  const classic = getClassic(stakedTokenAddress)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring boost", [classic.id.toHexString()])
+    return
+  }
+
   const boost = getClassicBoost(boostAddress)
   boost.isInitialized = true
   boost.rewardToken = rewardToken.id
+  boost.classic = classic.id
   boost.save()
 
-  const clm = getClassic(boost.classic)
-  const currentRewardTokenAddresses = clm.boostRewardTokensOrder
+  const currentRewardTokenAddresses = classic.boostRewardTokensOrder
   let foundToken = false
   for (let i = 0; i < currentRewardTokenAddresses.length; i++) {
     if (currentRewardTokenAddresses[i].equals(rewardTokenAddress)) {
@@ -264,15 +298,15 @@ export function handleClassicBoostInitialized(event: ClassicBoostInitialized): v
   }
 
   if (!foundToken) {
-    const boostRewardTokens = clm.boostRewardTokens
-    const boostRewardTokensOrder = clm.boostRewardTokensOrder
+    const boostRewardTokens = classic.boostRewardTokens
+    const boostRewardTokensOrder = classic.boostRewardTokensOrder
 
     boostRewardTokens.push(rewardTokenAddress)
     boostRewardTokensOrder.push(rewardTokenAddress)
 
-    clm.boostRewardTokens = boostRewardTokens
-    clm.boostRewardTokensOrder = boostRewardTokensOrder
+    classic.boostRewardTokens = boostRewardTokens
+    classic.boostRewardTokensOrder = boostRewardTokensOrder
 
-    clm.save()
+    classic.save()
   }
 }

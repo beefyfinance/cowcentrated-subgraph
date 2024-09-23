@@ -15,7 +15,13 @@ import { Classic, ClassicPositionInteraction } from "../../generated/schema"
 import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
 import { ZERO_BI } from "../common/utils/decimal"
 import { getEventIdentifier } from "../common/utils/event"
-import { getClassic, getClassicBoost, getClassicRewardPool, isClassicInitialized } from "./entity/classic"
+import {
+  getClassic,
+  getClassicBoost,
+  getClassicRewardPool,
+  hasClassicBeenRemoved,
+  isClassicInitialized,
+} from "./entity/classic"
 import { getClassicPosition } from "./entity/position"
 import { fetchClassicData, updateClassicDataAndSnapshots } from "./utils/classic-data"
 
@@ -31,6 +37,11 @@ export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
   }
 
   const classic = getClassic(event.address)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring transfer", [classic.id.toHexString()])
+    return
+  }
+
   const vaultAddress = classic.vault
   const rewardPoolAddresses = classic.rewardPoolTokensOrder
 
@@ -70,6 +81,10 @@ export function handleClassicBoostStaked(event: ClassicBoostStaked): void {
   const boostAddress = event.address
   const boost = getClassicBoost(boostAddress)
   const classic = getClassic(boost.classic)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring boost staked", [classic.id.toHexString()])
+    return
+  }
 
   const investorAddress = event.params.user
   const amount = event.params.amount
@@ -81,6 +96,10 @@ export function handleClassicBoostWithdrawn(event: ClassicBoostWithdrawn): void 
   const boostAddress = event.address
   const boost = getClassicBoost(boostAddress)
   const classic = getClassic(boost.classic)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring boost withdrawn", [classic.id.toHexString()])
+    return
+  }
 
   const investorAddress = event.params.user
   const amount = event.params.amount
@@ -92,6 +111,10 @@ export function handleClassicBoostRewardPaid(event: ClassicBoostRewardPaid): voi
   const boostAddress = event.address
   const boost = getClassicBoost(boostAddress)
   const classic = getClassic(boost.classic)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring boost reward paid", [classic.id.toHexString()])
+    return
+  }
 
   const investorAddress = event.params.user
   const amount = event.params.reward
@@ -123,6 +146,10 @@ export function handleClassicRewardPoolTransfer(event: RewardPoolTransferEvent):
 
   const rewardPool = getClassicRewardPool(event.address)
   const classic = getClassic(rewardPool.classic)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring reward pool transfer", [classic.id.toHexString()])
+    return
+  }
   const vaultAddress = classic.vault
 
   const rewardPoolAddresses = classic.rewardPoolTokensOrder
@@ -174,6 +201,10 @@ export function handleClassicRewardPoolTransfer(event: RewardPoolTransferEvent):
 export function handleClassicRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent): void {
   const rewardPool = getClassicRewardPool(event.address)
   const classic = getClassic(rewardPool.classic)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring reward pool reward paid", [classic.id.toHexString()])
+    return
+  }
 
   const rewardTokensAddresses = classic.rewardTokensOrder
   const rewardBalancesDelta = new Array<BigInt>()

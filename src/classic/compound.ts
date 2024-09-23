@@ -1,9 +1,9 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts"
+import { BigInt, ethereum, log } from "@graphprotocol/graph-ts"
 import { StratHarvest as HarvestEvent } from "../../generated/templates/ClassicStrategy/ClassicStrategy"
 import { getTransaction } from "../common/entity/transaction"
 import { ClassicHarvestEvent } from "../../generated/schema"
 import { getEventIdentifier } from "../common/utils/event"
-import { getClassic, getClassicStrategy, isClassicInitialized } from "./entity/classic"
+import { getClassic, getClassicStrategy, hasClassicBeenRemoved, isClassicInitialized } from "./entity/classic"
 import { fetchClassicData } from "./utils/classic-data"
 
 export function handleClassicStrategyHarvest(event: HarvestEvent): void {
@@ -14,6 +14,11 @@ function _handleClassicStrategyHarvest(event: ethereum.Event, compoundedAmount: 
   let strategy = getClassicStrategy(event.address)
   let classic = getClassic(strategy.classic)
   if (!isClassicInitialized(classic)) {
+    log.warning("Classic vault {} is not initialized, ignoring harvest", [classic.id.toHexString()])
+    return
+  }
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring harvest", [classic.id.toHexString()])
     return
   }
 

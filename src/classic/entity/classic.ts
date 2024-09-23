@@ -68,6 +68,10 @@ export function removeClassicAndDependencies(classic: Classic): void {
   store.remove("Classic", id.toHexString())
 }
 
+export function hasClassicBeenRemoved(classic: Classic): boolean {
+  return Classic.load(classic.id) == null
+}
+
 export function getClassicVault(vaultAddress: Bytes): ClassicVault {
   let vault = ClassicVault.load(vaultAddress)
   if (!vault) {

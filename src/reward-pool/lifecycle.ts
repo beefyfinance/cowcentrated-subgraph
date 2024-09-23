@@ -18,6 +18,7 @@ import { getCLM, getClmRewardPool, isClmManagerAddress, isClmRewardPool, removeC
 import {
   getClassic,
   getClassicRewardPool,
+  hasClassicBeenRemoved,
   isClassicRewardPool,
   isClassicVaultAddress,
   removeClassicRewardPool,
@@ -132,6 +133,10 @@ export function handleClassicRewardPoolAddReward(event: RewardPoolAddRewardEvent
   }
   const rewardPool = getClassicRewardPool(rewardPoolAddress)
   const classic = getClassic(rewardPool.classic)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring reward pool add reward", [classic.id.toHexString()])
+    return
+  }
 
   const rewardTokens = classic.rewardTokens
   const rewardTokensOrder = classic.rewardTokensOrder
@@ -176,6 +181,10 @@ export function handleClassicRewardPoolRemoveReward(event: RewardPoolRemoveRewar
 
   const rewardPool = getClassicRewardPool(rewardPoolAddress)
   const classic = getClassic(rewardPool.classic)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring reward pool remove reward", [classic.id.toHexString()])
+    return
+  }
   const rewardTokenAddresses = classic.rewardTokensOrder
   const tokens = new Array<Bytes>()
   for (let i = 0; i < rewardTokenAddresses.length; i++) {
