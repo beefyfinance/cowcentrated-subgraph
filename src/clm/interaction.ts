@@ -74,6 +74,10 @@ export function handleClmRewardPoolTransfer(event: RewardPoolTransferEvent): voi
 
   const rewardPool = getClmRewardPool(event.address)
   const clm = getCLM(rewardPool.clm)
+  if (!isClmInitialized(clm)) {
+    log.warning("CLM {} is not initialized, ignoring handleClmRewardPoolTransfer", [clm.id.toHexString()])
+    return
+  }
   const managerAddress = clm.manager
 
   const rewardPoolAddresses = clm.rewardPoolTokensOrder
