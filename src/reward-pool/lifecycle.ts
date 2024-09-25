@@ -161,10 +161,17 @@ export function handleClmRewardPoolAddReward(event: RewardPoolAddRewardEvent): v
 
   const rewardPool = getClmRewardPool(rewardPoolAddress)
   const clm = getCLM(rewardPool.clm)
+
   const rewardToken = fetchAndSaveTokenData(event.params.reward)
 
   const rewardTokens = clm.rewardTokens
   const rewardTokensOrder = clm.rewardTokensOrder
+  // skip if already added
+  for (let i = 0; i < rewardTokensOrder.length; i++) {
+    if (rewardTokensOrder[i].equals(rewardToken.id)) {
+      return
+    }
+  }
   rewardTokens.push(rewardToken.id)
   rewardTokensOrder.push(rewardToken.id)
   clm.rewardTokens = rewardTokens
