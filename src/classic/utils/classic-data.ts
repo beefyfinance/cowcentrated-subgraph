@@ -11,6 +11,9 @@ import {
   PRICE_STORE_DECIMALS_USD,
   PYTH_NATIVE_PRICE_ID,
   PYTH_PRICE_FEED_ADDRESS,
+  UMBRELLA_REGISTRY_ADDRESS,
+  UMBRELLA_REGISTRY_PRICE_FEED_DECIMALS,
+  UMBRELLA_REGISTRY_PRICE_FEED_NAME,
   WNATIVE_DECIMALS,
   WNATIVE_TOKEN_ADDRESS,
 } from "../../config"
@@ -70,6 +73,25 @@ export function fetchClassicData(classic: Classic): ClassicData {
     calls.push(
       new Multicall3Params(PYTH_PRICE_FEED_ADDRESS, "getPriceUnsafe(bytes32)", "(int64,uint64,int32,uint256)", [
         ethereum.Value.fromFixedBytes(PYTH_NATIVE_PRICE_ID),
+      ]),
+    )
+  } else if (PRICE_ORACLE_TYPE === "umbrella") {
+    // get the price feeds contract address
+    const res = multicall([
+      new Multicall3Params(UMBRELLA_REGISTRY_ADDRESS, "getAddressByString(string)", "address", [
+        ethereum.Value.fromString("UmbrellaFeeds"),
+      ]),
+    ])
+    const feedsContractAddressRes = res[0]
+    if (feedsContractAddressRes.reverted) {
+      log.error("Failed to fetch feedsContractAddress for Classic {}", [classic.id.toHexString()])
+      throw new Error("Failed to fetch feedsContractAddress for Classic")
+    }
+    const feedsContractAddress = feedsContractAddressRes.value.toAddress()
+
+    calls.push(
+      new Multicall3Params(feedsContractAddress, "getPriceDataByName(string)", "(uint8,uint24,uint32,uint128)", [
+        ethereum.Value.fromString(UMBRELLA_REGISTRY_PRICE_FEED_NAME),
       ]),
     )
   } else {
@@ -209,6 +231,10 @@ export function fetchClassicData(classic: Classic): ClassicData {
       const exponent = pythAnswer[2].toBigInt()
       const decimals = exponent.neg()
       nativeToUSDPrice = changeValueEncoding(value, decimals, PRICE_STORE_DECIMALS_USD)
+    } else if (PRICE_ORACLE_TYPE === "umbrella") {
+      const umbrellaAnswer = priceFeedRes.value.toTuple()
+      const value = umbrellaAnswer[3].toBigInt()
+      nativeToUSDPrice = changeValueEncoding(value, UMBRELLA_REGISTRY_PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD)
     } else {
       log.error("Unsupported price oracle type {}", [PRICE_ORACLE_TYPE])
       throw new Error("Unsupported price oracle type")
