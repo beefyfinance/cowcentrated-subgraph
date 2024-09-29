@@ -25,6 +25,7 @@ jobs:
           - "mantle"
           - "sei"
           - "avax"
+          - "rootstock"
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
