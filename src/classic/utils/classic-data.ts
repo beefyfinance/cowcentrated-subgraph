@@ -12,8 +12,9 @@ import {
   PYTH_NATIVE_PRICE_ID,
   PYTH_PRICE_FEED_ADDRESS,
   UMBRELLA_REGISTRY_ADDRESS,
+  UMBRELLA_REGISTRY_FEED_KEY_BYTES_32,
   UMBRELLA_REGISTRY_PRICE_FEED_DECIMALS,
-  UMBRELLA_REGISTRY_PRICE_FEED_NAME,
+  UMBRELLA_REGISTRY_PRICE_FEED_NAME_BYTES_32,
   WNATIVE_DECIMALS,
   WNATIVE_TOKEN_ADDRESS,
 } from "../../config"
@@ -77,11 +78,13 @@ export function fetchClassicData(classic: Classic): ClassicData {
     )
   } else if (PRICE_ORACLE_TYPE === "umbrella") {
     // get the price feeds contract address
+
     const res = multicall([
-      new Multicall3Params(UMBRELLA_REGISTRY_ADDRESS, "getAddressByString(string)", "address", [
-        ethereum.Value.fromString("UmbrellaFeeds"),
+      new Multicall3Params(UMBRELLA_REGISTRY_ADDRESS, "getAddress(bytes32)", "address", [
+        ethereum.Value.fromFixedBytes(UMBRELLA_REGISTRY_FEED_KEY_BYTES_32),
       ]),
     ])
+
     const feedsContractAddressRes = res[0]
     if (feedsContractAddressRes.reverted) {
       log.error("Failed to fetch feedsContractAddress for Classic {}", [classic.id.toHexString()])
@@ -90,8 +93,8 @@ export function fetchClassicData(classic: Classic): ClassicData {
     const feedsContractAddress = feedsContractAddressRes.value.toAddress()
 
     calls.push(
-      new Multicall3Params(feedsContractAddress, "getPriceDataByName(string)", "(uint8,uint24,uint32,uint128)", [
-        ethereum.Value.fromString(UMBRELLA_REGISTRY_PRICE_FEED_NAME),
+      new Multicall3Params(feedsContractAddress, "getPriceData(bytes32)", "(uint8,uint24,uint32,uint128)", [
+        ethereum.Value.fromFixedBytes(UMBRELLA_REGISTRY_PRICE_FEED_NAME_BYTES_32),
       ]),
     )
   } else {

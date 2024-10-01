@@ -27,6 +27,7 @@
   "pythNativePriceId": "0x4e3037c822d852d79af3ac80e35eb420ee3b870dca49f9344a38ef4773fb0585",
   "umbrellaRegistryAddress": "0x4A28406ECe8FfD7A91789738A5AC15DAC44bfA1B",
   "umbrellaRegistryPriceFeedName": "WRBTC-rUSDT",
+  "umbrellaRegistryPriceFeedNameBytes32": "0xd2a0ad2667ba45a57ce6a98d6f51a4a4d256d704f578b3b90d7ee12e2f6af854",
   "umbrellaRegistryPriceFeedDecimals": 8,
 
   "beefySwapperAddress": "0x9C18deE5290925f596fbEfee2f6745b640f3A4C6",
