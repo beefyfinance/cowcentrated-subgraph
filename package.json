@@ -28,7 +28,8 @@
     "prepare:mantle": "./bin/prepare.sh mantle",
     "prepare:sei": "./bin/prepare.sh sei",
     "prepare:avax": "./bin/prepare.sh avax",
-    "prepare:rootstock": "./bin/prepare.sh rootstock"
+    "prepare:rootstock": "./bin/prepare.sh rootstock",
+    "prepare:scroll": "./bin/prepare.sh scroll"
   },
   "main": "./bin/index.js",
   "bin": {
