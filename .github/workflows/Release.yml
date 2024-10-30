@@ -27,6 +27,7 @@ jobs:
           - "avax"
           - "rootstock"
           - "scroll"
+          - "mode"
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
