@@ -16,7 +16,7 @@ import {
 } from "../../generated/templates/ClmStrategy/ClmStrategy"
 import { ProxyCreated as CLMManagerCreatedEvent } from "../../generated/ClmManagerFactory/ClmManagerFactory"
 import { GlobalPause as ClmStrategyFactoryGlobalPauseEvent } from "../../generated/ClmStrategyFactory/ClmStrategyFactory"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { getBeefyCLProtocol } from "../common/entity/protocol"
 import {
@@ -26,8 +26,7 @@ import {
 } from "../common/entity/lifecycle"
 
 export function handleClmManagerCreated(event: CLMManagerCreatedEvent): void {
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   const managerAddress = event.params.proxy
 

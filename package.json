@@ -22,6 +22,7 @@
     "prepare:linea": "./bin/prepare.sh linea",
     "prepare:manta": "./bin/prepare.sh manta",
     "prepare:moonbeam": "./bin/prepare.sh moonbeam",
+    "prepare:opera": "./bin/prepare.sh opera",
     "prepare:optimism": "./bin/prepare.sh optimism",
     "prepare:polygon": "./bin/prepare.sh polygon",
     "prepare:zksync": "./bin/prepare.sh zksync",
@@ -39,7 +40,7 @@
   "license": "MIT",
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.90.1",
-    "@graphprotocol/graph-ts": "^0.35.1",
+    "@graphprotocol/graph-ts": "0.32.0",
     "assemblyscript-prettier": "^3.0.1",
     "husky": "^9.0.11",
     "lint-staged": ">=10",
@@ -52,5 +53,8 @@
   "lint-staged": {
     "*.{ts,js,json,yaml,yml,md,graphql}": "prettier --write"
   },
-  "packageManager": "yarn@1.22.22"
+  "packageManager": "yarn@1.22.22",
+  "dependencies": {
+    "@sentio/cli": "^2.22.1"
+  }
 }
