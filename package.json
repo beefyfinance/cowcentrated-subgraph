@@ -25,6 +25,7 @@
   "devDependencies": {
     "@graphprotocol/graph-cli": "^0.90.1",
     "@graphprotocol/graph-ts": "0.32.0",
+    "@sentio/cli": "^2.22.1",
     "assemblyscript-prettier": "^3.0.1",
     "husky": "^9.0.11",
     "lint-staged": ">=10",
@@ -37,8 +38,5 @@
   "lint-staged": {
     "*.{ts,js,json,yaml,yml,md,graphql}": "prettier --write"
   },
-  "packageManager": "yarn@1.22.22",
-  "dependencies": {
-    "@sentio/cli": "^2.22.1"
-  }
+  "packageManager": "yarn@1.22.22"
 }

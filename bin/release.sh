@@ -47,8 +47,14 @@ function publish_goldsky {
 }
 
 function publish_sentio {
-    SUBGRAPH=$1
-    VERSION=$2
+    CHAIN=$1
+    SUBGRAPH=$2
+    VERSION=$3
+    
+    if [ -z "$SENTIO_OWNER" ]; then
+        echo "SENTIO_OWNER is required"
+        exit 1
+    fi
     
     echo "preparing $CHAIN"
     yarn configure $CHAIN
@@ -56,7 +62,7 @@ function publish_sentio {
     yarn build
 
     echo "publishing $SUBGRAPH to sentio"
-    npx @sentio/cli graph deploy --name $SUBGRAPH
+    npx @sentio/cli graph deploy --owner $SENTIO_OWNER --name $SUBGRAPH
 }
 
 function publish {
@@ -73,7 +79,7 @@ function publish {
             publish_goldsky $CHAIN beefy-clm-$CHAIN $VERSION $DEPLOY_KEY
             ;;
         "sentio")
-            publish_sentio beefy-clm-$CHAIN $VERSION
+            publish_sentio $CHAIN beefy-clm-$CHAIN $VERSION
             ;;
     esac
 }
