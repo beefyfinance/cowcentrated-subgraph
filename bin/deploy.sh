@@ -60,7 +60,6 @@ function publish_sentio {
     yarn configure $CHAIN
     yarn codegen
     
-    SUBGRAPH=$1
     echo "publishing $SUBGRAPH to sentio"
     npx @sentio/cli graph deploy --owner $SENTIO_OWNER --name $SUBGRAPH
 }
