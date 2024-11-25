@@ -58,7 +58,70 @@ Snapshot of the pool users.
 | total_fees_usd                  | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
 
 ```SQL
+WITH position_snapshots AS (
+    SELECT
+        snapshot.timestamp,
+        fromUnixTimestamp(toInt64(snapshot.roundedTimestamp)) as block_date,
+        snapshot.investor as user_address,
+        clm.underlyingToken0 as token0_id,
+        clm.underlyingToken1 as token1_id,
+        t0.symbol as token0_symbol,
+        t1.symbol as token1_symbol,
+        -- Calculate token amounts
+        toDecimal256(snapshot.underlyingAmount0, 18) / pow(10, t0.decimals) as token0_amount,
+        toDecimal256(snapshot.underlyingAmount1, 18) / pow(10, t1.decimals) as token1_amount,
+        -- Calculate USD values using native price conversions
+        (toDecimal256(snapshot.underlyingAmount0, 18) / pow(10, t0.decimals)) *
+        (toDecimal256(snapshot.token0ToNativePrice, 18) / pow(10, 18)) *
+        (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as token0_amount_usd,
+        (toDecimal256(snapshot.underlyingAmount1, 18) / pow(10, t1.decimals)) *
+        (toDecimal256(snapshot.token1ToNativePrice, 18) / pow(10, 18)) *
+        (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as token1_amount_usd
+    FROM
+        `ClmPositionSnapshot` snapshot
+    JOIN
+        CLM clm ON snapshot.clm = clm.id
+    JOIN
+        Token t0 ON clm.underlyingToken0 = t0.id
+    JOIN
+        Token t1 ON clm.underlyingToken1 = t1.id
+)
+SELECT
+    timestamp,
+    block_date,
+    42161 as chain_id,
+    user_address,
+    token_id as token_address,
+    token_symbol,
+    token_amount,
+    token_amount_usd
+FROM
+(
+    -- Token0 records
+    SELECT
+        timestamp,
+        block_date,
+        user_address,
+        token0_id as token_id,
+        token0_symbol as token_symbol,
+        token0_amount as token_amount,
+        token0_amount_usd as token_amount_usd
+    FROM position_snapshots
 
+    UNION ALL
+
+    -- Token1 records
+    SELECT
+        timestamp,
+        block_date,
+        user_address,
+        token1_id as token_id,
+        token1_symbol as token_symbol,
+        token1_amount as token_amount,
+        token1_amount_usd as token_amount_usd
+    FROM position_snapshots
+)
+ORDER BY timestamp DESC, user_address, token_symbol
 ```
 
 ### Pool Snapshot

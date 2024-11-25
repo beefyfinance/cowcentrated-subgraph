@@ -48,6 +48,8 @@ export function getClmPositionSnapshot(position: ClmPosition, timestamp: BigInt,
     snapshot.managerBalance = ZERO_BI
     snapshot.rewardPoolBalances = []
     snapshot.totalBalance = ZERO_BI
+    snapshot.underlyingBalance0 = ZERO_BI
+    snapshot.underlyingBalance1 = ZERO_BI
 
     snapshot.token0ToNativePrice = ZERO_BI
     snapshot.token1ToNativePrice = ZERO_BI
@@ -62,6 +64,8 @@ export function getClmPositionSnapshot(position: ClmPosition, timestamp: BigInt,
       snapshot.managerBalance = previousSnapshot.managerBalance
       snapshot.rewardPoolBalances = previousSnapshot.rewardPoolBalances
       snapshot.totalBalance = previousSnapshot.totalBalance
+      snapshot.underlyingBalance0 = previousSnapshot.underlyingBalance0
+      snapshot.underlyingBalance1 = previousSnapshot.underlyingBalance1
       snapshot.token0ToNativePrice = previousSnapshot.token0ToNativePrice
       snapshot.token1ToNativePrice = previousSnapshot.token1ToNativePrice
       snapshot.outputToNativePrices = previousSnapshot.outputToNativePrices

@@ -6,6 +6,7 @@ import { POSITION_SNAPSHOT_ENABLED } from "../../config"
 import { CLM_SNAPSHOT_PERIODS } from "./snapshot"
 import { ZERO_BI } from "../../common/utils/decimal"
 import { isClmInitialized } from "../entity/clm"
+import { getToken } from "../../common/entity/token"
 
 export function updateClmPositionSnapshotsIfEnabled(
   clm: CLM,
@@ -34,6 +35,8 @@ export function updateClmPositionSnapshotsIfEnabled(
     snapshot.managerBalance = position.managerBalance
     snapshot.rewardPoolBalances = position.rewardPoolBalances
     snapshot.totalBalance = position.totalBalance
+    snapshot.underlyingBalance0 = clmData.totalUnderlyingAmount0.times(position.managerBalance).div(clmData.managerTotalSupply)
+    snapshot.underlyingBalance1 = clmData.totalUnderlyingAmount1.times(position.managerBalance).div(clmData.managerTotalSupply)
     snapshot.token0ToNativePrice = clmData.token0ToNativePrice
     snapshot.token1ToNativePrice = clmData.token1ToNativePrice
     snapshot.outputToNativePrices = clmData.outputToNativePrices

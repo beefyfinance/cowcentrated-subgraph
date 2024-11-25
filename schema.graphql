@@ -68,7 +68,7 @@ type ClockTick @entity(immutable: true) {
 type Investor @entity {
   "The investor address"
   id: Bytes!
-  
+
   "All investor beefy positions"
   positions: [ClmPosition!]! @derivedFrom(field: "investor")
   "All investor interactions"
@@ -998,6 +998,10 @@ type ClmPositionSnapshot @entity {
   rewardPoolBalances: [BigInt!]!
   "Total amount of CLM shares the investor holds. Should always equal to managerBalance + rewardPoolBalance."
   totalBalance: BigInt!
+  "The amount of first underlying tokens the investor is entitled to at the time of snapshot"
+  underlyingBalance0: BigInt!
+  "The amount of second underlying tokens the investor is entitled to at the time of snapshot"
+  underlyingBalance1: BigInt!
 
   "Token 0 price in native at the time of snapshot. Expressed with 18 decimals."
   token0ToNativePrice: BigInt!
