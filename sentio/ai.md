@@ -1,6 +1,6 @@
-# prompt
+# prompt 
 
-write the sql query for XXX in @XXX.md, use everything need in @schema.graphql and @sentio
+write the sql query for XXX in @XXX.md, use everything need in @schema.graphql and @sentio 
 
 # context
 
@@ -22,7 +22,8 @@ write the sql query for XXX in @XXX.md, use everything need in @schema.graphql a
     - use `JSONExtract(col, 'Array(String)')` to extract data from columns of BigInt[]
     - enums column names are postfixed with `__`. Exeample: `type: ClassicPositionInteractionType!` -> `column name: type__`
     - convert timestamps with `fromUnixTimestamp(toInt64(col))`
-    - there is rarely a 
+    - there is rarely a case when we need to use the `hex` function
+    - prefer CTEs over subqueries
   </availableTools>
 
   <resources>

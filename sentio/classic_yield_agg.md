@@ -23,6 +23,29 @@ List of pools in the protocol.
 | pool_address              | The smart contract address of the pool.                                         | string |
 | pool_symbol               | The symbol of the pool.                                                         | string |
 
+
+```SQL
+SELECT
+    42161 as chain_id,
+    tx.blockTimestamp as timestamp,
+    tx.blockNumber as creation_block_number,
+    classic.underlyingToken as underlying_token_address,
+    0 as underlying_token_index,
+    t_underlying.symbol as underlying_token_symbol,
+    t_underlying.decimals as underlying_token_decimals,
+    classic.vaultSharesToken as receipt_token_address,
+    t_shares.symbol as receipt_token_symbol,
+    t_shares.decimals as receipt_token_decimals,
+    classic.id as pool_address,
+    t_shares.symbol as pool_symbol
+FROM Classic classic
+JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
+JOIN Token t_shares ON classic.vaultSharesToken = t_shares.id
+JOIN ClassicVault vault ON classic.vault = vault.id
+JOIN Transaction tx ON vault.createdWith = tx.id
+ORDER BY timestamp DESC
+```
+
 ### Position Snapshot
 
 Snapshot of the pool users.
@@ -39,6 +62,37 @@ Snapshot of the pool users.
 | underlying_token_amount     | The amount of the underlying token that the user deposited, decimal normalized.                                   | number |
 | underlying_token_amount_usd | The amount of underlying tokens supplied, in USD.                                                                 | number |
 | total_fees_usd              | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
+
+```SQL
+WITH position_snapshots AS (
+    SELECT
+        snapshot.timestamp,
+        fromUnixTimestamp(toInt64(snapshot.roundedTimestamp)) as block_date,
+        42161 as chain_id,
+        classic.id as pool_address,
+        snapshot.investor as user_address,
+        classic.underlyingToken as underlying_token_address,
+        0 as underlying_token_index,
+        -- Calculate underlying token amount using share ratio
+        (toDecimal256(snapshot.vaultBalance, 18) / pow(10, t_underlying.decimals)) * 
+        (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18)) 
+        as underlying_token_amount,
+        -- Calculate USD value
+        (
+            (toDecimal256(snapshot.vaultBalance, 18) / pow(10, t_underlying.decimals)) * 
+            (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18))
+        ) *
+        (toDecimal256(snapshot.underlyingToNativePrice, 18) / pow(10, 18)) *
+        (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) 
+        as underlying_token_amount_usd,
+        0 as total_fees_usd
+    FROM ClassicPositionSnapshot snapshot
+    JOIN Classic classic ON snapshot.classic = classic.id
+    JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
+)
+SELECT * FROM position_snapshots
+ORDER BY timestamp DESC, pool_address, user_address
+```
 
 ### Pool Snapshot
 
@@ -75,6 +129,58 @@ All user events (ie, Deposit, Withdrawal)
 | amount_usd               | The amount of token transacted, in USD.                                                        | number |
 | event_type               | The type of event, corresponds to the action taken by the user (ie, deposit, withdrawal).      | string |
 
+```SQL
+WITH events AS (
+    SELECT
+        i.timestamp,
+        i.blockNumber as block_number,
+        i.logIndex as log_index,
+        i.createdWith as transaction_hash,
+        tx.sender as user_address,
+        i.investor as taker_address,
+        classic.id as pool_address,
+        classic.underlyingToken as underlying_token_address,
+        -- Calculate amount using share ratio
+        (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_underlying.decimals)) * 
+        (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18)) 
+        as amount,
+        -- Calculate USD value
+        (
+            (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_underlying.decimals)) * 
+            (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18))
+        ) *
+        (toDecimal256(i.underlyingToNativePrice, 18) / pow(10, 18)) *
+        (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18)) 
+        as amount_usd,
+        -- Map event types
+        CASE 
+            WHEN i.type__ = 'VAULT_DEPOSIT' THEN 'deposit'
+            WHEN i.type__ = 'VAULT_WITHDRAW' THEN 'withdraw'
+            ELSE 'unknown'
+        END as event_type
+    FROM ClassicPositionInteraction i
+    JOIN Classic classic ON i.classic = classic.id
+    JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
+    JOIN Transaction tx ON i.createdWith = tx.id
+    WHERE i.type__ IN ('VAULT_DEPOSIT', 'VAULT_WITHDRAW')
+)
+SELECT 
+    timestamp,
+    42161 as chain_id,
+    block_number,
+    log_index,
+    transaction_hash,
+    user_address,
+    taker_address,
+    pool_address,
+    underlying_token_address,
+    amount,
+    amount_usd,
+    event_type
+FROM events
+ORDER BY timestamp DESC, log_index ASC
+```
+
 ### Incentive Claim Data
 
 Transactional data on user level incentives claimed data.
@@ -92,4 +198,43 @@ Transactional data on user level incentives claimed data.
 | amount_usd            | The amount of claimed tokens in USD.                                                                 | number |
 | other_incentive_usd   | (Optional) Any incentives outside of the claimed token, in this transaction, summed up in USD terms. | number |
 
-> Note: This markdown file is auto-generated.
+```SQL
+WITH reward_claims AS (
+    -- Classic Reward Pool Claims
+    SELECT
+        i.timestamp,
+        42161 as chain_id,
+        i.createdWith as transaction_hash,
+        i.logIndex as log_index,
+        tx.sender as transaction_signer,
+        i.investor as user_address,
+        arrayJoin(JSONExtract(classic.rewardTokensOrder, 'Array(String)')) as claimed_token_address,
+        -- Calculate claimed amount
+        toDecimal256(
+            arrayJoin(JSONExtract(i.rewardBalancesDelta, 'Array(String)')),
+            18
+        ) / pow(10, t_reward.decimals) as amount,
+        -- Calculate USD value
+        (
+            toDecimal256(
+                arrayJoin(JSONExtract(i.rewardBalancesDelta, 'Array(String)')),
+                18
+            ) / pow(10, t_reward.decimals)
+        ) *
+        (
+            toDecimal256(
+                arrayJoin(JSONExtract(i.rewardToNativePrices, 'Array(String)')),
+                18
+            ) / pow(10, 18)
+        ) *
+        (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18)) as amount_usd,
+        0 as other_incentive_usd
+    FROM ClassicPositionInteraction i
+    JOIN Classic classic ON i.classic = classic.id
+    JOIN Token t_reward ON t_reward.id = arrayJoin(JSONExtract(classic.rewardTokensOrder, 'Array(String)'))
+    JOIN Transaction tx ON i.createdWith = tx.id
+    WHERE i.type__ IN ('CLASSIC_REWARD_POOL_CLAIM', 'BOOST_REWARD_CLAIM')
+)
+SELECT * FROM reward_claims
+ORDER BY timestamp DESC, log_index ASC
+```
