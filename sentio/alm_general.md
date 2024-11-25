@@ -232,11 +232,11 @@ WITH position_snapshots AS (
         toDecimal256(snapshot.underlyingAmount0, 18) / pow(10, t0.decimals) as token0_amount,
         toDecimal256(snapshot.underlyingAmount1, 18) / pow(10, t1.decimals) as token1_amount,
         -- Calculate USD values using native price conversions
-        (toDecimal256(snapshot.underlyingAmount0, 18) / pow(10, t0.decimals)) * 
-        (toDecimal256(snapshot.token0ToNativePrice, 18) / pow(10, 18)) * 
+        (toDecimal256(snapshot.underlyingAmount0, 18) / pow(10, t0.decimals)) *
+        (toDecimal256(snapshot.token0ToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as token0_amount_usd,
-        (toDecimal256(snapshot.underlyingAmount1, 18) / pow(10, t1.decimals)) * 
-        (toDecimal256(snapshot.token1ToNativePrice, 18) / pow(10, 18)) * 
+        (toDecimal256(snapshot.underlyingAmount1, 18) / pow(10, t1.decimals)) *
+        (toDecimal256(snapshot.token1ToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as token1_amount_usd
     FROM
         `ClmPositionSnapshot` snapshot
@@ -268,9 +268,9 @@ FROM
         token0_amount as token_amount,
         token0_amount_usd as token_amount_usd
     FROM position_snapshots
-    
+
     UNION ALL
-    
+
     -- Token1 records
     SELECT
         timestamp,
