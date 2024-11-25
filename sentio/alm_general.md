@@ -2,15 +2,23 @@
 # Intro
 
 - Requirements: https://github.com/delta-hq/schemas/blob/main/schemas/general/SCHEMA.md
+- FAQ: https://openblock.notion.site/Onboarding-FAQs-571951f8ecff4e7ca927fab4e27e8401
+- clickhouse docs: 
+    - https://clickhouse.com/docs/en/sql-reference/functions/array-functions#arrayzip
+    - https://clickhouse.com/docs/en/sql-reference/functions/array-join
 - Schema: `../schema.graphql`
 
 # prompt help
 
 - Given SQL access to the given @schema.graphql schema where each type is accessible as a standard SQL table and relations are accessible though join.
+- the id of the relation is available as the relation name. Example: do NOT use `table.relation.id`, use `table.relation`.
 - you have access to clickhouse functions and should write in clickhouse SQL format
 - escape names with backticks
 - use `toDecimal256()` to convert BigInt to numbers, 
  - example: `toDecimal256(any(p.underlying_token_amount_str), 18) as underlying_token_amount`
+- use `array*` functions to deal with arrays (`arrayZip`, `arrayMap`, `arrayJoin`, etc)
+- use `JSONExtract(col, 'Array(String)')` to extract data from columns of BigInt[]
+- enums column names are postfixed with `__`. Exeample: `type: ClassicPositionInteractionType!` -> `column name: type__`
 
 # General
 
@@ -39,26 +47,29 @@ Transactional data on user level incentives claimed data.
 SELECT 
     interaction.timestamp,
     42161 as chain_id,
-    hex(tx.id) as transaction_hash,
+    hex(interaction.createdWith) as transaction_hash,
     interaction.logIndex as log_index,
     hex(tx.sender) as transaction_signer,
-    hex(interaction.investor.id) as user_address,
-    arrayJoin(clm.rewardTokensOrder) as claimed_token_address,
-    arrayJoin(interaction.rewardBalancesDelta) as amount,
-    (
-        arrayJoin(interaction.rewardBalancesDelta) * 
-        arrayJoin(interaction.rewardToNativePrices) * 
-        interaction.nativeToUSDPrice
-    ) / pow(10, 36) as amount_usd,
+    hex(interaction.investor) as user_address,
+    JSONExtract(clm.rewardTokensOrder, 'Array(String)') as claimed_token_address,
+    JSONExtract(interaction.rewardBalancesDelta, 'Array(String)') as amount,
+    arrayMap(
+        x -> (toDecimal256(x.2, 18) * toDecimal256(x.3, 18) * toDecimal256(interaction.nativeToUSDPrice, 18)) / pow(10, 36),
+        arrayZip(
+            JSONExtract(clm.rewardTokensOrder, 'Array(String)'),
+            JSONExtract(interaction.rewardBalancesDelta, 'Array(String)'),
+            JSONExtract(interaction.rewardToNativePrices, 'Array(String)')
+        )
+    ) as amount_usd,
     0 as other_incentive_usd
 FROM 
-    ClmPositionInteraction interaction
+    `ClmPositionInteraction` interaction
 JOIN 
     CLM clm ON interaction.clm = clm.id
 JOIN 
     Transaction tx ON interaction.createdWith = tx.id
 WHERE 
-    interaction.type = 'CLM_REWARD_POOL_CLAIM'
+    type__ = 'CLM_REWARD_POOL_CLAIM'
 ORDER BY 
     interaction.timestamp DESC
 ```

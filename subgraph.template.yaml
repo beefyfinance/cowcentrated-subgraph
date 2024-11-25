@@ -8,7 +8,7 @@ indexerHints:
 dataSources:
   - kind: ethereum/contract
     name: ClmManagerFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{clmManagerFactoryAddress}}"
       abi: ClmManagerFactory
@@ -70,7 +70,7 @@ dataSources:
           
   - kind: ethereum/contract
     name: ClmStrategyFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{clmStrategyFactoryAddress}}"
       abi: ClmStrategyFactory
@@ -88,7 +88,7 @@ dataSources:
           
   - kind: ethereum/contract
     name: RewardPoolFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{rewardPoolFactoryAddress}}"
       abi: RewardPoolFactory
@@ -106,7 +106,7 @@ dataSources:
 
   - kind: ethereum/contract
     name: Clock
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{clmManagerFactoryAddress}}"
       abi: ClmManagerFactory
@@ -127,7 +127,7 @@ dataSources:
 
   - kind: ethereum/contract
     name: ClassicVaultFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{beefyClassicVaultFactoryAddress}}"
       abi: ClassicVaultFactory
@@ -176,7 +176,7 @@ dataSources:
 
   - kind: ethereum/contract
     name: ClassicBoostFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{beefyClassicBoostFactoryAddress}}"
       abi: ClassicBoostFactory
@@ -195,7 +195,7 @@ dataSources:
 templates:
   - name: ClmManager
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: ClmManager
     mapping:
@@ -213,7 +213,7 @@ templates:
 
   - name: ClmStrategy
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: ClmStrategy
     mapping:
@@ -241,7 +241,7 @@ templates:
 
   - name: RewardPool
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: RewardPool
     mapping:
@@ -257,7 +257,7 @@ templates:
 
   - name: ClmRewardPool
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: RewardPool
     mapping:
@@ -279,7 +279,7 @@ templates:
 
   - name: ClassicRewardPool
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: RewardPool
     mapping:
@@ -303,7 +303,7 @@ templates:
 
   - name: ClassicVault
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: ClassicVault
     mapping:
@@ -323,7 +323,7 @@ templates:
 
   - name: ClassicStrategy
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: ClassicStrategy
     mapping:
@@ -345,7 +345,7 @@ templates:
 
   - name: ClassicBoost
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: ClassicBoost
     mapping:
