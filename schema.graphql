@@ -320,10 +320,10 @@ type ClassicHarvestEvent @entity(immutable: true) {
 
   "The transaction that created the harvest event"
   createdWith: Transaction!
-
   "The event log index in the transaction that created the harvest event."
   logIndex: BigInt!
-
+  "The block number of the harvest event"
+  blockNumber: BigInt!
   "The timestamp of the harvest event so you can sort by time"
   timestamp: BigInt!
 
@@ -406,7 +406,8 @@ type ClassicPositionInteraction @entity(immutable: true) {
 
   "The transaction that created the investor position interaction"
   createdWith: Transaction!
-
+  "The event log index in the transaction that created the interaction."
+  logIndex: BigInt!
   "Block number of the interaction"
   blockNumber: BigInt!
   "The timestamp of the interaction"
@@ -692,10 +693,10 @@ type ClmHarvestEvent @entity(immutable: true) {
 
   "The transaction that created the harvest event"
   createdWith: Transaction!
-
+  "The block number of the harvest event"
+  blockNumber: BigInt!
   "The event log index in the transaction that created the harvest event."
   logIndex: BigInt!
-
   "The timestamp of the harvest event so you can sort by time"
   timestamp: BigInt!
 
@@ -742,10 +743,10 @@ type ClmManagerCollectionEvent @entity(immutable: true) {
 
   "The transaction that created the collect event"
   createdWith: Transaction!
-
+  "The block number of the collection event"
+  blockNumber: BigInt!
   "The event log index in the transaction that created the collection event."
   logIndex: BigInt!
-
   "The timestamp of the collect event so you can sort by time"
   timestamp: BigInt!
 
@@ -832,9 +833,10 @@ type ClmPositionInteraction @entity(immutable: true) {
 
   "The transaction that created the investor position interaction"
   createdWith: Transaction!
-
   "Block number of the interaction"
   blockNumber: BigInt!
+  "The event log index in the transaction that created the interaction."
+  logIndex: BigInt!
   "The timestamp of the interaction"
   timestamp: BigInt!
 

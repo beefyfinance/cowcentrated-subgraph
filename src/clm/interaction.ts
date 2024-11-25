@@ -223,6 +223,7 @@ function updateUserPosition(
   interaction.investorPosition = position.id
   interaction.createdWith = event.transaction.hash
   interaction.blockNumber = event.block.number
+  interaction.logIndex = event.logIndex
   interaction.timestamp = event.block.timestamp
   if (isSharesTransfer) {
     interaction.type = managerBalanceDelta.gt(ZERO_BI) ? "MANAGER_DEPOSIT" : "MANAGER_WITHDRAW"

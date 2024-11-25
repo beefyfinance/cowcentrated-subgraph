@@ -340,6 +340,7 @@ function updateUserPosition(
   interaction.investorPosition = position.id
   interaction.createdWith = event.transaction.hash
   interaction.blockNumber = event.block.number
+  interaction.logIndex = event.logIndex
   interaction.timestamp = event.block.timestamp
   if (isSharesTransfer) {
     interaction.type = vaultBalanceDelta.gt(ZERO_BI) ? "VAULT_DEPOSIT" : "VAULT_WITHDRAW"

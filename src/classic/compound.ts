@@ -36,6 +36,7 @@ function _handleClassicStrategyHarvest(event: ethereum.Event, compoundedAmount: 
   harvest.classic = classic.id
   harvest.strategy = strategy.id
   harvest.createdWith = tx.id
+  harvest.blockNumber = event.block.number
   harvest.logIndex = event.logIndex
   harvest.timestamp = event.block.timestamp
   harvest.underlyingAmount = classicData.underlyingAmount
