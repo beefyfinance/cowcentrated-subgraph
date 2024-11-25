@@ -23,17 +23,19 @@ function prepare {
 }
 
 function publish_0xgraph {
-    SUBGRAPH=$1
-    VERSION=$2
-    DEPLOY_KEY=$3
+    CHAIN=$1
+    SUBGRAPH=$2
+    VERSION=$3
+    DEPLOY_KEY=$4
     echo "publishing $SUBGRAPH to 0xgraph"
     yarn run graph deploy $SUBGRAPH --node https://api.0xgraph.xyz/deploy --ipfs https://api.0xgraph.xyz/ipfs --version-label="v$VERSION" --deploy-key=$DEPLOY_KEY
 }
 
 function publish_goldsky {
-    SUBGRAPH=$1
-    VERSION=$2
-    DEPLOY_KEY=$3
+    CHAIN=$1
+    SUBGRAPH=$2
+    VERSION=$3
+    DEPLOY_KEY=$4
     echo "publishing $SUBGRAPH to goldsky"
     goldsky subgraph deploy $SUBGRAPH/$VERSION --path . --token $DEPLOY_KEY
     sleep 5 # wait for the subgraph to propagate
@@ -41,10 +43,16 @@ function publish_goldsky {
 }
 
 function publish_sentio {
-    SUBGRAPH=$1
-    VERSION=$2
+    CHAIN=$1
+    SUBGRAPH=$2
+    VERSION=$3
+    if [ -z "$SENTIO_OWNER" ]; then
+        echo "SENTIO_OWNER is required"
+        exit 1
+    fi
+
     echo "publishing $SUBGRAPH to sentio"
-    npx @sentio/cli graph deploy --name $SUBGRAPH
+    npx @sentio/cli graph deploy --owner $SENTIO_OWNER --name $SUBGRAPH
 }
 
 function publish {
@@ -55,13 +63,13 @@ function publish {
     SUBGRAPH=
     case $PROVIDER in
         "0xgraph")
-            publish_0xgraph beefyfinance/clm-$CHAIN $VERSION $DEPLOY_KEY
+            publish_0xgraph $CHAIN beefyfinance/clm-$CHAIN $VERSION $DEPLOY_KEY
             ;;
         "goldsky")
-            publish_goldsky beefy-clm-$CHAIN $VERSION $DEPLOY_KEY
+            publish_goldsky $CHAIN beefy-clm-$CHAIN $VERSION $DEPLOY_KEY
             ;;
         "sentio")
-            publish_sentio beefy-clm-$CHAIN $VERSION
+            publish_sentio $CHAIN beefy-clm-$CHAIN $VERSION
             ;;
     esac
 }
