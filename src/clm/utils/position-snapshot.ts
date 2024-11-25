@@ -35,8 +35,12 @@ export function updateClmPositionSnapshotsIfEnabled(
     snapshot.managerBalance = position.managerBalance
     snapshot.rewardPoolBalances = position.rewardPoolBalances
     snapshot.totalBalance = position.totalBalance
-    snapshot.underlyingBalance0 = clmData.totalUnderlyingAmount0.times(position.managerBalance).div(clmData.managerTotalSupply)
-    snapshot.underlyingBalance1 = clmData.totalUnderlyingAmount1.times(position.managerBalance).div(clmData.managerTotalSupply)
+    snapshot.underlyingBalance0 = clmData.totalUnderlyingAmount0
+      .times(position.managerBalance)
+      .div(clmData.managerTotalSupply)
+    snapshot.underlyingBalance1 = clmData.totalUnderlyingAmount1
+      .times(position.managerBalance)
+      .div(clmData.managerTotalSupply)
     snapshot.token0ToNativePrice = clmData.token0ToNativePrice
     snapshot.token1ToNativePrice = clmData.token1ToNativePrice
     snapshot.outputToNativePrices = clmData.outputToNativePrices

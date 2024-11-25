@@ -19,7 +19,6 @@ List of pools in the protocol.
 | strategy_vault_receipt_token_decimals | The decimal amount of the ERC20 receipt token.                                           | number |
 | strategy_vault_receipt_token_symbol   | The symbol of the receipt token.                                                         | string |
 
-
 ```SQL
 SELECT
     42161 as chain_id,
@@ -37,7 +36,6 @@ JOIN ClmStrategy strategy ON clm.strategy = strategy.id
 JOIN Token managerToken ON clm.managerToken = managerToken.id
 ORDER BY timestamp DESC
 ```
-
 
 ### Position Snapshot
 
@@ -142,7 +140,6 @@ TVL, fees, and incentives data at the pool level.
 | underlying_token_amount_usd     | The amount of underlying tokens supplied in this pool, in USD.                                                    | number |
 | total_fees_usd                  | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
 
-
 ```SQL
 WITH pool_snapshots AS (
     SELECT
@@ -155,8 +152,8 @@ WITH pool_snapshots AS (
         clm.underlyingToken0 as underlying_token_address,
         0 as underlying_token_index,
         toDecimal256(snapshot.totalUnderlyingAmount0, 18) / pow(10, t0.decimals) as underlying_token_amount,
-        (toDecimal256(snapshot.totalUnderlyingAmount0, 18) / pow(10, t0.decimals)) * 
-        (toDecimal256(snapshot.token0ToNativePrice, 18) / pow(10, 18)) * 
+        (toDecimal256(snapshot.totalUnderlyingAmount0, 18) / pow(10, t0.decimals)) *
+        (toDecimal256(snapshot.token0ToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as underlying_token_amount_usd,
         0 as total_fees_usd
     FROM ClmSnapshot snapshot
@@ -176,8 +173,8 @@ WITH pool_snapshots AS (
         clm.underlyingToken1 as underlying_token_address,
         1 as underlying_token_index,
         toDecimal256(snapshot.totalUnderlyingAmount1, 18) / pow(10, t1.decimals) as underlying_token_amount,
-        (toDecimal256(snapshot.totalUnderlyingAmount1, 18) / pow(10, t1.decimals)) * 
-        (toDecimal256(snapshot.token1ToNativePrice, 18) / pow(10, 18)) * 
+        (toDecimal256(snapshot.totalUnderlyingAmount1, 18) / pow(10, t1.decimals)) *
+        (toDecimal256(snapshot.token1ToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as underlying_token_amount_usd,
         0 as total_fees_usd
     FROM ClmSnapshot snapshot
@@ -188,7 +185,6 @@ WITH pool_snapshots AS (
 SELECT * FROM pool_snapshots
 ORDER BY timestamp DESC, underlying_token_index
 ```
-
 
 ### ERC LP Token Transfer Events
 
@@ -207,11 +203,9 @@ All LP Token transfer events
 | amount           | The amount of token transacted, decimal normalized.                                            | number |
 | event_type       | The type of event, corresponds to the action taken by the user (ie, deposit, withdrawal).      | string |
 
-
 ```SQL
 
 ```
-
 
 ### Events
 
@@ -230,7 +224,6 @@ All user events (ie, Deposit, Withdrawal)
 | amount                   | The amount of token transacted, decimal normalized.                                            | number |
 | amount_usd               | The amount of token transacted, in USD.                                                        | number |
 | event_type               | The type of event, corresponds to the action taken by the user (ie, deposit, withdrawal).      | string |
-
 
 ```SQL
 SELECT
@@ -270,7 +263,6 @@ WHERE i.type__ IN (
 ORDER BY i.timestamp DESC, i.logIndex ASC
 ```
 
-
 ### Incentive Claim Data
 
 Transactional data on user level incentives claimed data.
@@ -288,7 +280,6 @@ Transactional data on user level incentives claimed data.
 | amount_usd            | The amount of claimed tokens in USD.                                                                 | number |
 | other_incentive_usd   | (Optional) Any incentives outside of the claimed token, in this transaction, summed up in USD terms. | number |
 
-
 ```SQL
 SELECT
     i.timestamp,
@@ -299,21 +290,21 @@ SELECT
     i.investor as user_address,
     arrayJoin(JSONExtract(clm.rewardTokensOrder, 'Array(String)')) as claimed_token_address,
     toDecimal256(
-        arrayJoin(JSONExtract(i.rewardBalancesDelta, 'Array(String)')), 
+        arrayJoin(JSONExtract(i.rewardBalancesDelta, 'Array(String)')),
         18
     ) / pow(10, t.decimals) as amount,
     (
         toDecimal256(
-            arrayJoin(JSONExtract(i.rewardBalancesDelta, 'Array(String)')), 
+            arrayJoin(JSONExtract(i.rewardBalancesDelta, 'Array(String)')),
             18
         ) / pow(10, t.decimals)
-    ) * 
+    ) *
     (
         toDecimal256(
-            arrayJoin(JSONExtract(i.rewardToNativePrices, 'Array(String)')), 
+            arrayJoin(JSONExtract(i.rewardToNativePrices, 'Array(String)')),
             18
         ) / pow(10, 18)
-    ) * 
+    ) *
     (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18)) as amount_usd,
     0 as other_incentive_usd
 FROM ClmPositionInteraction i
@@ -323,4 +314,3 @@ JOIN Token t ON t.id = arrayJoin(JSONExtract(clm.rewardTokensOrder, 'Array(Strin
 WHERE i.type__ = 'CLM_REWARD_POOL_CLAIM'
 ORDER BY i.timestamp DESC, i.logIndex ASC
 ```
-
