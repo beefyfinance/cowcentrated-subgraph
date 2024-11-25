@@ -1,25 +1,3 @@
-# Intro
-
-- Requirements: https://github.com/delta-hq/schemas/blob/main/schemas/general/SCHEMA.md
-- FAQ: https://openblock.notion.site/Onboarding-FAQs-571951f8ecff4e7ca927fab4e27e8401
-- clickhouse docs:
-  - https://clickhouse.com/docs/en/sql-reference/functions/array-functions#arrayzip
-  - https://clickhouse.com/docs/en/sql-reference/functions/array-join
-- Schema: `../schema.graphql`
-
-# prompt help
-
-- Given SQL access to the given @schema.graphql schema where each type is accessible as a standard SQL table and relations are accessible though join.
-- the id of the relation is available as the relation name. Example: do NOT use `table.relation.id`, use `table.relation`.
-- you have access to clickhouse functions and should write in clickhouse SQL format
-- escape names with backticks
-- use `toDecimal256(col, 18) / pow(10, token_decimals)` to convert BigInt to numbers. USD prices are assumed to have 18 decimals.
-- example: `toDecimal256(any(p.underlying_token_amount_str), 18) / pow(10, underlying_token_decimals) as underlying_token_amount`
-- use `array*` functions to deal with arrays (`arrayZip`, `arrayMap`, `arrayJoin`, etc)
-- use `JSONExtract(col, 'Array(String)')` to extract data from columns of BigInt[]
-- enums column names are postfixed with `__`. Exeample: `type: ClassicPositionInteractionType!` -> `column name: type__`
-- convert timestamps with `fromUnixTimestamp(toInt64(col))`
-
 # General
 
 Table definitions for the generic schema. These tables can be used for any protocol.
@@ -302,6 +280,45 @@ Generic table at a user and transaction level
 | transaction_fee     | The total amount of gas used in the transactions occurring in the given snapshot (in the native gas amount).                                                           | number    |
 | transaction_fee_usd | (Optional, if possible) The total amount of gas used in USD terms in the given snapshot.                                                                               | number    |
 
+
+```SQL
+SELECT
+    -- Timestamp and date fields
+    i.timestamp,
+    fromUnixTimestamp(toInt64(i.timestamp)) as block_date,
+    -- Chain and block info
+    42161 as chain_id,
+    i.blockNumber as block_number,
+    -- Transaction details
+    tx.sender as signer_address,
+    i.createdWith as transaction_hash,
+    i.logIndex as log_index,
+    -- Event name mapping
+    CASE 
+        WHEN i.type__ = 'MANAGER_DEPOSIT' THEN 'deposit'
+        WHEN i.type__ = 'MANAGER_WITHDRAW' THEN 'withdraw'
+        WHEN i.type__ = 'CLM_REWARD_POOL_STAKE' THEN 'stake'
+        WHEN i.type__ = 'CLM_REWARD_POOL_UNSTAKE' THEN 'unstake'
+        WHEN i.type__ = 'CLM_REWARD_POOL_CLAIM' THEN 'claim'
+        ELSE 'unknown'
+    END as event_name,
+    -- Transaction fees (placeholder values since gas data isn't in schema)
+    0 as transaction_fee,
+    0 as transaction_fee_usd
+FROM ClmPositionInteraction i
+JOIN Transaction tx ON i.createdWith = tx.id
+JOIN CLM c ON i.clm = c.id
+JOIN Protocol p ON c.protocol = p.id
+WHERE i.type__ IN (
+    'MANAGER_DEPOSIT',
+    'MANAGER_WITHDRAW',
+    'CLM_REWARD_POOL_STAKE',
+    'CLM_REWARD_POOL_UNSTAKE',
+    'CLM_REWARD_POOL_CLAIM'
+)
+ORDER BY i.timestamp DESC, i.logIndex ASC
+```
+
 ### User Transaction Fee Snapshot
 
 Gas and transaction snapshot data at the user level.
@@ -315,3 +332,23 @@ Gas and transaction snapshot data at the user level.
 | transaction_count    | The number of transactions this user has signed in the given snapshot.                                            | number |
 | transaction_fees     | The total amount of gas used in the transactions occurring in the given snapshot (in the native gas amount).      | number |
 | transaction_fees_usd | (Optional, if possible) The total amount of gas used in USD terms in the given snapshot.                          | number |
+
+```SQL
+SELECT
+    i.timestamp,
+    fromUnixTimestamp(toInt64(i.timestamp)) as block_date,
+    42161 as chain_id,
+    i.investor as user_address,
+    count(*) as transaction_count,
+    0 as transaction_fees,      -- Placeholder since gas data isn't in schema
+    0 as transaction_fees_usd   -- Placeholder since gas data isn't in schema
+FROM
+    ClmPositionInteraction i
+GROUP BY
+    toStartOfDay(fromUnixTimestamp(toInt64(i.timestamp))),
+    i.timestamp,
+    i.investor
+ORDER BY
+    block_date DESC,
+    user_address
+```
