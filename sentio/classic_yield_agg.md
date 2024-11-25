@@ -23,7 +23,6 @@ List of pools in the protocol.
 | pool_address              | The smart contract address of the pool.                                         | string |
 | pool_symbol               | The symbol of the pool.                                                         | string |
 
-
 ```SQL
 SELECT
     42161 as chain_id,
@@ -74,16 +73,16 @@ WITH position_snapshots AS (
         classic.underlyingToken as underlying_token_address,
         0 as underlying_token_index,
         -- Calculate underlying token amount using share ratio
-        (toDecimal256(snapshot.vaultBalance, 18) / pow(10, t_underlying.decimals)) * 
-        (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18)) 
+        (toDecimal256(snapshot.vaultBalance, 18) / pow(10, t_underlying.decimals)) *
+        (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18))
         as underlying_token_amount,
         -- Calculate USD value
         (
-            (toDecimal256(snapshot.vaultBalance, 18) / pow(10, t_underlying.decimals)) * 
+            (toDecimal256(snapshot.vaultBalance, 18) / pow(10, t_underlying.decimals)) *
             (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18))
         ) *
         (toDecimal256(snapshot.underlyingToNativePrice, 18) / pow(10, 18)) *
-        (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) 
+        (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18))
         as underlying_token_amount_usd,
         0 as total_fees_usd
     FROM ClassicPositionSnapshot snapshot
@@ -141,19 +140,19 @@ WITH events AS (
         classic.id as pool_address,
         classic.underlyingToken as underlying_token_address,
         -- Calculate amount using share ratio
-        (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_underlying.decimals)) * 
-        (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18)) 
+        (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_underlying.decimals)) *
+        (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18))
         as amount,
         -- Calculate USD value
         (
-            (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_underlying.decimals)) * 
+            (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_underlying.decimals)) *
             (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18))
         ) *
         (toDecimal256(i.underlyingToNativePrice, 18) / pow(10, 18)) *
-        (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18)) 
+        (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18))
         as amount_usd,
         -- Map event types
-        CASE 
+        CASE
             WHEN i.type__ = 'VAULT_DEPOSIT' THEN 'deposit'
             WHEN i.type__ = 'VAULT_WITHDRAW' THEN 'withdraw'
             ELSE 'unknown'
@@ -164,7 +163,7 @@ WITH events AS (
     JOIN Transaction tx ON i.createdWith = tx.id
     WHERE i.type__ IN ('VAULT_DEPOSIT', 'VAULT_WITHDRAW')
 )
-SELECT 
+SELECT
     timestamp,
     42161 as chain_id,
     block_number,

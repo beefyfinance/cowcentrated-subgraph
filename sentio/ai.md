@@ -1,6 +1,6 @@
-# prompt 
+# prompt
 
-write the sql query for XXX in @XXX.md, use everything need in @schema.graphql and @sentio 
+write the sql query for XXX in @XXX.md, use everything need in @schema.graphql and @sentio
 
 # context
 
