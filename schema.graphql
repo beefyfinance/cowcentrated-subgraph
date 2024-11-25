@@ -526,6 +526,8 @@ type CLM @entity {
   manager: ClmManager!
   "The strategy of the CLM. The strategy is responsible for managing the CLM's assets."
   strategy: ClmStrategy!
+  "The underlying protocol pool contract address where liquidity is deposited"
+  underlyingProtocolPool: Bytes!
   """
   The reward pool of the CLM.
   The reward pool is where the CLM's earnings are sent if the ClmManager does not automatically compound.
