@@ -58,6 +58,7 @@ Snapshot of the pool users.
 | total_fees_usd                  | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
 
 ```SQL
+
 WITH position_snapshots AS (
     SELECT
         snapshot.timestamp,
@@ -68,13 +69,13 @@ WITH position_snapshots AS (
         t0.symbol as token0_symbol,
         t1.symbol as token1_symbol,
         -- Calculate token amounts
-        toDecimal256(snapshot.underlyingAmount0, 18) / pow(10, t0.decimals) as token0_amount,
-        toDecimal256(snapshot.underlyingAmount1, 18) / pow(10, t1.decimals) as token1_amount,
+        toDecimal256(snapshot.underlyingBalance0, 18) / pow(10, t0.decimals) as token0_amount,
+        toDecimal256(snapshot.underlyingBalance1, 18) / pow(10, t1.decimals) as token1_amount,
         -- Calculate USD values using native price conversions
-        (toDecimal256(snapshot.underlyingAmount0, 18) / pow(10, t0.decimals)) *
+        (toDecimal256(snapshot.underlyingBalance0, 18) / pow(10, t0.decimals)) *
         (toDecimal256(snapshot.token0ToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as token0_amount_usd,
-        (toDecimal256(snapshot.underlyingAmount1, 18) / pow(10, t1.decimals)) *
+        (toDecimal256(snapshot.underlyingBalance1, 18) / pow(10, t1.decimals)) *
         (toDecimal256(snapshot.token1ToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as token1_amount_usd
     FROM
@@ -143,7 +144,49 @@ TVL, fees, and incentives data at the pool level.
 
 
 ```SQL
+WITH pool_snapshots AS (
+    SELECT
+        snapshot.timestamp,
+        fromUnixTimestamp(toInt64(snapshot.roundedTimestamp)) as block_date,
+        42161 as chain_id,
+        strategy.id as strategy_vault_contract_address,
+        clm.underlyingProtocolPool as liquidity_pool_address,
+        -- For token0
+        clm.underlyingToken0 as underlying_token_address,
+        0 as underlying_token_index,
+        toDecimal256(snapshot.totalUnderlyingAmount0, 18) / pow(10, t0.decimals) as underlying_token_amount,
+        (toDecimal256(snapshot.totalUnderlyingAmount0, 18) / pow(10, t0.decimals)) * 
+        (toDecimal256(snapshot.token0ToNativePrice, 18) / pow(10, 18)) * 
+        (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as underlying_token_amount_usd,
+        0 as total_fees_usd
+    FROM ClmSnapshot snapshot
+    JOIN CLM clm ON snapshot.clm = clm.id
+    JOIN ClmStrategy strategy ON clm.strategy = strategy.id
+    JOIN Token t0 ON clm.underlyingToken0 = t0.id
 
+    UNION ALL
+
+    SELECT
+        snapshot.timestamp,
+        fromUnixTimestamp(toInt64(snapshot.roundedTimestamp)) as block_date,
+        42161 as chain_id,
+        strategy.id as strategy_vault_contract_address,
+        clm.underlyingProtocolPool as liquidity_pool_address,
+        -- For token1
+        clm.underlyingToken1 as underlying_token_address,
+        1 as underlying_token_index,
+        toDecimal256(snapshot.totalUnderlyingAmount1, 18) / pow(10, t1.decimals) as underlying_token_amount,
+        (toDecimal256(snapshot.totalUnderlyingAmount1, 18) / pow(10, t1.decimals)) * 
+        (toDecimal256(snapshot.token1ToNativePrice, 18) / pow(10, 18)) * 
+        (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as underlying_token_amount_usd,
+        0 as total_fees_usd
+    FROM ClmSnapshot snapshot
+    JOIN CLM clm ON snapshot.clm = clm.id
+    JOIN ClmStrategy strategy ON clm.strategy = strategy.id
+    JOIN Token t1 ON clm.underlyingToken1 = t1.id
+)
+SELECT * FROM pool_snapshots
+ORDER BY timestamp DESC, underlying_token_index
 ```
 
 
@@ -190,7 +233,41 @@ All user events (ie, Deposit, Withdrawal)
 
 
 ```SQL
-
+SELECT
+    -- Timestamp and date fields
+    i.timestamp,
+    fromUnixTimestamp(toInt64(i.timestamp)) as block_date,
+    -- Chain and block info
+    42161 as chain_id,
+    i.blockNumber as block_number,
+    -- Transaction details
+    tx.sender as signer_address,
+    i.createdWith as transaction_hash,
+    i.logIndex as log_index,
+    -- Event name mapping
+    CASE
+        WHEN i.type__ = 'MANAGER_DEPOSIT' THEN 'deposit'
+        WHEN i.type__ = 'MANAGER_WITHDRAW' THEN 'withdraw'
+        WHEN i.type__ = 'CLM_REWARD_POOL_STAKE' THEN 'stake'
+        WHEN i.type__ = 'CLM_REWARD_POOL_UNSTAKE' THEN 'unstake'
+        WHEN i.type__ = 'CLM_REWARD_POOL_CLAIM' THEN 'claim'
+        ELSE 'unknown'
+    END as event_name,
+    -- Transaction fees (placeholder values since gas data isn't in schema)
+    0 as transaction_fee,
+    0 as transaction_fee_usd
+FROM ClmPositionInteraction i
+JOIN Transaction tx ON i.createdWith = tx.id
+JOIN CLM c ON i.clm = c.id
+JOIN Protocol p ON c.protocol = p.id
+WHERE i.type__ IN (
+    'MANAGER_DEPOSIT',
+    'MANAGER_WITHDRAW',
+    'CLM_REWARD_POOL_STAKE',
+    'CLM_REWARD_POOL_UNSTAKE',
+    'CLM_REWARD_POOL_CLAIM'
+)
+ORDER BY i.timestamp DESC, i.logIndex ASC
 ```
 
 
@@ -213,6 +290,37 @@ Transactional data on user level incentives claimed data.
 
 
 ```SQL
-
+SELECT
+    i.timestamp,
+    42161 as chain_id,
+    i.createdWith as transaction_hash,
+    i.logIndex as log_index,
+    tx.sender as transaction_signer,
+    i.investor as user_address,
+    arrayJoin(JSONExtract(clm.rewardTokensOrder, 'Array(String)')) as claimed_token_address,
+    toDecimal256(
+        arrayJoin(JSONExtract(i.rewardBalancesDelta, 'Array(String)')), 
+        18
+    ) / pow(10, t.decimals) as amount,
+    (
+        toDecimal256(
+            arrayJoin(JSONExtract(i.rewardBalancesDelta, 'Array(String)')), 
+            18
+        ) / pow(10, t.decimals)
+    ) * 
+    (
+        toDecimal256(
+            arrayJoin(JSONExtract(i.rewardToNativePrices, 'Array(String)')), 
+            18
+        ) / pow(10, 18)
+    ) * 
+    (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18)) as amount_usd,
+    0 as other_incentive_usd
+FROM ClmPositionInteraction i
+JOIN CLM clm ON i.clm = clm.id
+JOIN Transaction tx ON i.createdWith = tx.id
+JOIN Token t ON t.id = arrayJoin(JSONExtract(clm.rewardTokensOrder, 'Array(String)'))
+WHERE i.type__ = 'CLM_REWARD_POOL_CLAIM'
+ORDER BY i.timestamp DESC, i.logIndex ASC
 ```
 
