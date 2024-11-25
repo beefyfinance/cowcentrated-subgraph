@@ -1,5 +1,6 @@
 import { ClockTick } from "../../generated/schema"
 import { getBeefyClassicProtocol } from "../common/entity/protocol"
+import { POSITION_SNAPSHOT_ENABLED } from "../config"
 import { hasClassicBeenRemoved, isClassicInitialized } from "./entity/classic"
 import { fetchClassicData, updateClassicDataAndSnapshots } from "./utils/classic-data"
 import { updateClassicPositionSnapshotsIfEnabled } from "./utils/position-snapshot"
@@ -26,11 +27,13 @@ export function updateClassicDataOnClockTick(tick: ClockTick): void {
     updateClassicDataAndSnapshots(classic, classicData, tick.timestamp)
 
     // update position snapshots
-    const positions = classic.positions.load()
-    log.info("Updating {} Classic position snapshots", [positions.length.toString()])
-    for (let j = 0; j < positions.length; j++) {
-      const position = positions[j]
-      updateClassicPositionSnapshotsIfEnabled(classic, classicData, position, tick.timestamp)
+    if (POSITION_SNAPSHOT_ENABLED) {
+      const positions = classic.positions.load()
+      log.info("Updating {} Classic position snapshots", [positions.length.toString()])
+      for (let j = 0; j < positions.length; j++) {
+        const position = positions[j]
+        updateClassicPositionSnapshotsIfEnabled(classic, classicData, position, tick.timestamp)
+      }
     }
   }
 }
