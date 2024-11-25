@@ -2,7 +2,7 @@
 
 # config
 valid_chains=($(ls config | sed 's/\.json//g'))
-valid_providers=("goldsky" "0xgraph")
+valid_providers=("goldsky" "0xgraph" "sentio")
 
 function exit_help {
     echo "Usage: $0 <chain> <provider1> [<provider2>] ... [<providerN>]"
@@ -12,16 +12,15 @@ function exit_help {
     exit 1
 }
 
-function prepare {
+function publish_0xgraph {
     CHAIN=$1
+    SUBGRAPH=$2
+
     echo "preparing $CHAIN"
     yarn prepare:$CHAIN
     yarn codegen
     yarn build
-}
 
-function publish_0xgraph {
-    SUBGRAPH=$1
     echo "publishing $SUBGRAPH to 0xgraph"
     yarn run graph remove $SUBGRAPH --node https://api.0xgraph.xyz/deploy
     sleep 5
@@ -30,8 +29,15 @@ function publish_0xgraph {
     yarn run graph deploy $SUBGRAPH --node https://api.0xgraph.xyz/deploy --ipfs https://api.0xgraph.xyz/ipfs --version-label=v0.0.1
 }
 
-function publish_goldsky {
-    SUBGRAPH=$1
+function publish_goldsky {    CHAIN=$1
+    CHAIN=$1
+    SUBGRAPH=$2
+    
+    echo "preparing $CHAIN"
+    yarn prepare:$CHAIN
+    yarn codegen
+    yarn build
+    
     echo "publishing $SUBGRAPH to goldsky"
     goldsky subgraph delete $SUBGRAPH/0.0.1 
     sleep 10
@@ -39,9 +45,20 @@ function publish_goldsky {
 }
 
 function publish_sentio {
+    CHAIN=$1
+    SUBGRAPH=$2
+    if [ -z "$SENTIO_OWNER" ]; then
+        echo "SENTIO_OWNER is required"
+        exit 1
+    fi
+    
+    echo "preparing $CHAIN"
+    yarn prepare:$CHAIN
+    yarn codegen
+    
     SUBGRAPH=$1
     echo "publishing $SUBGRAPH to sentio"
-    npx @sentio/cli graph deploy --name $SUBGRAPH
+    npx @sentio/cli graph deploy --owner $SENTIO_OWNER --name $SUBGRAPH
 }
 
 function publish {
@@ -49,13 +66,13 @@ function publish {
     PROVIDER=$2
     case $PROVIDER in
         "0xgraph")
-            publish_0xgraph beefyfinance/clm-$CHAIN
+            publish_0xgraph $CHAIN beefyfinance/clm-$CHAIN
             ;;
         "goldsky")
-            publish_goldsky beefy-clm-$CHAIN-dev
+            publish_goldsky $CHAIN beefy-clm-$CHAIN-dev
             ;;
         "sentio")
-            publish_sentio beefy-clm-$CHAIN
+            publish_sentio $CHAIN beefy-clm-$CHAIN
             ;;
     esac
 }
@@ -85,7 +102,6 @@ for provider in $providers; do
 done
 
 
-prepare $chain
 for provider in $providers; do
     publish $chain $provider
 done
