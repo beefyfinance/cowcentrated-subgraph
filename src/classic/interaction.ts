@@ -12,7 +12,7 @@ import {
 import { getAndSaveTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
 import { Classic, ClassicPositionInteraction } from "../../generated/schema"
-import { BURN_ADDRESS, POSITION_SNAPSHOT_ENABLED, SHARE_TOKEN_MINT_ADDRESS } from "../config"
+import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
 import { ZERO_BI } from "../common/utils/decimal"
 import { getEventIdentifier } from "../common/utils/event"
 import {
@@ -22,9 +22,8 @@ import {
   hasClassicBeenRemoved,
   isClassicInitialized,
 } from "./entity/classic"
-import { getClassicPosition, getClassicPositionSnapshot } from "./entity/position"
+import { getClassicPosition } from "./entity/position"
 import { fetchClassicData, updateClassicDataAndSnapshots } from "./utils/classic-data"
-import { CLASSIC_SNAPSHOT_PERIODS } from "./utils/snapshot"
 import { updateClassicPositionSnapshotsIfEnabled } from "./utils/position-snapshot"
 
 export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
