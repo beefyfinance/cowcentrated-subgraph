@@ -1,18 +1,30 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { BigInt, log } from "@graphprotocol/graph-ts"
 import { CLM, ClmPosition } from "../../../generated/schema"
 import { CLMData } from "./clm-data"
 import { getClmPositionSnapshot } from "../entity/position"
 import { POSITION_SNAPSHOT_ENABLED } from "../../config"
 import { CLM_SNAPSHOT_PERIODS } from "./snapshot"
+import { ZERO_BI } from "../../common/utils/decimal"
+import { isClmInitialized } from "../entity/clm"
 
 export function updateClmPositionSnapshotsIfEnabled(
   clm: CLM,
   clmData: CLMData,
   position: ClmPosition,
   timestamp: BigInt,
-) {
+): void {
   // update position snapshots
   if (!POSITION_SNAPSHOT_ENABLED) {
+    return
+  }
+
+  if (!isClmInitialized(clm)) {
+    log.debug("CLM {} is not initialized, skipping updateClmPositionSnapshots", [clm.id.toHexString()])
+    return
+  }
+
+  if (position.totalBalance.equals(ZERO_BI)) {
+    log.debug("CLM position {} has no balance, skipping updateClmPositionSnapshots", [position.id.toHexString()])
     return
   }
 
