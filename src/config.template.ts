@@ -23,3 +23,5 @@ export const BEEFY_ORACLE_ADDRESS = Address.fromString("{{beefyOracleAddress}}")
 // amount we divide 1 of _fromToken to get 1 of _toToken before asking for the price
 // this is to avoid liquidity issues with tokens that have very high price (e.g. BTC)
 export const BEEFY_SWAPPER_VALUE_SCALER = BigInt.fromU32(1000)
+
+export const ONLY_KEEP_CLM_CLASSIC_VAULTS = {{onlyKeepClmClassicVaults}}

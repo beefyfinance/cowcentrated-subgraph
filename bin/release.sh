@@ -4,7 +4,7 @@ set -e
 
 # config
 valid_chains=($(ls config | sed 's/\.json//g'))
-valid_providers=("goldsky" "0xgraph")
+valid_providers=("goldsky" "0xgraph" "sentio")
 
 function exit_help {
     echo "Usage: $0 <version> <chain> <provider> <deploy_key>"
@@ -46,6 +46,19 @@ function publish_goldsky {
     goldsky subgraph tag create $SUBGRAPH/$VERSION --token $DEPLOY_KEY --tag next
 }
 
+function publish_sentio {
+    SUBGRAPH=$1
+    VERSION=$2
+    
+    echo "preparing $CHAIN"
+    yarn configure $CHAIN
+    yarn codegen
+    yarn build
+
+    echo "publishing $SUBGRAPH to sentio"
+    npx @sentio/cli graph deploy --name $SUBGRAPH
+}
+
 function publish {
     VERSION=$1
     CHAIN=$2
@@ -58,6 +71,9 @@ function publish {
             ;;
         "goldsky")
             publish_goldsky $CHAIN beefy-clm-$CHAIN $VERSION $DEPLOY_KEY
+            ;;
+        "sentio")
+            publish_sentio beefy-clm-$CHAIN $VERSION
             ;;
     esac
 }

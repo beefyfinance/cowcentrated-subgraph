@@ -41,6 +41,7 @@ import { PRODUCT_LIFECYCLE_PAUSED, PRODUCT_LIFECYCLE_RUNNING } from "../common/e
 import { ADDRESS_ZERO } from "../common/utils/address"
 import { isClmManager, isClmRewardPool } from "../clm/entity/clm"
 import { fetchClassicUnderlyingCLM } from "./utils/classic-data"
+import { ONLY_KEEP_CLM_CLASSIC_VAULTS } from "../config"
 
 export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreated): void {
   const address = event.params.proxy
@@ -179,7 +180,7 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
   const underlyingTokenAddress = underlyingTokenAddressRes.value
 
   const isClmUnderlying = isClmRewardPool(underlyingTokenAddress) || isClmManager(underlyingTokenAddress)
-  if (!isClmUnderlying) {
+  if (!isClmUnderlying && ONLY_KEEP_CLM_CLASSIC_VAULTS) {
     log.info("Underlying token address is not related to clm, removing: {}", [underlyingTokenAddress.toHexString()])
     removeClassicAndDependencies(classic)
     return
@@ -195,8 +196,10 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
 
   const clm = fetchClassicUnderlyingCLM(classic)
   if (clm == null) {
-    log.error("Failed to fetch CLM data for Classic: {}", [classic.id.toHexString()])
-    removeClassicAndDependencies(classic)
+    if (ONLY_KEEP_CLM_CLASSIC_VAULTS) {
+      log.error("Failed to fetch CLM data for Classic: {}", [classic.id.toHexString()])
+      removeClassicAndDependencies(classic)
+    }
     return
   }
   classic.underlyingBreakdownTokens = [clm.underlyingToken0, clm.underlyingToken1]

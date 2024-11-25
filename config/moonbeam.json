@@ -33,5 +33,7 @@
   "umbrellaRegistryPriceFeedDecimals": 8,
 
   "beefySwapperAddress": "0x8F40C4Be6732241222293953475a9e69BFc607AA",
-  "beefyOracleAddress": "0x4d417C189AE9D1B128397026A124b531A535D741"
+  "beefyOracleAddress": "0x4d417C189AE9D1B128397026A124b531A535D741",
+
+  "onlyKeepClmClassicVaults": true
 }
