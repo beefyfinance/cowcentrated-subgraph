@@ -38,7 +38,8 @@ export function getClmPositionSnapshot(position: ClmPosition, timestamp: BigInt,
   if (!snapshot) {
     snapshot = new ClmPositionSnapshot(snapshotId)
     snapshot.clm = position.clm
-    snapshot.position = position.id
+    snapshot.investor = position.investor
+    snapshot.investorPosition = position.id
 
     snapshot.period = period
     snapshot.timestamp = timestamp

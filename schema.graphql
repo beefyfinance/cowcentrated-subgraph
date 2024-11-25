@@ -68,10 +68,25 @@ type ClockTick @entity(immutable: true) {
 type Investor @entity {
   "The investor address"
   id: Bytes!
+  
   "All investor beefy positions"
   positions: [ClmPosition!]! @derivedFrom(field: "investor")
   "All investor interactions"
   interactions: [ClmPositionInteraction!]! @derivedFrom(field: "investor")
+
+  "All investor classic positions"
+  classicPositions: [ClassicPosition!]! @derivedFrom(field: "investor")
+  "All investor classic snapshots"
+  classicSnapshots: [ClassicPositionSnapshot!]! @derivedFrom(field: "investor")
+  "All investor classic interactions"
+  classicInteractions: [ClassicPositionInteraction!]! @derivedFrom(field: "investor")
+
+  "All investor clm positions"
+  clmPositions: [ClmPosition!]! @derivedFrom(field: "investor")
+  "All investor clm snapshots"
+  clmSnapshots: [ClmPositionSnapshot!]! @derivedFrom(field: "investor")
+  "All investor clm interactions"
+  clmInteractions: [ClmPositionInteraction!]! @derivedFrom(field: "investor")
 }
 
 """
@@ -377,7 +392,7 @@ type ClassicPosition @entity {
   interactions: [ClassicPositionInteraction!]! @derivedFrom(field: "investorPosition")
 
   "All snapshots of the investor position"
-  snapshots: [ClassicPositionSnapshot!]! @derivedFrom(field: "position")
+  snapshots: [ClassicPositionSnapshot!]! @derivedFrom(field: "investorPosition")
 }
 
 enum ClassicPositionInteractionType {
@@ -475,8 +490,10 @@ type ClassicPositionSnapshot @entity {
 
   "The Classic the snapshot is for"
   classic: Classic!
-  "The Classic position the snapshot is for"
-  position: ClassicPosition!
+  "The investor that has a position in the Classic"
+  investor: Investor!
+  "The investor position the snapshot is for"
+  investorPosition: ClassicPosition!
 
   """
   Duration of the snapshot period in seconds.
@@ -863,11 +880,11 @@ type ClmPosition @entity {
   "Total amount of CLM shares the investor holds. Should always equal to managerBalance + rewardPoolBalance. This is mostly used for filtering."
   totalBalance: BigInt!
 
-  "All snapshots of the investor position"
-  snapshots: [ClmPositionSnapshot!]! @derivedFrom(field: "position")
-
   "All investor position interactions"
   interactions: [ClmPositionInteraction!]! @derivedFrom(field: "investorPosition")
+
+  "All snapshots of the investor position"
+  snapshots: [ClmPositionSnapshot!]! @derivedFrom(field: "investorPosition")
 }
 
 enum ClmPositionInteractionType {
@@ -955,10 +972,12 @@ type ClmPositionSnapshot @entity {
   "ClmPosition.id + period + timestamp"
   id: Bytes!
 
-  "The CLM the snapshot is for"
+  "The CLM the investor has a position in"
   clm: CLM!
-  "The CLM position the snapshot is for"
-  position: ClmPosition!
+  "The investor that has a position in the CLM"
+  investor: Investor!
+  "The investor position the interaction is for"
+  investorPosition: ClmPosition!
 
   """
   Duration of the snapshot period in seconds.

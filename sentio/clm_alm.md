@@ -19,6 +19,26 @@ List of pools in the protocol.
 | strategy_vault_receipt_token_decimals | The decimal amount of the ERC20 receipt token.                                           | number |
 | strategy_vault_receipt_token_symbol   | The symbol of the receipt token.                                                         | string |
 
+
+```SQL
+SELECT
+    42161 as chain_id,
+    tx.blockTimestamp as timestamp,
+    tx.blockNumber as creation_block_number,
+    strategy.id as strategy_vault_contract_address,
+    clm.underlyingProtocolPool as liquidity_pool_address,
+    managerToken.id as strategy_vault_receipt_token_address,
+    managerToken.decimals as strategy_vault_receipt_token_decimals,
+    managerToken.symbol as strategy_vault_receipt_token_symbol
+FROM CLM clm
+JOIN ClmManager manager ON clm.manager = manager.id
+JOIN Transaction tx ON manager.createdWith = tx.id
+JOIN ClmStrategy strategy ON clm.strategy = strategy.id
+JOIN Token managerToken ON clm.managerToken = managerToken.id
+ORDER BY timestamp DESC
+```
+
+
 ### Position Snapshot
 
 Snapshot of the pool users.
@@ -37,6 +57,10 @@ Snapshot of the pool users.
 | underlying_token_amount_usd     | The amount based on the user's share of the total underlying token, in USD.                                       | number |
 | total_fees_usd                  | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
 
+```SQL
+
+```
+
 ### Pool Snapshot
 
 TVL, fees, and incentives data at the pool level.
@@ -54,6 +78,12 @@ TVL, fees, and incentives data at the pool level.
 | underlying_token_amount_usd     | The amount of underlying tokens supplied in this pool, in USD.                                                    | number |
 | total_fees_usd                  | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
 
+
+```SQL
+
+```
+
+
 ### ERC LP Token Transfer Events
 
 All LP Token transfer events
@@ -70,6 +100,12 @@ All LP Token transfer events
 | pool_address     | The contract address of the pool LP token.                                                     | string |
 | amount           | The amount of token transacted, decimal normalized.                                            | number |
 | event_type       | The type of event, corresponds to the action taken by the user (ie, deposit, withdrawal).      | string |
+
+
+```SQL
+
+```
+
 
 ### Events
 
@@ -89,6 +125,12 @@ All user events (ie, Deposit, Withdrawal)
 | amount_usd               | The amount of token transacted, in USD.                                                        | number |
 | event_type               | The type of event, corresponds to the action taken by the user (ie, deposit, withdrawal).      | string |
 
+
+```SQL
+
+```
+
+
 ### Incentive Claim Data
 
 Transactional data on user level incentives claimed data.
@@ -106,4 +148,8 @@ Transactional data on user level incentives claimed data.
 | amount_usd            | The amount of claimed tokens in USD.                                                                 | number |
 | other_incentive_usd   | (Optional) Any incentives outside of the claimed token, in this transaction, summed up in USD terms. | number |
 
-> Note: This markdown file is auto-generated.
+
+```SQL
+
+```
+
