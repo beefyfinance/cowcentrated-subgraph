@@ -79,7 +79,7 @@ export function handleClmManagerInitialized(event: ClmManagerInitialized): void 
   // this is a test to know if that is the case
   const strategyContract = ClmStrategyContract.bind(strategyAddress)
   const strategyPoolRes = strategyContract.try_pool()
-  if (strategyAddressRes.reverted) {
+  if (strategyPoolRes.reverted) {
     log.error("handleClmManagerInitialized: Strategy pool reverted for CLM {}", [managerAddress.toHexString()])
     return
   }
@@ -160,6 +160,14 @@ function fetchInitialCLMDataAndSave(clm: CLM): void {
 
   const strategyAddress = Address.fromBytes(clm.strategy)
   const strategyContract = ClmStrategyContract.bind(strategyAddress)
+
+  const strategyPoolRes = strategyContract.try_pool()
+  if (strategyPoolRes.value) {
+    clm.underlyingProtocolPool = strategyPoolRes.value
+  } else {
+    log.error("fetchInitialCLMDataAndSave: Strategy pool reverted for CLM {}", [clm.id.toHexString()])
+  }
+
   const outputTokenRes = strategyContract.try_output()
   if (!outputTokenRes.reverted) {
     const outputTokenAddress = outputTokenRes.value
