@@ -4,7 +4,7 @@ import { getAndSaveTransaction } from "../common/entity/transaction"
 import { ClassicHarvestEvent } from "../../generated/schema"
 import { getEventIdentifier } from "../common/utils/event"
 import { getClassic, getClassicStrategy, hasClassicBeenRemoved, isClassicInitialized } from "./entity/classic"
-import { fetchClassicData } from "./utils/classic-data"
+import { fetchClassicData, updateClassicDataAndSnapshots } from "./utils/classic-data"
 
 export function handleClassicStrategyHarvest(event: HarvestEvent): void {
   _handleClassicStrategyHarvest(event, event.params.wantHarvested)
@@ -29,6 +29,7 @@ function _handleClassicStrategyHarvest(event: ethereum.Event, compoundedAmount: 
   ///////
   // fetch data on chain
   const classicData = fetchClassicData(classic)
+  updateClassicDataAndSnapshots(classic, classicData, event.block.timestamp)
 
   ///////
   // store the raw harvest event

@@ -35,5 +35,6 @@
   "beefySwapperAddress": "0x9C18deE5290925f596fbEfee2f6745b640f3A4C6",
   "beefyOracleAddress": "0x61129dCBd8944aB2D1C6792428603b0845f60c5B",
 
-  "onlyKeepClmClassicVaults": true
+  "onlyKeepClmClassicVaults": true,
+  "positionSnapshotEnabled": false
 }

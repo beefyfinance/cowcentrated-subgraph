@@ -1,5 +1,5 @@
 import { BigInt, log, ethereum, Address } from "@graphprotocol/graph-ts"
-import { CLM, Classic } from "../../../generated/schema"
+import { CLM, Classic, ClassicPosition } from "../../../generated/schema"
 import { ONE_BI, ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
 import {
   BEEFY_ORACLE_ADDRESS,
@@ -382,7 +382,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
   )
 }
 
-class ClassicData {
+export class ClassicData {
   constructor(
     public vaultSharesTotalSupply: BigInt,
     public vaultUnderlyingTotalSupply: BigInt,
