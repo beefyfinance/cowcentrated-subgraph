@@ -35,7 +35,7 @@ import {
   removeClassicAndDependencies,
 } from "./entity/classic"
 import { Classic } from "../../generated/schema"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { PRODUCT_LIFECYCLE_PAUSED, PRODUCT_LIFECYCLE_RUNNING } from "../common/entity/lifecycle"
 import { ADDRESS_ZERO } from "../common/utils/address"
@@ -45,8 +45,7 @@ import { fetchClassicUnderlyingCLM } from "./utils/classic-data"
 export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreated): void {
   const address = event.params.proxy
 
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   // test if we are creating a vault or a strategy
   const vaultContract = ClassicVaultContract.bind(address)
@@ -271,8 +270,7 @@ export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStra
   newStrategy.vault = classic.id
   newStrategy.classic = classic.id
   if (newStrategy.createdWith.equals(ADDRESS_ZERO)) {
-    const tx = getTransaction(event.block, event.transaction)
-    tx.save()
+    const tx = getAndSaveTransaction(event.block, event.transaction)
     newStrategy.createdWith = tx.id
   }
   newStrategy.save()

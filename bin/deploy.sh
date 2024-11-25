@@ -48,6 +48,12 @@ function publish_goldsky {
     goldsky subgraph deploy $SUBGRAPH/0.0.1 --path .
 }
 
+function publish_sentio {
+    SUBGRAPH=$1
+    echo "publishing $SUBGRAPH to sentio"
+    npx @sentio/cli graph deploy --name $SUBGRAPH
+}
+
 function publish {
     CHAIN=$1
     PROVIDER=$2
@@ -57,6 +63,9 @@ function publish {
             ;;
         "goldsky")
             publish_goldsky $CHAIN beefy-clm-$CHAIN-dev
+            ;;
+        "sentio")
+            publish_sentio beefy-clm-$CHAIN
             ;;
     esac
 }

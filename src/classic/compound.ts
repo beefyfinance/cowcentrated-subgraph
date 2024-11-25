@@ -1,6 +1,6 @@
 import { BigInt, ethereum, log } from "@graphprotocol/graph-ts"
 import { StratHarvest as HarvestEvent } from "../../generated/templates/ClassicStrategy/ClassicStrategy"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { ClassicHarvestEvent } from "../../generated/schema"
 import { getEventIdentifier } from "../common/utils/event"
 import { getClassic, getClassicStrategy, hasClassicBeenRemoved, isClassicInitialized } from "./entity/classic"
@@ -24,8 +24,7 @@ function _handleClassicStrategyHarvest(event: ethereum.Event, compoundedAmount: 
     return
   }
 
-  let tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  let tx = getAndSaveTransaction(event.block, event.transaction)
 
   ///////
   // fetch data on chain

@@ -6,7 +6,7 @@ import {
   ClaimedRewards as CLMClaimedRewardsEvent,
 } from "../../generated/templates/ClmStrategy/ClmStrategy"
 import { getClmStrategy, getCLM, isClmInitialized } from "./entity/clm"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { ClmHarvestEvent, ClmManagerCollectionEvent } from "../../generated/schema"
 import { ZERO_BI } from "../common/utils/decimal"
 import { getEventIdentifier } from "../common/utils/event"
@@ -47,8 +47,7 @@ function handleClmStrategyHarvest(
     return
   }
 
-  let tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  let tx = getAndSaveTransaction(event.block, event.transaction)
 
   ///////
   // fetch data on chain
@@ -116,8 +115,7 @@ function handleClmStrategyFees(
     return
   }
 
-  let tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  let tx = getAndSaveTransaction(event.block, event.transaction)
 
   ///////
   // fetch data on chain

@@ -9,7 +9,7 @@ import {
   Transfer as RewardPoolTransferEvent,
   RewardPaid as RewardPoolRewardPaidEvent,
 } from "../../generated/templates/ClmRewardPool/RewardPool"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
 import { Classic, ClassicPositionInteraction } from "../../generated/schema"
 import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
@@ -271,8 +271,7 @@ function updateUserPosition(
   const investor = getInvestor(investorAddress)
   const position = getClassicPosition(classic, investor)
 
-  let tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  let tx = getAndSaveTransaction(event.block, event.transaction)
 
   ///////
   // fetch data on chain and update clm
