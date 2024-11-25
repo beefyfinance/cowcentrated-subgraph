@@ -7,13 +7,12 @@ import {
 import { getClmRewardPool, getCLM, isClmInitialized } from "./entity/clm"
 import { getAndSaveTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
-import { getClmPosition, getClmPositionSnapshot } from "./entity/position"
+import { getClmPosition } from "./entity/position"
 import { CLM, ClmPositionInteraction, ClmRewardPool } from "../../generated/schema"
-import { BURN_ADDRESS, POSITION_SNAPSHOT_ENABLED, SHARE_TOKEN_MINT_ADDRESS } from "../config"
+import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
 import { ZERO_BI } from "../common/utils/decimal"
 import { fetchCLMData, updateCLMDataAndSnapshots } from "./utils/clm-data"
 import { getEventIdentifier } from "../common/utils/event"
-import { CLM_SNAPSHOT_PERIODS } from "./utils/snapshot"
 import { updateClmPositionSnapshotsIfEnabled } from "./utils/position-snapshot"
 
 export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
