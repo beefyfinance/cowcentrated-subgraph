@@ -1,6 +1,6 @@
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 
-export const NETWORK_NAME = "{{network}}"
+export const NETWORK_NAME = ""{{{network}}}""
 export const WNATIVE_TOKEN_ADDRESS = Address.fromString("{{wrappedNativeAddress}}")
 export const WNATIVE_DECIMALS = BigInt.fromU32({{wrappedNativeDecimals}})
 export const PRICE_ORACLE_TYPE: string = "{{priceOracleType}}"
