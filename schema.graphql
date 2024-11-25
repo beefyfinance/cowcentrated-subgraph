@@ -457,6 +457,53 @@ type ClassicPositionInteraction @entity(immutable: true) {
   nativeToUSDPrice: BigInt!
 }
 
+"""
+A snapshot of an investor's Classic position stats.
+Any event that happens to the position is recorded in a snapshot.
+We keep multiple snapshots time frames as noted by the "period" field.
+Snapshots include: daily, weekly, yearly.
+"""
+type ClassicPositionSnapshot @entity {
+  "ClassicPosition.id + period + timestamp"
+  id: Bytes!
+
+  "The Classic position the snapshot is for"
+  position: ClassicPosition!
+
+  """
+  Duration of the snapshot period in seconds.
+  Available periods:
+  - 1 day: 86400
+  - 1 week: 604800
+  - 1 year: 31536000
+  """
+  period: BigInt!
+  "Timestamp the snapshot was initiated at, rounded to period"
+  roundedTimestamp: BigInt!
+  "Actual timestamp snapshot was initiated at"
+  timestamp: BigInt!
+
+  "The amount of vault shares the investor holds directly"
+  vaultBalance: BigInt!
+  "The amount of vault shares the investor holds in a boost"
+  boostBalance: BigInt!
+  "Amount of reward pool shares the investor holds. Ordered by clm.rewardPoolTokensOrder."
+  rewardPoolBalances: [BigInt!]!
+  "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance."
+  totalBalance: BigInt!
+
+  "LP token price in native at the time of snapshot. Expressed with 18 decimals."
+  underlyingToNativePrice: BigInt!
+  "Breakdown token prices in native at the time of snapshot. Ordered by classic.underlyingBreakdownTokensOrder. Expressed with 18 decimals."
+  underlyingBreakdownToNativePrices: [BigInt!]!
+  "Boost token prices in native at the time of snapshot. Ordered by classic.boostRewardTokensOrder. Expressed with 18 decimals."
+  boostRewardToNativePrices: [BigInt!]!
+  "Reward token prices in native at the time of snapshot. Ordered by classic.rewardTokensOrder. Expressed with 18 decimals."
+  rewardToNativePrices: [BigInt!]!
+  "Native token price at the time of snapshot. Expressed with 18 decimals."
+  nativeToUSDPrice: BigInt!
+}
+
 #######################
 ##### CLM Contracts ###
 #######################
@@ -879,5 +926,50 @@ type ClmPositionInteraction @entity(immutable: true) {
   "Reward token prices in native at the time of the interaction. Expressed with 18 decimals. Ordered by clm.rewardTokensOrder."
   rewardToNativePrices: [BigInt!]!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
+  nativeToUSDPrice: BigInt!
+}
+
+"""
+A snapshot of an investor's CLM position stats.
+Any event that happens to the position is recorded in a snapshot.
+We keep multiple snapshots time frames as noted by the "period" field.
+Snapshots include: daily, weekly, yearly.
+"""
+type ClmPositionSnapshot @entity {
+  "ClmPosition.id + period + timestamp"
+  id: Bytes!
+
+  "The CLM position the snapshot is for"
+  position: ClmPosition!
+
+  """
+  Duration of the snapshot period in seconds.
+  Available periods:
+  - 1 day: 86400
+  - 1 week: 604800
+  - 1 year: 31536000
+  """
+  period: BigInt!
+  "Timestamp the snapshot was initiated at, rounded to period"
+  roundedTimestamp: BigInt!
+  "Actual timestamp snapshot was initiated at"
+  timestamp: BigInt!
+
+  "The amount of manager shares the investor holds"
+  managerBalance: BigInt!
+  "Amount of reward pool shares the investor holds. Ordered by clm.rewardPoolTokensOrder."
+  rewardPoolBalances: [BigInt!]!
+  "Total amount of CLM shares the investor holds. Should always equal to managerBalance + rewardPoolBalance."
+  totalBalance: BigInt!
+
+  "Token 0 price in native at the time of snapshot. Expressed with 18 decimals."
+  token0ToNativePrice: BigInt!
+  "Token 1 price in native at the time of snapshot. Expressed with 18 decimals."
+  token1ToNativePrice: BigInt!
+  "Output token prices in native at the time of snapshot. Ordered by clm.outputTokensOrder. Expressed with 18 decimals."
+  outputToNativePrices: [BigInt!]!
+  "Reward token prices in native at the time of snapshot. Ordered by clm.rewardTokensOrder. Expressed with 18 decimals."
+  rewardToNativePrices: [BigInt!]!
+  "Native token price at the time of snapshot. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }

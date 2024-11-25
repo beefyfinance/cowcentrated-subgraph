@@ -22,10 +22,7 @@ export function updateClassicDataOnClockTick(tick: ClockTick): void {
       continue
     }
 
-    // speed up the process by skipping vaults on non-reward pools
-    if (isClmRewardPool(classic.underlyingToken) || isClmManager(classic.underlyingToken)) {
-      const classicData = fetchClassicData(classic)
-      updateClassicDataAndSnapshots(classic, classicData, tick.timestamp)
-    }
+    const classicData = fetchClassicData(classic)
+    updateClassicDataAndSnapshots(classic, classicData, tick.timestamp)
   }
 }

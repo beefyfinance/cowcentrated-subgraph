@@ -52,6 +52,7 @@ function handleClmStrategyHarvest(
   ///////
   // fetch data on chain
   const clmData = fetchCLMData(clm)
+  updateCLMDataAndSnapshots(clm, clmData, event.block.timestamp)
 
   ///////
   // store the raw harvest event
@@ -121,6 +122,7 @@ function handleClmStrategyFees(
   ///////
   // fetch data on chain
   const clmData = fetchCLMData(clm)
+  updateCLMDataAndSnapshots(clm, clmData, event.block.timestamp)
 
   ///////
   // store the raw collect event
@@ -146,8 +148,4 @@ function handleClmStrategyFees(
   collect.rewardToNativePrices = clmData.rewardToNativePrices
   collect.nativeToUSDPrice = clmData.nativeToUSDPrice
   collect.save()
-
-  ///////
-  // update clm entity
-  updateCLMDataAndSnapshots(clm, clmData, event.block.timestamp)
 }
