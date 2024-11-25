@@ -178,6 +178,9 @@ type Classic @entity {
   "All positions in the Classic"
   positions: [ClassicPosition!]! @derivedFrom(field: "classic")
 
+  "All snapshots of the Classic's positions"
+  positionSnapshots: [ClassicPositionSnapshot!]! @derivedFrom(field: "classic")
+
   "All harvest events of the Classic"
   harvests: [ClassicHarvestEvent!]! @derivedFrom(field: "classic")
 
@@ -372,6 +375,9 @@ type ClassicPosition @entity {
 
   "All investor position interactions"
   interactions: [ClassicPositionInteraction!]! @derivedFrom(field: "investorPosition")
+
+  "All snapshots of the investor position"
+  snapshots: [ClassicPositionSnapshot!]! @derivedFrom(field: "position")
 }
 
 enum ClassicPositionInteractionType {
@@ -467,6 +473,8 @@ type ClassicPositionSnapshot @entity {
   "ClassicPosition.id + period + timestamp"
   id: Bytes!
 
+  "The Classic the snapshot is for"
+  classic: Classic!
   "The Classic position the snapshot is for"
   position: ClassicPosition!
 
@@ -594,6 +602,9 @@ type CLM @entity {
 
   "All positions in the CLM"
   positions: [ClmPosition!]! @derivedFrom(field: "clm")
+
+  "All snapshots of the CLM's positions"
+  positionSnapshots: [ClmPositionSnapshot!]! @derivedFrom(field: "clm")
 
   "All collections events by the CLM"
   collections: [ClmManagerCollectionEvent!]! @derivedFrom(field: "clm")
@@ -850,6 +861,9 @@ type ClmPosition @entity {
   "Total amount of CLM shares the investor holds. Should always equal to managerBalance + rewardPoolBalance. This is mostly used for filtering."
   totalBalance: BigInt!
 
+  "All snapshots of the investor position"
+  snapshots: [ClmPositionSnapshot!]! @derivedFrom(field: "position")
+
   "All investor position interactions"
   interactions: [ClmPositionInteraction!]! @derivedFrom(field: "investorPosition")
 }
@@ -939,6 +953,8 @@ type ClmPositionSnapshot @entity {
   "ClmPosition.id + period + timestamp"
   id: Bytes!
 
+  "The CLM the snapshot is for"
+  clm: CLM!
   "The CLM position the snapshot is for"
   position: ClmPosition!
 

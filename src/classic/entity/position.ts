@@ -42,6 +42,7 @@ export function getClassicPositionSnapshot(
   let snapshot = ClassicPositionSnapshot.load(snapshotId)
   if (!snapshot) {
     snapshot = new ClassicPositionSnapshot(snapshotId)
+    snapshot.classic = position.classic
     snapshot.position = position.id
 
     snapshot.period = period

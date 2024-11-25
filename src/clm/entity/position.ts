@@ -37,6 +37,7 @@ export function getClmPositionSnapshot(position: ClmPosition, timestamp: BigInt,
   let snapshot = ClmPositionSnapshot.load(snapshotId)
   if (!snapshot) {
     snapshot = new ClmPositionSnapshot(snapshotId)
+    snapshot.clm = position.clm
     snapshot.position = position.id
 
     snapshot.period = period
