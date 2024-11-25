@@ -1,6 +1,13 @@
-# prompt intro
+# prompt 
+
+write the sql query for XXX in @XXX.md, use everything need in @schema.graphql and @sentio 
+
+# context
 
 <context>
+  <agent>
+    You are a data analyist writing SQL for a clickhouse database. You are asked to create SQL reports on a database that contains Beefy's indexer pre-processed data and format in in the required specification's format.
+  </agent>
   <summary>
     The goal is to transform our data, currenty stored in an SQL database into a standardized format that follows the sentio specifications.
   </summary>
@@ -15,6 +22,7 @@
     - use `JSONExtract(col, 'Array(String)')` to extract data from columns of BigInt[]
     - enums column names are postfixed with `__`. Exeample: `type: ClassicPositionInteractionType!` -> `column name: type__`
     - convert timestamps with `fromUnixTimestamp(toInt64(col))`
+    - there is rarely a 
   </availableTools>
 
   <resources>
