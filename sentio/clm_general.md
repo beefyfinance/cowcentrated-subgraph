@@ -280,7 +280,6 @@ Generic table at a user and transaction level
 | transaction_fee     | The total amount of gas used in the transactions occurring in the given snapshot (in the native gas amount).                                                           | number    |
 | transaction_fee_usd | (Optional, if possible) The total amount of gas used in USD terms in the given snapshot.                                                                               | number    |
 
-
 ```SQL
 SELECT
     -- Timestamp and date fields
@@ -294,7 +293,7 @@ SELECT
     i.createdWith as transaction_hash,
     i.logIndex as log_index,
     -- Event name mapping
-    CASE 
+    CASE
         WHEN i.type__ = 'MANAGER_DEPOSIT' THEN 'deposit'
         WHEN i.type__ = 'MANAGER_WITHDRAW' THEN 'withdraw'
         WHEN i.type__ = 'CLM_REWARD_POOL_STAKE' THEN 'stake'

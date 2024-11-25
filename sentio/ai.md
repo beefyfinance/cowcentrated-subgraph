@@ -1,6 +1,4 @@
-
 # prompt intro
-
 
 <context>
   <summary>
@@ -28,4 +26,3 @@
     - Schema: @schema.graphql
   </resources>
 </context>
-
