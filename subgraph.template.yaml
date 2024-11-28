@@ -359,7 +359,7 @@ templates:
       abis: *abis
       eventHandlers:
         - event: StratHarvest(indexed address,uint256,uint256)
-          handler: handleClassicStrategyHarvest
+          handler: handleClassicStrategyHarvest0
 
   - name: ClassicStrategyStratHarvest1
     kind: ethereum/contract
@@ -375,7 +375,7 @@ templates:
       abis: *abis
       eventHandlers:
         - event: StratHarvest(indexed address,indexed uint256,indexed uint256)
-          handler: handleClassicStrategyHarvestAllIndexed
+          handler: handleClassicStrategyHarvest1
 
   - name: ClassicBoost
     kind: ethereum/contract

@@ -1,16 +1,17 @@
 import { BigInt, ethereum, log } from "@graphprotocol/graph-ts"
-import { StratHarvest as HarvestEvent, StratHarvest1 as HarvestEvent1 } from "../../generated/templates/ClassicStrategy/ClassicStrategy"
+import { StratHarvest as HarvestEvent0 } from "../../generated/templates/ClassicStrategy/ClassicStrategyStratHarvest0"
+import { StratHarvest as HarvestEvent1 } from "../../generated/templates/ClassicStrategy/ClassicStrategyStratHarvest1"
 import { getAndSaveTransaction } from "../common/entity/transaction"
 import { ClassicHarvestEvent } from "../../generated/schema"
 import { getEventIdentifier } from "../common/utils/event"
 import { getClassic, getClassicStrategy, hasClassicBeenRemoved, isClassicInitialized } from "./entity/classic"
 import { fetchClassicData, updateClassicDataAndSnapshots } from "./utils/classic-data"
 
-export function handleClassicStrategyHarvestAllIndexed(event: HarvestEvent1): void {
+export function handleClassicStrategyHarvest0(event: HarvestEvent0): void {
   _handleClassicStrategyHarvest(event, event.params.wantHarvested)
 }
 
-export function handleClassicStrategyHarvest(event: HarvestEvent): void {
+export function handleClassicStrategyHarvest1(event: HarvestEvent1): void {
   _handleClassicStrategyHarvest(event, event.params.wantHarvested)
 }
 
