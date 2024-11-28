@@ -31,3 +31,9 @@ export const ONLY_KEEP_CLM_CLASSIC_VAULTS = {{onlyKeepClmClassicVaults}}
 // set to true to enable position snapshots, this will increase db size significantly
 // but makes tracking user positions over time way simpler
 export const POSITION_SNAPSHOT_ENABLED = {{positionSnapshotEnabled}}
+
+export const CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES: Address[] = [
+{{#classicStratHarvest1ForAddresses}}
+  Address.fromString("{{.}}"),
+{{/classicStratHarvest1ForAddresses}}
+];
