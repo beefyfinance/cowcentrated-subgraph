@@ -34,6 +34,8 @@
 
   "beefySwapperAddress": "0x07f1ad98b725Af45485646aC431b7757f50C598A",
   "beefyOracleAddress": "0x2AfB174c22D9eE334895C4e300ab93154d800aA0",
+  
+  "classicStratHarvest1ForAddresses": [],
 
   "onlyKeepClmClassicVaults": true,
   "positionSnapshotEnabled": false

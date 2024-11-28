@@ -55,6 +55,10 @@ dataSources:
           file: ./abis/beefy/classic/ClassicStrategyFactory.json
         - name: ClassicStrategy
           file: ./abis/beefy/classic/ClassicStrategy.json
+        - name: ClassicStrategyStratHarvest0
+          file: ./abis/beefy/classic/ClassicStrategyStratHarvest0.json
+        - name: ClassicStrategyStratHarvest1
+          file: ./abis/beefy/classic/ClassicStrategyStratHarvest1.json
         - name: ClassicBoostFactory
           file: ./abis/beefy/classic/ClassicBoostFactory.json
         - name: ClassicBoost
@@ -340,8 +344,36 @@ templates:
           handler: handleClassicStrategyPaused
         - event: Unpaused(address)
           handler: handleClassicStrategyUnpaused
+
+  - name: ClassicStrategyStratHarvest0
+    kind: ethereum/contract
+    network: "{{{network}}}"
+    source:
+      abi: ClassicStrategyStratHarvest0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/strategy.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
         - event: StratHarvest(indexed address,uint256,uint256)
           handler: handleClassicStrategyHarvest
+
+  - name: ClassicStrategyStratHarvest1
+    kind: ethereum/contract
+    network: "{{{network}}}"
+    source:
+      abi: ClassicStrategyStratHarvest1
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/strategy.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
         - event: StratHarvest(indexed address,indexed uint256,indexed uint256)
           handler: handleClassicStrategyHarvestAllIndexed
 

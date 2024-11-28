@@ -23,6 +23,8 @@ import {
 import {
   ClassicVault as ClassicVaultTemplate,
   ClassicStrategy as ClassicStrategyTemplate,
+  ClassicStrategyStratHarvest0 as ClassicStrategyStratHarvest0Template,
+  ClassicStrategyStratHarvest1 as ClassicStrategyStratHarvest1Template,
   ClassicBoost as ClassicBoostTemplate,
 } from "../../generated/templates"
 import {
@@ -41,7 +43,7 @@ import { PRODUCT_LIFECYCLE_PAUSED, PRODUCT_LIFECYCLE_RUNNING } from "../common/e
 import { ADDRESS_ZERO } from "../common/utils/address"
 import { isClmManager, isClmRewardPool } from "../clm/entity/clm"
 import { fetchClassicUnderlyingCLM } from "./utils/classic-data"
-import { ONLY_KEEP_CLM_CLASSIC_VAULTS } from "../config"
+import { CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES, ONLY_KEEP_CLM_CLASSIC_VAULTS } from "../config"
 
 export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreated): void {
   const address = event.params.proxy
@@ -76,6 +78,15 @@ export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreate
     strategy.save()
 
     ClassicStrategyTemplate.create(address)
+    for (let i = 0; i < CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES.length; i++) {
+      const harvest1ForAddress = CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES[i]
+      if (harvest1ForAddress.equals(address)) {
+        ClassicStrategyStratHarvest1Template.create(address)
+      } else {
+        // most common case
+        ClassicStrategyStratHarvest0Template.create(address)
+      }
+    }
   }
 }
 
