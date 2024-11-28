@@ -38,20 +38,24 @@ function _handleClassicStrategyHarvest(event: ethereum.Event, compoundedAmount: 
 
   ///////
   // store the raw harvest event
-  let harvest = new ClassicHarvestEvent(getEventIdentifier(event))
-  harvest.classic = classic.id
-  harvest.strategy = strategy.id
-  harvest.createdWith = tx.id
-  harvest.blockNumber = event.block.number
-  harvest.logIndex = event.logIndex
-  harvest.timestamp = event.block.timestamp
-  harvest.underlyingAmount = classicData.underlyingAmount
-  harvest.compoundedAmount = compoundedAmount
-  harvest.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
-  harvest.rewardPoolsTotalSupply = classicData.rewardPoolsTotalSupply
-  harvest.underlyingToNativePrice = classicData.underlyingToNativePrice
-  harvest.boostRewardToNativePrices = classicData.boostRewardToNativePrices
-  harvest.rewardToNativePrices = classicData.rewardToNativePrices
-  harvest.nativeToUSDPrice = classicData.nativeToUSDPrice
-  harvest.save()
+  let eventId = getEventIdentifier(event)
+  let harvest = ClassicHarvestEvent.load(eventId)
+  if (!harvest) {
+    harvest = new ClassicHarvestEvent(eventId)
+    harvest.classic = classic.id
+    harvest.strategy = strategy.id
+    harvest.createdWith = tx.id
+    harvest.blockNumber = event.block.number
+    harvest.logIndex = event.logIndex
+    harvest.timestamp = event.block.timestamp
+    harvest.underlyingAmount = classicData.underlyingAmount
+    harvest.compoundedAmount = compoundedAmount
+    harvest.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
+    harvest.rewardPoolsTotalSupply = classicData.rewardPoolsTotalSupply
+    harvest.underlyingToNativePrice = classicData.underlyingToNativePrice
+    harvest.boostRewardToNativePrices = classicData.boostRewardToNativePrices
+    harvest.rewardToNativePrices = classicData.rewardToNativePrices
+    harvest.nativeToUSDPrice = classicData.nativeToUSDPrice
+    harvest.save()
+  }
 }

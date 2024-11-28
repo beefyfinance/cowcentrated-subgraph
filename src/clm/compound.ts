@@ -56,26 +56,30 @@ function handleClmStrategyHarvest(
 
   ///////
   // store the raw harvest event
-  let harvest = new ClmHarvestEvent(getEventIdentifier(event))
-  harvest.clm = clm.id
-  harvest.strategy = strategy.id
-  harvest.createdWith = tx.id
-  harvest.blockNumber = event.block.number
-  harvest.logIndex = event.logIndex
-  harvest.timestamp = event.block.timestamp
-  harvest.underlyingAmount0 = clmData.totalUnderlyingAmount0
-  harvest.underlyingAmount1 = clmData.totalUnderlyingAmount1
-  harvest.compoundedAmount0 = compoundedAmount0
-  harvest.compoundedAmount1 = compoundedAmount1
-  harvest.collectedOutputAmounts = collectedOutputAmounts
-  harvest.managerTotalSupply = clmData.managerTotalSupply
-  harvest.rewardPoolsTotalSupply = clmData.rewardPoolsTotalSupply
-  harvest.token0ToNativePrice = clmData.token0ToNativePrice
-  harvest.token1ToNativePrice = clmData.token1ToNativePrice
-  harvest.outputToNativePrices = clmData.outputToNativePrices
-  harvest.rewardToNativePrices = clmData.rewardToNativePrices
-  harvest.nativeToUSDPrice = clmData.nativeToUSDPrice
-  harvest.save()
+  let eventId = getEventIdentifier(event)
+  let harvest = ClmHarvestEvent.load(eventId)
+  if (!harvest) {
+    harvest = new ClmHarvestEvent(eventId)
+    harvest.clm = clm.id
+    harvest.strategy = strategy.id
+    harvest.createdWith = tx.id
+    harvest.blockNumber = event.block.number
+    harvest.logIndex = event.logIndex
+    harvest.timestamp = event.block.timestamp
+    harvest.underlyingAmount0 = clmData.totalUnderlyingAmount0
+    harvest.underlyingAmount1 = clmData.totalUnderlyingAmount1
+    harvest.compoundedAmount0 = compoundedAmount0
+    harvest.compoundedAmount1 = compoundedAmount1
+    harvest.collectedOutputAmounts = collectedOutputAmounts
+    harvest.managerTotalSupply = clmData.managerTotalSupply
+    harvest.rewardPoolsTotalSupply = clmData.rewardPoolsTotalSupply
+    harvest.token0ToNativePrice = clmData.token0ToNativePrice
+    harvest.token1ToNativePrice = clmData.token1ToNativePrice
+    harvest.outputToNativePrices = clmData.outputToNativePrices
+    harvest.rewardToNativePrices = clmData.rewardToNativePrices
+    harvest.nativeToUSDPrice = clmData.nativeToUSDPrice
+    harvest.save()
+  }
 }
 
 export function handleClmStrategyClaimedFees(event: CLMClaimedFeesEvent): void {
@@ -126,26 +130,30 @@ function handleClmStrategyFees(
 
   ///////
   // store the raw collect event
-  let collect = new ClmManagerCollectionEvent(getEventIdentifier(event))
-  collect.clm = clm.id
-  collect.strategy = strategy.id
-  collect.createdWith = tx.id
-  collect.blockNumber = event.block.number
-  collect.logIndex = event.logIndex
-  collect.timestamp = event.block.timestamp
-  collect.underlyingMainAmount0 = clmData.token0PositionMainBalance
-  collect.underlyingMainAmount1 = clmData.token1PositionMainBalance
-  collect.underlyingAltAmount0 = clmData.token0PositionAltBalance
-  collect.underlyingAltAmount1 = clmData.token1PositionAltBalance
-  collect.underlyingAmount0 = clmData.totalUnderlyingAmount0
-  collect.underlyingAmount1 = clmData.totalUnderlyingAmount1
-  collect.collectedAmount0 = collectedAmount0
-  collect.collectedAmount1 = collectedAmount1
-  collect.collectedOutputAmounts = collectedOutputAmounts
-  collect.token0ToNativePrice = clmData.token0ToNativePrice
-  collect.token1ToNativePrice = clmData.token1ToNativePrice
-  collect.outputToNativePrices = clmData.outputToNativePrices
-  collect.rewardToNativePrices = clmData.rewardToNativePrices
-  collect.nativeToUSDPrice = clmData.nativeToUSDPrice
-  collect.save()
+  let eventId = getEventIdentifier(event)
+  let collect = ClmManagerCollectionEvent.load(eventId)
+  if (!collect) {
+    collect = new ClmManagerCollectionEvent(eventId)
+    collect.clm = clm.id
+    collect.strategy = strategy.id
+    collect.createdWith = tx.id
+    collect.blockNumber = event.block.number
+    collect.logIndex = event.logIndex
+    collect.timestamp = event.block.timestamp
+    collect.underlyingMainAmount0 = clmData.token0PositionMainBalance
+    collect.underlyingMainAmount1 = clmData.token1PositionMainBalance
+    collect.underlyingAltAmount0 = clmData.token0PositionAltBalance
+    collect.underlyingAltAmount1 = clmData.token1PositionAltBalance
+    collect.underlyingAmount0 = clmData.totalUnderlyingAmount0
+    collect.underlyingAmount1 = clmData.totalUnderlyingAmount1
+    collect.collectedAmount0 = collectedAmount0
+    collect.collectedAmount1 = collectedAmount1
+    collect.collectedOutputAmounts = collectedOutputAmounts
+    collect.token0ToNativePrice = clmData.token0ToNativePrice
+    collect.token1ToNativePrice = clmData.token1ToNativePrice
+    collect.outputToNativePrices = clmData.outputToNativePrices
+    collect.rewardToNativePrices = clmData.rewardToNativePrices
+    collect.nativeToUSDPrice = clmData.nativeToUSDPrice
+    collect.save()
+  }
 }
