@@ -34,7 +34,8 @@
   "beefyOracleAddress": "0x1BfA205114678c7d17b97DB7A71819D3E6718eb4",
 
   "classicStratHarvest1ForAddresses": [
-    "0x6f6890eac431cbce2e8eaba31744e749e6341180"
+    "0x6f6890eac431cbce2e8eaba31744e749e6341180",
+    "0x4352a383757b556a53460860f172ccea23773a99"
   ],
 
   "onlyKeepClmClassicVaults": false,
