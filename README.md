@@ -41,7 +41,7 @@ yarn install
 ## Running a local instance of graph-node locally
 
 ```bash
-yarn infra:strat
+yarn infra:start
 ```
 
 ## Deploying the subgraph locally
