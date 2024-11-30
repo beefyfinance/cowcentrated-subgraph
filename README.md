@@ -59,7 +59,6 @@ yarn deploy-local # deploy the subgraph locally
 
 ```bash
 yarn test # run all tests
-yarn test:graph # run only matchstick-as graph tests
 yarn test:lint # run prettier linter
 ```
 

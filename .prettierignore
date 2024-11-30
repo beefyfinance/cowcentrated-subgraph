@@ -1,3 +1,5 @@
 subgraph.template.yaml
 src/config.template.ts
 tests/.latest.json
+.prettierignore
+yarn.lock
