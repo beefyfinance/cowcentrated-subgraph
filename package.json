@@ -38,7 +38,7 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@graphprotocol/graph-cli": "^0.90.0",
+    "@graphprotocol/graph-cli": "^0.90.1",
     "@graphprotocol/graph-ts": "^0.35.1",
     "assemblyscript-prettier": "^3.0.1",
     "husky": "^9.0.11",
@@ -50,7 +50,7 @@
     "typescript": "^5.3.3"
   },
   "lint-staged": {
-    "*.*": "prettier --write"
+    "*.{ts,js,json,yaml,yml,md,graphql}": "prettier --write"
   },
   "packageManager": "yarn@1.22.22"
 }
