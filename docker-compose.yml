@@ -1,4 +1,3 @@
-version: "3"
 services:
   postgres:
     image: postgres:14
@@ -42,6 +41,8 @@ services:
 
   graph-node:
     image: graphprotocol/graph-node
+    # Note, this image is not supported by M1 machines, see here for a workaround:
+    # https://github.com/graphprotocol/graph-node/tree/master/docker#running-graph-node-on-an-macbook-m1
     ports:
       - "8000:8000"
       - "8001:8001"
