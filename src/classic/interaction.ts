@@ -9,7 +9,7 @@ import {
   Transfer as RewardPoolTransferEvent,
   RewardPaid as RewardPoolRewardPaidEvent,
 } from "../../generated/templates/ClmRewardPool/RewardPool"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
 import { Classic, ClassicPositionInteraction } from "../../generated/schema"
 import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
@@ -24,6 +24,7 @@ import {
 } from "./entity/classic"
 import { getClassicPosition } from "./entity/position"
 import { fetchClassicData, updateClassicDataAndSnapshots } from "./utils/classic-data"
+import { updateClassicPositionSnapshotsIfEnabled } from "./utils/position-snapshot"
 
 export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
   // sending to self
@@ -68,7 +69,7 @@ export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
     !event.params.from.equals(vaultAddress) &&
     !isRewardPoolFrom
   ) {
-    updateUserPosition(classic, event, event.params.from, event.params.value.neg(), ZERO_BI, [], [], [])
+    updateUserPositionAndSnapshots(classic, event, event.params.from, event.params.value.neg(), ZERO_BI, [], [], [])
   }
 
   if (
@@ -77,7 +78,7 @@ export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
     !event.params.to.equals(vaultAddress) &&
     !isRewardPoolTo
   ) {
-    updateUserPosition(classic, event, event.params.to, event.params.value, ZERO_BI, [], [], [])
+    updateUserPositionAndSnapshots(classic, event, event.params.to, event.params.value, ZERO_BI, [], [], [])
   }
 }
 
@@ -97,7 +98,7 @@ export function handleClassicBoostStaked(event: ClassicBoostStaked): void {
   const investorAddress = event.params.user
   const amount = event.params.amount
 
-  updateUserPosition(classic, event, investorAddress, ZERO_BI, amount, [], [], [])
+  updateUserPositionAndSnapshots(classic, event, investorAddress, ZERO_BI, amount, [], [], [])
 }
 
 export function handleClassicBoostWithdrawn(event: ClassicBoostWithdrawn): void {
@@ -116,7 +117,7 @@ export function handleClassicBoostWithdrawn(event: ClassicBoostWithdrawn): void 
   const investorAddress = event.params.user
   const amount = event.params.amount
 
-  updateUserPosition(classic, event, investorAddress, ZERO_BI, amount.neg(), [], [], [])
+  updateUserPositionAndSnapshots(classic, event, investorAddress, ZERO_BI, amount.neg(), [], [], [])
 }
 
 export function handleClassicBoostRewardPaid(event: ClassicBoostRewardPaid): void {
@@ -146,7 +147,7 @@ export function handleClassicBoostRewardPaid(event: ClassicBoostRewardPaid): voi
     }
   }
 
-  updateUserPosition(classic, event, investorAddress, ZERO_BI, ZERO_BI, boostRewardBalancesDelta, [], [])
+  updateUserPositionAndSnapshots(classic, event, investorAddress, ZERO_BI, ZERO_BI, boostRewardBalancesDelta, [], [])
 }
 
 export function handleClassicRewardPoolTransfer(event: RewardPoolTransferEvent): void {
@@ -203,7 +204,7 @@ export function handleClassicRewardPoolTransfer(event: RewardPoolTransferEvent):
     !event.params.to.equals(vaultAddress) &&
     !isRewardPoolTo
   ) {
-    updateUserPosition(classic, event, event.params.to, ZERO_BI, ZERO_BI, [], rewardPoolBalancesDelta, [])
+    updateUserPositionAndSnapshots(classic, event, event.params.to, ZERO_BI, ZERO_BI, [], rewardPoolBalancesDelta, [])
   }
 
   if (
@@ -216,7 +217,16 @@ export function handleClassicRewardPoolTransfer(event: RewardPoolTransferEvent):
     for (let i = 0; i < rewardPoolBalancesDelta.length; i++) {
       negRewardPoolBalancesDelta.push(rewardPoolBalancesDelta[i].neg())
     }
-    updateUserPosition(classic, event, event.params.from, ZERO_BI, ZERO_BI, [], negRewardPoolBalancesDelta, [])
+    updateUserPositionAndSnapshots(
+      classic,
+      event,
+      event.params.from,
+      ZERO_BI,
+      ZERO_BI,
+      [],
+      negRewardPoolBalancesDelta,
+      [],
+    )
   }
 }
 
@@ -246,10 +256,10 @@ export function handleClassicRewardPoolRewardPaid(event: RewardPoolRewardPaidEve
     }
   }
 
-  updateUserPosition(classic, event, event.params.user, ZERO_BI, ZERO_BI, [], [], rewardBalancesDelta)
+  updateUserPositionAndSnapshots(classic, event, event.params.user, ZERO_BI, ZERO_BI, [], [], rewardBalancesDelta)
 }
 
-function updateUserPosition(
+function updateUserPositionAndSnapshots(
   classic: Classic,
   event: ethereum.Event,
   investorAddress: Address,
@@ -271,8 +281,7 @@ function updateUserPosition(
   const investor = getInvestor(investorAddress)
   const position = getClassicPosition(classic, investor)
 
-  let tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  let tx = getAndSaveTransaction(event.block, event.transaction)
 
   ///////
   // fetch data on chain and update clm
@@ -341,6 +350,7 @@ function updateUserPosition(
   interaction.investorPosition = position.id
   interaction.createdWith = event.transaction.hash
   interaction.blockNumber = event.block.number
+  interaction.logIndex = event.logIndex
   interaction.timestamp = event.block.timestamp
   if (isSharesTransfer) {
     interaction.type = vaultBalanceDelta.gt(ZERO_BI) ? "VAULT_DEPOSIT" : "VAULT_WITHDRAW"
@@ -375,4 +385,7 @@ function updateUserPosition(
   interaction.rewardToNativePrices = classicData.rewardToNativePrices
   interaction.nativeToUSDPrice = classicData.nativeToUSDPrice
   interaction.save()
+
+  // update position snapshot
+  updateClassicPositionSnapshotsIfEnabled(classic, classicData, position, event.block.timestamp)
 }

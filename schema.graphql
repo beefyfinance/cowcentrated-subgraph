@@ -68,10 +68,25 @@ type ClockTick @entity(immutable: true) {
 type Investor @entity {
   "The investor address"
   id: Bytes!
+
   "All investor beefy positions"
   positions: [ClmPosition!]! @derivedFrom(field: "investor")
   "All investor interactions"
   interactions: [ClmPositionInteraction!]! @derivedFrom(field: "investor")
+
+  "All investor classic positions"
+  classicPositions: [ClassicPosition!]! @derivedFrom(field: "investor")
+  "All investor classic snapshots"
+  classicSnapshots: [ClassicPositionSnapshot!]! @derivedFrom(field: "investor")
+  "All investor classic interactions"
+  classicInteractions: [ClassicPositionInteraction!]! @derivedFrom(field: "investor")
+
+  "All investor clm positions"
+  clmPositions: [ClmPosition!]! @derivedFrom(field: "investor")
+  "All investor clm snapshots"
+  clmSnapshots: [ClmPositionSnapshot!]! @derivedFrom(field: "investor")
+  "All investor clm interactions"
+  clmInteractions: [ClmPositionInteraction!]! @derivedFrom(field: "investor")
 }
 
 """
@@ -177,6 +192,9 @@ type Classic @entity {
 
   "All positions in the Classic"
   positions: [ClassicPosition!]! @derivedFrom(field: "classic")
+
+  "All snapshots of the Classic's positions"
+  positionSnapshots: [ClassicPositionSnapshot!]! @derivedFrom(field: "classic")
 
   "All harvest events of the Classic"
   harvests: [ClassicHarvestEvent!]! @derivedFrom(field: "classic")
@@ -320,10 +338,10 @@ type ClassicHarvestEvent @entity(immutable: true) {
 
   "The transaction that created the harvest event"
   createdWith: Transaction!
-
   "The event log index in the transaction that created the harvest event."
   logIndex: BigInt!
-
+  "The block number of the harvest event"
+  blockNumber: BigInt!
   "The timestamp of the harvest event so you can sort by time"
   timestamp: BigInt!
 
@@ -372,6 +390,9 @@ type ClassicPosition @entity {
 
   "All investor position interactions"
   interactions: [ClassicPositionInteraction!]! @derivedFrom(field: "investorPosition")
+
+  "All snapshots of the investor position"
+  snapshots: [ClassicPositionSnapshot!]! @derivedFrom(field: "investorPosition")
 }
 
 enum ClassicPositionInteractionType {
@@ -406,7 +427,8 @@ type ClassicPositionInteraction @entity(immutable: true) {
 
   "The transaction that created the investor position interaction"
   createdWith: Transaction!
-
+  "The event log index in the transaction that created the interaction."
+  logIndex: BigInt!
   "Block number of the interaction"
   blockNumber: BigInt!
   "The timestamp of the interaction"
@@ -456,6 +478,57 @@ type ClassicPositionInteraction @entity(immutable: true) {
   nativeToUSDPrice: BigInt!
 }
 
+"""
+A snapshot of an investor's Classic position stats.
+Any event that happens to the position is recorded in a snapshot.
+We keep multiple snapshots time frames as noted by the "period" field.
+Snapshots include: daily, weekly, yearly.
+"""
+type ClassicPositionSnapshot @entity {
+  "ClassicPosition.id + period + timestamp"
+  id: Bytes!
+
+  "The Classic the snapshot is for"
+  classic: Classic!
+  "The investor that has a position in the Classic"
+  investor: Investor!
+  "The investor position the snapshot is for"
+  investorPosition: ClassicPosition!
+
+  """
+  Duration of the snapshot period in seconds.
+  Available periods:
+  - 1 day: 86400
+  - 1 week: 604800
+  - 1 year: 31536000
+  """
+  period: BigInt!
+  "Timestamp the snapshot was initiated at, rounded to period"
+  roundedTimestamp: BigInt!
+  "Actual timestamp snapshot was initiated at"
+  timestamp: BigInt!
+
+  "The amount of vault shares the investor holds directly"
+  vaultBalance: BigInt!
+  "The amount of vault shares the investor holds in a boost"
+  boostBalance: BigInt!
+  "Amount of reward pool shares the investor holds. Ordered by clm.rewardPoolTokensOrder."
+  rewardPoolBalances: [BigInt!]!
+  "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance."
+  totalBalance: BigInt!
+
+  "LP token price in native at the time of snapshot. Expressed with 18 decimals."
+  underlyingToNativePrice: BigInt!
+  "Breakdown token prices in native at the time of snapshot. Ordered by classic.underlyingBreakdownTokensOrder. Expressed with 18 decimals."
+  underlyingBreakdownToNativePrices: [BigInt!]!
+  "Boost token prices in native at the time of snapshot. Ordered by classic.boostRewardTokensOrder. Expressed with 18 decimals."
+  boostRewardToNativePrices: [BigInt!]!
+  "Reward token prices in native at the time of snapshot. Ordered by classic.rewardTokensOrder. Expressed with 18 decimals."
+  rewardToNativePrices: [BigInt!]!
+  "Native token price at the time of snapshot. Expressed with 18 decimals."
+  nativeToUSDPrice: BigInt!
+}
+
 #######################
 ##### CLM Contracts ###
 #######################
@@ -470,6 +543,8 @@ type CLM @entity {
   manager: ClmManager!
   "The strategy of the CLM. The strategy is responsible for managing the CLM's assets."
   strategy: ClmStrategy!
+  "The underlying protocol pool contract address where liquidity is deposited"
+  underlyingProtocolPool: Bytes!
   """
   The reward pool of the CLM.
   The reward pool is where the CLM's earnings are sent if the ClmManager does not automatically compound.
@@ -546,6 +621,9 @@ type CLM @entity {
 
   "All positions in the CLM"
   positions: [ClmPosition!]! @derivedFrom(field: "clm")
+
+  "All snapshots of the CLM's positions"
+  positionSnapshots: [ClmPositionSnapshot!]! @derivedFrom(field: "clm")
 
   "All collections events by the CLM"
   collections: [ClmManagerCollectionEvent!]! @derivedFrom(field: "clm")
@@ -692,10 +770,10 @@ type ClmHarvestEvent @entity(immutable: true) {
 
   "The transaction that created the harvest event"
   createdWith: Transaction!
-
+  "The block number of the harvest event"
+  blockNumber: BigInt!
   "The event log index in the transaction that created the harvest event."
   logIndex: BigInt!
-
   "The timestamp of the harvest event so you can sort by time"
   timestamp: BigInt!
 
@@ -742,10 +820,10 @@ type ClmManagerCollectionEvent @entity(immutable: true) {
 
   "The transaction that created the collect event"
   createdWith: Transaction!
-
+  "The block number of the collection event"
+  blockNumber: BigInt!
   "The event log index in the transaction that created the collection event."
   logIndex: BigInt!
-
   "The timestamp of the collect event so you can sort by time"
   timestamp: BigInt!
 
@@ -804,6 +882,9 @@ type ClmPosition @entity {
 
   "All investor position interactions"
   interactions: [ClmPositionInteraction!]! @derivedFrom(field: "investorPosition")
+
+  "All snapshots of the investor position"
+  snapshots: [ClmPositionSnapshot!]! @derivedFrom(field: "investorPosition")
 }
 
 enum ClmPositionInteractionType {
@@ -832,9 +913,10 @@ type ClmPositionInteraction @entity(immutable: true) {
 
   "The transaction that created the investor position interaction"
   createdWith: Transaction!
-
   "Block number of the interaction"
   blockNumber: BigInt!
+  "The event log index in the transaction that created the interaction."
+  logIndex: BigInt!
   "The timestamp of the interaction"
   timestamp: BigInt!
 
@@ -877,5 +959,58 @@ type ClmPositionInteraction @entity(immutable: true) {
   "Reward token prices in native at the time of the interaction. Expressed with 18 decimals. Ordered by clm.rewardTokensOrder."
   rewardToNativePrices: [BigInt!]!
   "Native token price at the time of the interaction. Expressed with 18 decimals."
+  nativeToUSDPrice: BigInt!
+}
+
+"""
+A snapshot of an investor's CLM position stats.
+Any event that happens to the position is recorded in a snapshot.
+We keep multiple snapshots time frames as noted by the "period" field.
+Snapshots include: daily, weekly, yearly.
+"""
+type ClmPositionSnapshot @entity {
+  "ClmPosition.id + period + timestamp"
+  id: Bytes!
+
+  "The CLM the investor has a position in"
+  clm: CLM!
+  "The investor that has a position in the CLM"
+  investor: Investor!
+  "The investor position the interaction is for"
+  investorPosition: ClmPosition!
+
+  """
+  Duration of the snapshot period in seconds.
+  Available periods:
+  - 1 day: 86400
+  - 1 week: 604800
+  - 1 year: 31536000
+  """
+  period: BigInt!
+  "Timestamp the snapshot was initiated at, rounded to period"
+  roundedTimestamp: BigInt!
+  "Actual timestamp snapshot was initiated at"
+  timestamp: BigInt!
+
+  "The amount of manager shares the investor holds"
+  managerBalance: BigInt!
+  "Amount of reward pool shares the investor holds. Ordered by clm.rewardPoolTokensOrder."
+  rewardPoolBalances: [BigInt!]!
+  "Total amount of CLM shares the investor holds. Should always equal to managerBalance + rewardPoolBalance."
+  totalBalance: BigInt!
+  "The amount of first underlying tokens the investor is entitled to at the time of snapshot"
+  underlyingBalance0: BigInt!
+  "The amount of second underlying tokens the investor is entitled to at the time of snapshot"
+  underlyingBalance1: BigInt!
+
+  "Token 0 price in native at the time of snapshot. Expressed with 18 decimals."
+  token0ToNativePrice: BigInt!
+  "Token 1 price in native at the time of snapshot. Expressed with 18 decimals."
+  token1ToNativePrice: BigInt!
+  "Output token prices in native at the time of snapshot. Ordered by clm.outputTokensOrder. Expressed with 18 decimals."
+  outputToNativePrices: [BigInt!]!
+  "Reward token prices in native at the time of snapshot. Ordered by clm.rewardTokensOrder. Expressed with 18 decimals."
+  rewardToNativePrices: [BigInt!]!
+  "Native token price at the time of snapshot. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
 }

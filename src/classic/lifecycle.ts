@@ -19,6 +19,8 @@ import {
 import {
   ClassicVault as ClassicVaultTemplate,
   ClassicStrategy as ClassicStrategyTemplate,
+  ClassicStrategyStratHarvest0 as ClassicStrategyStratHarvest0Template,
+  ClassicStrategyStratHarvest1 as ClassicStrategyStratHarvest1Template,
   ClassicBoost as ClassicBoostTemplate,
 } from "../../generated/templates"
 import {
@@ -31,18 +33,18 @@ import {
   removeClassicAndDependencies,
 } from "./entity/classic"
 import { Classic } from "../../generated/schema"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { PRODUCT_LIFECYCLE_PAUSED, PRODUCT_LIFECYCLE_RUNNING } from "../common/entity/lifecycle"
 import { ADDRESS_ZERO } from "../common/utils/address"
 import { isClmManager, isClmRewardPool } from "../clm/entity/clm"
 import { fetchClassicUnderlyingCLM } from "./utils/classic-data"
+import { CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES, ONLY_KEEP_CLM_CLASSIC_VAULTS } from "../config"
 
 export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreated): void {
   const address = event.params.proxy
 
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   // test if we are creating a vault or a strategy
   const vaultContract = ClassicVaultContract.bind(address)
@@ -72,6 +74,15 @@ export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreate
     strategy.save()
 
     ClassicStrategyTemplate.create(address)
+    for (let i = 0; i < CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES.length; i++) {
+      const harvest1ForAddress = CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES[i]
+      if (harvest1ForAddress.equals(address)) {
+        ClassicStrategyStratHarvest1Template.create(address)
+      } else {
+        // most common case
+        ClassicStrategyStratHarvest0Template.create(address)
+      }
+    }
   }
 }
 
@@ -154,7 +165,7 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
   const underlyingTokenAddress = underlyingTokenAddressRes.value
 
   const isClmUnderlying = isClmRewardPool(underlyingTokenAddress) || isClmManager(underlyingTokenAddress)
-  if (!isClmUnderlying) {
+  if (!isClmUnderlying && ONLY_KEEP_CLM_CLASSIC_VAULTS) {
     log.info("Underlying token address is not related to clm, removing: {}", [underlyingTokenAddress.toHexString()])
     removeClassicAndDependencies(classic)
     return
@@ -170,8 +181,10 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
 
   const clm = fetchClassicUnderlyingCLM(classic)
   if (clm == null) {
-    log.error("Failed to fetch CLM data for Classic: {}", [classic.id.toHexString()])
-    removeClassicAndDependencies(classic)
+    if (ONLY_KEEP_CLM_CLASSIC_VAULTS) {
+      log.error("Failed to fetch CLM data for Classic: {}", [classic.id.toHexString()])
+      removeClassicAndDependencies(classic)
+    }
     return
   }
   classic.underlyingBreakdownTokens = [clm.underlyingToken0, clm.underlyingToken1]
@@ -245,8 +258,7 @@ export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStra
   newStrategy.vault = classic.id
   newStrategy.classic = classic.id
   if (newStrategy.createdWith.equals(ADDRESS_ZERO)) {
-    const tx = getTransaction(event.block, event.transaction)
-    tx.save()
+    const tx = getAndSaveTransaction(event.block, event.transaction)
     newStrategy.createdWith = tx.id
   }
   newStrategy.save()
