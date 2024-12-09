@@ -28,6 +28,7 @@ jobs:
           - "rootstock"
           - "scroll"
           - "mode"
+          - "lisk"
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}

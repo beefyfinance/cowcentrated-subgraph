@@ -1,0 +1,35 @@
+{
+  "network": "lisk",
+
+  "multicall3Address": "0xcA11bde05977b3631167028862bE2a173976CA11",
+  "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
+  "burnAddress": "0x000000000000000000000000000000000000dead",
+
+  "clmManagerFactoryAddress": "0x3C0b1765C379833b86A1704997019A7496Afdfae",
+  "clmManagerFactoryStartBlock": 9252397,
+  "clmStrategyFactoryAddress": "0x7cac900B2f504047b40F5554F633248f78bD960A",
+  "clmStrategyFactoryStartBlock": 9252416,
+  "rewardPoolFactoryAddress": "0xA5Cd8A60a05571141370D184e255777e5c2d5968",
+  "rewardPoolFactoryStartBlock": 9252403,
+  "beefyClassicVaultFactoryAddress": "0xBC4a342B0c057501E081484A2d24e576E854F823",
+  "beefyClassicVaultFactoryStartBlock": 8910851,
+  "beefyClassicBoostFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "beefyClassicBoostFactoryStartBlock": 8910851,
+  "clockTickBlocks": 120,
+
+  "wrappedNativeAddress": "0x4200000000000000000000000000000000000006",
+  "wrappedNativeDecimals": 18,
+
+  "priceOracleType": "chainlink",
+  "chainlinkNativePriceFeedAddress": "0x6b7AB4213c77A671Fc7AEe8eB23C9961fDdaB3b2",
+  "chainlinkNativePriceFeedDecimals": 8,
+  "pythPriceFeedAddress": "0x0000000000000000000000000000000000000000",
+  "pythNativePriceId": "0x53614f1cb0c031d4af66c04cb9c756234adad0e1cee85303795091499a4084eb",
+  "umbrellaRegistryAddress": "0x0000000000000000000000000000000000000000",
+  "umbrellaRegistryPriceFeedName": "WRBTC-rUSDT",
+  "umbrellaRegistryPriceFeedNameBytes32": "0xd2a0ad2667ba45a57ce6a98d6f51a4a4d256d704f578b3b90d7ee12e2f6af854",
+  "umbrellaRegistryPriceFeedDecimals": 8,
+
+  "beefySwapperAddress": "0x448a3539a591dE3Fb9D5AAE407471D21d40cD315",
+  "beefyOracleAddress": "0x07f1ad98b725Af45485646aC431b7757f50C598A"
+}
