@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "prepare": "husky",
-    "postinstall": "yarn run --silent prepare:arbitrum && yarn run --silent codegen",
+    "postinstall": "yarn run --silent configure arbitrum && yarn run --silent codegen",
     "codegen": "rm -Rf generated && graph codegen",
     "build": "graph build",
     "format": "prettier . --write",
@@ -15,23 +15,7 @@
     "create-local": "graph create beefyfinance/beefy-cl --node http://127.0.0.1:8020",
     "deploy-local": "graph deploy beefyfinance/beefy-cl --node http://127.0.0.1:8020 --ipfs http://localhost:5001",
     "remove-local": "graph remove beefyfinance/beefy-cl --node http://127.0.0.1:8020",
-    "prepare:arbitrum-beta": "./bin/prepare.sh arbitrum-beta",
-    "prepare:arbitrum": "./bin/prepare.sh arbitrum",
-    "prepare:base": "./bin/prepare.sh base",
-    "prepare:bsc": "./bin/prepare.sh bsc",
-    "prepare:linea": "./bin/prepare.sh linea",
-    "prepare:manta": "./bin/prepare.sh manta",
-    "prepare:moonbeam": "./bin/prepare.sh moonbeam",
-    "prepare:optimism": "./bin/prepare.sh optimism",
-    "prepare:polygon": "./bin/prepare.sh polygon",
-    "prepare:zksync": "./bin/prepare.sh zksync",
-    "prepare:mantle": "./bin/prepare.sh mantle",
-    "prepare:sei": "./bin/prepare.sh sei",
-    "prepare:avax": "./bin/prepare.sh avax",
-    "prepare:rootstock": "./bin/prepare.sh rootstock",
-    "prepare:scroll": "./bin/prepare.sh scroll",
-    "prepare:mode": "./bin/prepare.sh mode",
-    "prepare:lisk": "./bin/prepare.sh lisk"
+    "configure": "./bin/prepare.sh "
   },
   "main": "./bin/index.js",
   "bin": {

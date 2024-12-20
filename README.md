@@ -9,14 +9,21 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 ### Latest endpoints
 
 - [Arbitrum](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-arbitrum/latest/gn)
+- [Avax](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-avax/latest/gn)
 - [Base](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-base/latest/gn)
+- [Bsc](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-bsc/latest/gn)
 - [Linea](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-linea/latest/gn)
+- [Lisk](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-lisk/latest/gn)
 - [Manta](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-manta/latest/gn)
+- [Mantle](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-mantle/latest/gn)
+- [Mode](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-mode/latest/gn)
 - [Moonbeam](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-moonbeam/latest/gn)
 - [Optimism](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-optimism/latest/gn)
 - [Polygon](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-polygon/latest/gn)
-- [zkSync](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-zksync/latest/gn)
-- [mantle](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-mantle/latest/gn)
+- [Rootstock](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-rootstock/latest/gn)
+- [sei](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-sei/latest/gn)
+- [Sonic](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-sonic/latest/gn)
+- [ZkSync](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-zksync/latest/gn)
 
 ### Historical endpoints
 
@@ -29,8 +36,6 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 - Git: [git-scm.com](https://git-scm.com)
 - Node.js: [nodejs.org](https://nodejs.org), see version in [.nvmrc](.nvmrc)
 - Yarn: [yarnpkg.com](https://yarnpkg.com)
-- Docker: [docker.com](https://www.docker.com)
-- Docker Compose: [docker.com](https://docs.docker.com/compose/install/)
 
 ## Setup the project
 
@@ -38,21 +43,12 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 yarn install
 ```
 
-## Running a local instance of graph-node locally
+## Building the subgraph locally
 
 ```bash
-yarn infra:start
-```
-
-## Deploying the subgraph locally
-
-```bash
-yarn remove-local # if you have already deployed the subgraph
-yarn create-local # create the subgraph locally
-yarn prepare:<network> # apply configuration for the network
+yarn configure <network> # apply configuration for the network
 yarn codegen # generate the typescript types
 yarn build # build the subgraph code
-yarn deploy-local # deploy the subgraph locally
 ```
 
 ## Run tests
@@ -78,14 +74,13 @@ yarn test:lint # run prettier linter
        - `"priceOracleType" : "pyth"`
        - Find the pyth contract address [on pyth's documentation](https://docs.pyth.network/price-feeds/contract-addresses/evm). Put the address in `pythPriceFeedAddress`.
        - Grab the `Crypto.<native>/USD` price feed ID [on pyth's documentation](https://pyth.network/developers/price-feed-ids). Put the ID in `pythPriceFeedId`.
-2. Add dev RPCs in graph-node config [docker/graph-node/config.toml](docker/graph-node/config.toml).
-3. Add a new `prepare:<network>` script in [package.json](package.json).
-4. Add the chain name in the Release script in [.github/workflows/Release.yml](.github/workflows/Release.yml).
-5. Release the first version of the subgraph for the new network using the [./bin/release.sh](./bin/release.sh) script.
+2. Add the chain name in the Release script in [.github/workflows/Release.yml](.github/workflows/Release.yml).
+3. Add the endpoint link to the [README](README.md) in alphabetical order.
+4. Release the first version of the subgraph for the new network using the [./bin/release.sh](./bin/release.sh) script.
    - Must be logged in to goldsky with the provided cli.
    - Only used to deploy the first version, see below for updating a subgraph.
-6. Tag the new version on Goldsky's UI as "latest" to create a stable endpoint.
-7. Add the endpoint link to the [README](README.md) in alphabetical order.
+
+When ready: 4. Tag the new version on Goldsky's UI as "latest" to create a stable endpoint.
 
 ### Release a new version of the subgraph
 

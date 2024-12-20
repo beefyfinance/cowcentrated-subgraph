@@ -14,14 +14,17 @@ function exit_help {
 
 function prepare {
     CHAIN=$1
-    echo "preparing $CHAIN"
-    yarn prepare:$CHAIN
-    yarn codegen
-    yarn build
 }
 
 function publish_0xgraph {
-    SUBGRAPH=$1
+    CHAIN=$1
+    SUBGRAPH=$2
+
+    echo "preparing $CHAIN"
+    yarn configure $CHAIN
+    yarn codegen
+    yarn build
+
     echo "publishing $SUBGRAPH to 0xgraph"
     yarn run graph remove $SUBGRAPH --node https://api.0xgraph.xyz/deploy
     sleep 5
@@ -31,7 +34,14 @@ function publish_0xgraph {
 }
 
 function publish_goldsky {
-    SUBGRAPH=$1
+    CHAIN=$1
+    SUBGRAPH=$2
+
+    echo "preparing $CHAIN"
+    yarn configure $CHAIN
+    yarn codegen
+    yarn build
+
     echo "publishing $SUBGRAPH to goldsky"
     goldsky subgraph delete $SUBGRAPH/0.0.1 
     sleep 10
@@ -43,10 +53,10 @@ function publish {
     PROVIDER=$2
     case $PROVIDER in
         "0xgraph")
-            publish_0xgraph beefyfinance/clm-$CHAIN
+            publish_0xgraph $CHAIN beefyfinance/clm-$CHAIN
             ;;
         "goldsky")
-            publish_goldsky beefy-clm-$CHAIN-dev
+            publish_goldsky $CHAIN beefy-clm-$CHAIN-dev
             ;;
     esac
 }
@@ -76,7 +86,6 @@ for provider in $providers; do
 done
 
 
-prepare $chain
 for provider in $providers; do
     publish $chain $provider
 done
