@@ -14,10 +14,6 @@ function exit_help {
 
 function publish_0xgraph {
     CHAIN=$1
-}
-
-function publish_0xgraph {
-    CHAIN=$1
     SUBGRAPH=$2
 
     echo "preparing $CHAIN"
@@ -59,6 +55,7 @@ function publish_sentio {
     echo "preparing $CHAIN"
     yarn configure $CHAIN
     yarn codegen
+    yarn build
     
     echo "publishing $SUBGRAPH to sentio"
     npx @sentio/cli graph deploy --owner $SENTIO_OWNER --name $SUBGRAPH

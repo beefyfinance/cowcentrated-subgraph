@@ -917,10 +917,10 @@
   resolved "https://registry.yarnpkg.com/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.27.4.tgz#67d516613c9f2fe42e2d8b78e252d0003179d92c"
   integrity sha512-3j4jx1TppORdTAoBJRd+/wJRGCPC0ETWkXOecJ6PPZLj6SptXkrXcNqdj0oclbKML6FkQltdz7bBA3rUSirZug==
 
-"@sentio/cli@^2.22.1":
-  version "2.22.1"
-  resolved "https://registry.yarnpkg.com/@sentio/cli/-/cli-2.22.1.tgz#080cb20e812373cf304a26bd1375ffa835810fc9"
-  integrity sha512-cFrqQSuloNW8RUiUUuKmPP27ZDRRxl+kOowmR7U+QaibW98qdKZaziQfHmbZ5f22gNMbu/ruJ1DKYS4wVE/nKQ==
+"@sentio/cli@^2.23.3":
+  version "2.23.3"
+  resolved "https://registry.yarnpkg.com/@sentio/cli/-/cli-2.23.3.tgz#d74799b21af9f54ee6ecdc5e078869fcab1af4b2"
+  integrity sha512-NrO4VnjXZW8Zgg+9QiPzE0X3MBfjzq804hihE/7XkEpuq4xt8SHThk4MY/dTmprbgkR9sdvpgaMycHgMZQFKlQ==
   dependencies:
     "@sentio/graph-cli" "^0.80.0-patch.1"
     dotenv "^16.4.5"
@@ -3537,6 +3537,11 @@ normalize-path@^3.0.0, normalize-path@~3.0.0:
   resolved "https://registry.yarnpkg.com/normalize-path/-/normalize-path-3.0.0.tgz#0dcd69ff23a1c9b11fd0978316644a0388216a65"
   integrity sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==
 
+npm-check-updates@^17.1.12:
+  version "17.1.12"
+  resolved "https://registry.yarnpkg.com/npm-check-updates/-/npm-check-updates-17.1.12.tgz#c0c8a10960e45852e03d1865f78844b065ab6e7a"
+  integrity sha512-j1+ln9wXDNLgTSMrEF9ja4KyYq4yBF8FuuU3irFtMSnss4pYjvYfQESz8CV82Rk1daXjbtaAWF9pZZKzujhoBA==
+
 npm-run-path@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/npm-run-path/-/npm-run-path-4.0.1.tgz#b7ecd1e5ed53da8e37a55e1c2269e0b97ed748ea"
@@ -4804,4 +4809,3 @@ yn@3.1.1:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/yn/-/yn-3.1.1.tgz#1e87401a09d767c1d5eab26a6e4c185182d2eb50"
   integrity sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==
-  
