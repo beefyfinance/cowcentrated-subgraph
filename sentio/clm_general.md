@@ -34,7 +34,7 @@ WITH token_ids AS (
 )
 SELECT
     interaction.timestamp,
-    42161 as chain_id,
+    146 as chain_id,
     hex(interaction.createdWith) as transaction_hash,
     interaction.logIndex as log_index,
     hex(tx.sender) as transaction_signer,
@@ -106,7 +106,7 @@ APR and APY data at the pool level.
 SELECT
     snapshot.timestamp,
     fromUnixTimestamp(toInt64(snapshot.roundedTimestamp)) as block_date,
-    42161 as chain_id,
+    146 as chain_id,
     'Lending' as protocol_type,
     clm.id as pool_address,
     managerToken.name as pool_name,
@@ -148,7 +148,7 @@ Protocol level snapshot focused on incentives and users.
 SELECT
     toStartOfDay(fromUnixTimestamp(toInt64(events.timestamp))) as block_date,
     max(events.timestamp) as timestamp,
-    42161 as chain_id,
+    146 as chain_id,
     count(DISTINCT user_address) as daily_active_users,
     count(*) as transaction_count,
     sum(fees_usd) as fees_usd
@@ -228,7 +228,7 @@ WITH position_snapshots AS (
 SELECT
     timestamp,
     block_date,
-    42161 as chain_id,
+    146 as chain_id,
     user_address,
     token_id as token_address,
     token_symbol,
@@ -286,7 +286,7 @@ SELECT
     i.timestamp,
     fromUnixTimestamp(toInt64(i.timestamp)) as block_date,
     -- Chain and block info
-    42161 as chain_id,
+    146 as chain_id,
     i.blockNumber as block_number,
     -- Transaction details
     tx.sender as signer_address,
@@ -336,7 +336,7 @@ Gas and transaction snapshot data at the user level.
 SELECT
     i.timestamp,
     fromUnixTimestamp(toInt64(i.timestamp)) as block_date,
-    42161 as chain_id,
+    146 as chain_id,
     i.investor as user_address,
     count(*) as transaction_count,
     0 as transaction_fees,      -- Placeholder since gas data isn't in schema
