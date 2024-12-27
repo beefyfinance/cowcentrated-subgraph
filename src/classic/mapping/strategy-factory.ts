@@ -1,0 +1,1 @@
+export { handleClassicStrategyCreated } from "../lifecycle"

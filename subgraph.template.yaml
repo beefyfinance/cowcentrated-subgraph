@@ -51,6 +51,8 @@ dataSources:
           file: ./abis/beefy/classic/ClassicVaultFactory.json
         - name: ClassicVault
           file: ./abis/beefy/classic/ClassicVault.json
+        - name: ClassicStrategyFactory
+          file: ./abis/beefy/classic/ClassicStrategyFactory.json
         - name: ClassicStrategy
           file: ./abis/beefy/classic/ClassicStrategy.json
         - name: ClassicBoostFactory
@@ -153,7 +155,25 @@ dataSources:
       eventHandlers:
         - event: ProxyCreated(address)
           handler: handleClassicVaultOrStrategyCreated
-          
+
+  - kind: ethereum/contract
+    name: ClassicStrategyFactory
+    network: {{network}}
+    source:
+      address: "{{beefyClassicStrategyFactoryAddress}}"
+      abi: ClassicStrategyFactory
+      startBlock: {{beefyClassicStrategyFactoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/strategy-factory.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
+        - event: ProxyCreated(string,address)
+          handler: handleClassicStrategyCreated
+
   - kind: ethereum/contract
     name: ClassicBoostFactory
     network: {{network}}

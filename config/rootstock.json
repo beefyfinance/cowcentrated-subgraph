@@ -13,6 +13,8 @@
   "rewardPoolFactoryStartBlock": 6741369,
   "beefyClassicVaultFactoryAddress": "0xe103ab2f922aa1a56EC058AbfDA2CeEa1e95bCd7",
   "beefyClassicVaultFactoryStartBlock": 6729703,
+  "beefyClassicStrategyFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "beefyClassicStrategyFactoryStartBlock": 6729703,
   "beefyClassicBoostFactoryAddress": "0x0000000000000000000000000000000000000000",
   "beefyClassicBoostFactoryStartBlock": 6729703,
   "clockTickBlocks": 8,

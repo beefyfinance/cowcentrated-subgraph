@@ -5,6 +5,10 @@ import {
   Initialized as ClassicVaultInitialized,
   UpgradeStrat as ClassicVaultUpgradeStrategy,
 } from "../../generated/ClassicVaultFactory/ClassicVault"
+import {
+  ProxyCreated as ClassicStrategyCreated,
+  ClassicStrategyFactory as ClassicStrategyFactoryContract,
+} from "../../generated/ClassicStrategyFactory/ClassicStrategyFactory"
 import { BoostDeployed as ClassicBoostDeployed } from "../../generated/ClassicBoostFactory/ClassicBoostFactory"
 import {
   Initialized as ClassicBoostInitialized,
@@ -59,6 +63,28 @@ export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreate
 
     ClassicVaultTemplate.create(address)
   }
+
+  const strategyContract = ClassicStrategyContract.bind(address)
+  const strategyVaultRes = strategyContract.try_vault()
+  if (strategyVaultRes.reverted) {
+    log.debug("`vault()` method does not exist on contract: {}. It's not a strategy", [address.toHexString()])
+  } else {
+    log.info("Creating Classic Strategy: {}", [address.toHexString()])
+    const strategy = getClassicStrategy(address)
+    strategy.isInitialized = false
+    strategy.createdWith = tx.id
+    strategy.save()
+
+    ClassicStrategyTemplate.create(address)
+  }
+}
+
+export function handleClassicStrategyCreated(event: ClassicStrategyCreated): void {
+  const address = event.params.proxy
+  log.info("Creating Classic Strategy: {}", [address.toHexString()])
+
+  const tx = getTransaction(event.block, event.transaction)
+  tx.save()
 
   const strategyContract = ClassicStrategyContract.bind(address)
   const strategyVaultRes = strategyContract.try_vault()
