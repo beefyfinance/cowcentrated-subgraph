@@ -1,5 +1,5 @@
 import { BigInt, log, ethereum, Address } from "@graphprotocol/graph-ts"
-import { CLM, Classic, ClassicPosition } from "../../../generated/schema"
+import { CLM, Classic } from "../../../generated/schema"
 import { ONE_BI, ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
 import {
   BEEFY_ORACLE_ADDRESS,
@@ -44,12 +44,14 @@ export function fetchClassicData(classic: Classic): ClassicData {
   const boostRewardTokenAddresses = classic.boostRewardTokensOrder
   const rewardTokenAddresses = classic.rewardTokensOrder
   const rewardPoolTokenAddresses = classic.rewardPoolTokensOrder
+  const underlyingTokenAddress = classic.underlyingToken
   const underlyingBreakdownTokenAddresses = classic.underlyingBreakdownTokensOrder
   const clm = fetchClassicUnderlyingCLM(classic)
 
   const calls = [
     new Multicall3Params(vaultAddress, "totalSupply()", "uint256"),
     new Multicall3Params(vaultAddress, "balance()", "uint256"),
+    new Multicall3Params(underlyingTokenAddress, "totalSupply()", "uint256"),
   ]
 
   if (clm) {
@@ -181,6 +183,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
   let idx = 0
   const vaultTotalSupplyRes = results[idx++]
   const underlyingTokenBalanceRes = results[idx++]
+  const underlyingTokenTotalSupplyRes = results[idx++]
   let clmManagerTotalSupplyRes: MulticallResult | null = null
   let clmManagerBalancesRes: MulticallResult | null = null
   if (clm) {
@@ -252,9 +255,15 @@ export function fetchClassicData(classic: Classic): ClassicData {
     log.error("Failed to fetch nativeToUSDPrice for Classic {}", [classic.id.toHexString()])
   }
 
+  let vaultUnderlyingTotalSupply = ZERO_BI
+  if (!underlyingTokenTotalSupplyRes.reverted) {
+    vaultUnderlyingTotalSupply = underlyingTokenTotalSupplyRes.value.toBigInt()
+  } else {
+    log.error("Failed to fetch vaultUnderlyingTotalSupply for Classic {}", [classic.id.toHexString()])
+  }
+
   let underlyingToNativePrice = ZERO_BI
   let vaultUnderlyingBreakdownBalances = new Array<BigInt>()
-  let vaultUnderlyingTotalSupply = ZERO_BI
   if (
     clm &&
     clm.managerTotalSupply.notEqual(ZERO_BI) &&
