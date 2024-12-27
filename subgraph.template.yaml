@@ -162,7 +162,7 @@ dataSources:
 
   - kind: ethereum/contract
     name: ClassicStrategyFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{beefyClassicStrategyFactoryAddress}}"
       abi: ClassicStrategyFactory

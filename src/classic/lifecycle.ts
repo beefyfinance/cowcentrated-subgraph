@@ -94,8 +94,7 @@ export function handleClassicStrategyCreated(event: ClassicStrategyCreated): voi
   const address = event.params.proxy
   log.info("Creating Classic Strategy: {}", [address.toHexString()])
 
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   const strategyContract = ClassicStrategyContract.bind(address)
   const strategyVaultRes = strategyContract.try_vault()
