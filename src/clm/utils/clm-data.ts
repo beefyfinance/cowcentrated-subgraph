@@ -46,6 +46,26 @@ export function fetchCLMData(clm: CLM): CLMData {
     calls.push(new Multicall3Params(rewardPoolTokenAddress, "totalSupply()", "uint256"))
   }
 
+  // warm up beefy swapper oracle
+  const tokensToRefresh = new Array<Address>()
+  tokensToRefresh.push(WNATIVE_TOKEN_ADDRESS)
+  tokensToRefresh.push(Address.fromBytes(clm.underlyingToken0))
+  tokensToRefresh.push(Address.fromBytes(clm.underlyingToken1))
+  for (let i = 0; i < outputTokenAddresses.length; i++) {
+    tokensToRefresh.push(Address.fromBytes(outputTokenAddresses[i]))
+  }
+  for (let i = 0; i < rewardTokenAddresses.length; i++) {
+    tokensToRefresh.push(Address.fromBytes(rewardTokenAddresses[i]))
+  }
+  for (let i = 0; i < tokensToRefresh.length; i++) {
+    const tokenAddress = tokensToRefresh[i]
+    calls.push(
+      new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
+        ethereum.Value.fromAddress(tokenAddress),
+      ]),
+    )
+  }
+
   // wnative price to usd
   if (PRICE_ORACLE_TYPE == "chainlink") {
     calls.push(
@@ -81,29 +101,15 @@ export function fetchCLMData(clm: CLM): CLMData {
         ethereum.Value.fromFixedBytes(UMBRELLA_REGISTRY_PRICE_FEED_NAME_BYTES_32),
       ]),
     )
+  } else if (PRICE_ORACLE_TYPE === "beefy") {
+    calls.push(
+      new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getPrice(address)", "uint256", [
+        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+      ]),
+    )
   } else {
     log.error("Unsupported price oracle type {}", [PRICE_ORACLE_TYPE])
     throw new Error("Unsupported price oracle type")
-  }
-
-  // warm up beefy swapper oracle
-  const tokensToRefresh = new Array<Address>()
-  tokensToRefresh.push(WNATIVE_TOKEN_ADDRESS)
-  tokensToRefresh.push(Address.fromBytes(clm.underlyingToken0))
-  tokensToRefresh.push(Address.fromBytes(clm.underlyingToken1))
-  for (let i = 0; i < outputTokenAddresses.length; i++) {
-    tokensToRefresh.push(Address.fromBytes(outputTokenAddresses[i]))
-  }
-  for (let i = 0; i < rewardTokenAddresses.length; i++) {
-    tokensToRefresh.push(Address.fromBytes(rewardTokenAddresses[i]))
-  }
-  for (let i = 0; i < tokensToRefresh.length; i++) {
-    const tokenAddress = tokensToRefresh[i]
-    calls.push(
-      new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getFreshPrice(address)", "(uint256,bool)", [
-        ethereum.Value.fromAddress(tokenAddress),
-      ]),
-    )
   }
 
   // underlying token 0/1 prices
@@ -162,10 +168,8 @@ export function fetchCLMData(clm: CLM): CLMData {
   for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
     rewardPoolsTotalSupplyRes.push(results[idx++])
   }
+  idx = idx + tokensToRefresh.length
   const priceFeedRes = results[idx++]
-  for (let i = 0; i < tokensToRefresh.length; i++) {
-    idx++
-  }
   const token0ToNativePriceRes = results[idx++]
   const token1ToNativePriceRes = results[idx++]
   const rewardTokenOutputAmountsRes = new Array<MulticallResult>()
@@ -283,6 +287,9 @@ export function fetchCLMData(clm: CLM): CLMData {
       const value = umbrellaAnswer[3].toBigInt()
 
       nativeToUSDPrice = changeValueEncoding(value, UMBRELLA_REGISTRY_PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD)
+    } else if (PRICE_ORACLE_TYPE === "beefy") {
+      const beefyAnswer = priceFeedRes.value.toBigInt()
+      nativeToUSDPrice = changeValueEncoding(beefyAnswer, WNATIVE_DECIMALS, PRICE_STORE_DECIMALS_USD)
     } else {
       log.error("Unsupported price oracle type {}", [PRICE_ORACLE_TYPE])
       throw new Error("Unsupported price oracle type")

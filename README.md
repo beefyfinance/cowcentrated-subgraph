@@ -74,6 +74,12 @@ yarn test:lint # run prettier linter
        - `"priceOracleType" : "pyth"`
        - Find the pyth contract address [on pyth's documentation](https://docs.pyth.network/price-feeds/contract-addresses/evm). Put the address in `pythPriceFeedAddress`.
        - Grab the `Crypto.<native>/USD` price feed ID [on pyth's documentation](https://pyth.network/developers/price-feed-ids). Put the ID in `pythPriceFeedId`.
+     - Use umbrella
+       - `"priceOracleType" : "umbrella"`
+       - Find the `umbrellaRegistryAddress` [on umbrella's documentation](https://umbrella-network.readme.io/docs/umb-token-contracts#contract-registry)
+     - Use beefy
+       - `"priceOracleType" : "beefy"`
+       - define `"beefyOracleAddress"` based [on the beefy's addressbook](https://github.com/beefyfinance/beefy-api/blob/master/packages/address-book/src/address-book/sonic/platforms/beefyfinance.ts#L34C17-L34C59)
 2. Add the chain name in the Release script in [.github/workflows/Release.yml](.github/workflows/Release.yml).
 3. Add the endpoint link to the [README](README.md) in alphabetical order.
 4. Release the first version of the subgraph for the new network using the [./bin/release.sh](./bin/release.sh) script.

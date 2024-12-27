@@ -62,46 +62,6 @@ export function fetchClassicData(classic: Classic): ClassicData {
     calls.push(new Multicall3Params(rewardPoolTokenAddress, "totalSupply()", "uint256"))
   }
 
-  if (PRICE_ORACLE_TYPE == "chainlink") {
-    calls.push(
-      new Multicall3Params(
-        CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
-        "latestRoundData()",
-        "(uint80,int256,uint256,uint256,uint80)",
-      ),
-    )
-  } else if (PRICE_ORACLE_TYPE === "pyth") {
-    calls.push(
-      new Multicall3Params(PYTH_PRICE_FEED_ADDRESS, "getPriceUnsafe(bytes32)", "(int64,uint64,int32,uint256)", [
-        ethereum.Value.fromFixedBytes(PYTH_NATIVE_PRICE_ID),
-      ]),
-    )
-  } else if (PRICE_ORACLE_TYPE === "umbrella") {
-    // get the price feeds contract address
-
-    const res = multicall([
-      new Multicall3Params(UMBRELLA_REGISTRY_ADDRESS, "getAddress(bytes32)", "address", [
-        ethereum.Value.fromFixedBytes(UMBRELLA_REGISTRY_FEED_KEY_BYTES_32),
-      ]),
-    ])
-
-    const feedsContractAddressRes = res[0]
-    if (feedsContractAddressRes.reverted) {
-      log.error("Failed to fetch feedsContractAddress for Classic {}", [classic.id.toHexString()])
-      throw new Error("Failed to fetch feedsContractAddress for Classic")
-    }
-    const feedsContractAddress = feedsContractAddressRes.value.toAddress()
-
-    calls.push(
-      new Multicall3Params(feedsContractAddress, "getPriceData(bytes32)", "(uint8,uint24,uint32,uint128)", [
-        ethereum.Value.fromFixedBytes(UMBRELLA_REGISTRY_PRICE_FEED_NAME_BYTES_32),
-      ]),
-    )
-  } else {
-    log.error("Unsupported price oracle type {}", [PRICE_ORACLE_TYPE])
-    throw new Error("Unsupported price oracle type")
-  }
-
   const tokensToRefresh = new Array<Address>()
   tokensToRefresh.push(WNATIVE_TOKEN_ADDRESS)
   for (let i = 0; i < boostRewardTokenAddresses.length; i++) {
@@ -124,6 +84,51 @@ export function fetchClassicData(classic: Classic): ClassicData {
         ethereum.Value.fromAddress(tokensToRefresh[i]),
       ]),
     )
+  }
+
+  if (PRICE_ORACLE_TYPE == "chainlink") {
+    calls.push(
+      new Multicall3Params(
+        CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
+        "latestRoundData()",
+        "(uint80,int256,uint256,uint256,uint80)",
+      ),
+    )
+  } else if (PRICE_ORACLE_TYPE === "pyth") {
+    calls.push(
+      new Multicall3Params(PYTH_PRICE_FEED_ADDRESS, "getPriceUnsafe(bytes32)", "(int64,uint64,int32,uint256)", [
+        ethereum.Value.fromFixedBytes(PYTH_NATIVE_PRICE_ID),
+      ]),
+    )
+  } else if (PRICE_ORACLE_TYPE === "umbrella") {
+    // get the price feeds contract address
+    const res = multicall([
+      new Multicall3Params(UMBRELLA_REGISTRY_ADDRESS, "getAddress(bytes32)", "address", [
+        ethereum.Value.fromFixedBytes(UMBRELLA_REGISTRY_FEED_KEY_BYTES_32),
+      ]),
+    ])
+
+    const feedsContractAddressRes = res[0]
+    if (feedsContractAddressRes.reverted) {
+      log.error("Failed to fetch feedsContractAddress for Classic {}", [classic.id.toHexString()])
+      throw new Error("Failed to fetch feedsContractAddress for Classic")
+    }
+    const feedsContractAddress = feedsContractAddressRes.value.toAddress()
+
+    calls.push(
+      new Multicall3Params(feedsContractAddress, "getPriceData(bytes32)", "(uint8,uint24,uint32,uint128)", [
+        ethereum.Value.fromFixedBytes(UMBRELLA_REGISTRY_PRICE_FEED_NAME_BYTES_32),
+      ]),
+    )
+  } else if (PRICE_ORACLE_TYPE === "beefy") {
+    calls.push(
+      new Multicall3Params(BEEFY_ORACLE_ADDRESS, "getPrice(address)", "uint256", [
+        ethereum.Value.fromAddress(WNATIVE_TOKEN_ADDRESS),
+      ]),
+    )
+  } else {
+    log.error("Unsupported price oracle type {}", [PRICE_ORACLE_TYPE])
+    throw new Error("Unsupported price oracle type")
   }
 
   for (let i = 0; i < boostRewardTokenAddresses.length; i++) {
@@ -186,10 +191,8 @@ export function fetchClassicData(classic: Classic): ClassicData {
   for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
     rewardPoolsTotalSupplyRes.push(results[idx++])
   }
+  idx = idx + tokensToRefresh.length
   const priceFeedRes = results[idx++]
-  for (let i = 0; i < tokensToRefresh.length; i++) {
-    idx++
-  }
   const boostRewardTokenOutputAmountsRes = new Array<MulticallResult>()
   for (let i = 0; i < boostRewardTokenAddresses.length; i++) {
     boostRewardTokenOutputAmountsRes.push(results[idx++])
@@ -238,6 +241,9 @@ export function fetchClassicData(classic: Classic): ClassicData {
       const umbrellaAnswer = priceFeedRes.value.toTuple()
       const value = umbrellaAnswer[3].toBigInt()
       nativeToUSDPrice = changeValueEncoding(value, UMBRELLA_REGISTRY_PRICE_FEED_DECIMALS, PRICE_STORE_DECIMALS_USD)
+    } else if (PRICE_ORACLE_TYPE === "beefy") {
+      const beefyAnswer = priceFeedRes.value.toBigInt()
+      nativeToUSDPrice = changeValueEncoding(beefyAnswer, WNATIVE_DECIMALS, PRICE_STORE_DECIMALS_USD)
     } else {
       log.error("Unsupported price oracle type {}", [PRICE_ORACLE_TYPE])
       throw new Error("Unsupported price oracle type")
