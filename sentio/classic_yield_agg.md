@@ -77,13 +77,13 @@ WITH data_res AS (
         classic.underlyingToken as underlying_token_address,
         0 as underlying_token_index,
         -- Calculate underlying token amount using share ratio
-        (toDecimal256(snapshot.vaultBalance, 18) / pow(10, t_underlying.decimals)) *
-        (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18))
+        (toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)) *
+        (toDecimal256(snapshot.vaultUnderlyingTotalSupply, 18) / toDecimal256(snapshot.vaultSharesTotalSupply, 18))
         as underlying_token_amount,
         -- Calculate USD value
         (
-            (toDecimal256(snapshot.vaultBalance, 18) / pow(10, t_underlying.decimals)) *
-            (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18))
+            (toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)) *
+            (toDecimal256(snapshot.vaultUnderlyingTotalSupply, 18) / toDecimal256(snapshot.vaultSharesTotalSupply, 18))
         ) *
         (toDecimal256(snapshot.underlyingToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18))
@@ -91,6 +91,7 @@ WITH data_res AS (
         0 as total_fees_usd
     FROM ClassicPositionSnapshot snapshot
     JOIN Classic classic ON snapshot.classic = classic.id
+    JOIN Token t_share ON classic.vaultSharesToken = t_share.id
     JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
 )
 select *
@@ -125,10 +126,10 @@ WITH data_res AS (
         0 as underlying_token_index,
         classic.id as pool_address,
         -- Calculate total underlying token amount
-        toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / pow(10, t_underlying.decimals)
+        toDecimal256(snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
         as underlying_token_amount,
         -- Calculate USD value using price conversion
-        (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / pow(10, t_underlying.decimals)) *
+        (toDecimal256(snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)) *
         (toDecimal256(snapshot.underlyingToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18))
         as underlying_token_amount_usd,

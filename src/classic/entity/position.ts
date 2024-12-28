@@ -55,6 +55,10 @@ export function getClassicPositionSnapshot(
     snapshot.rewardPoolBalances = []
     snapshot.totalBalance = ZERO_BI
 
+    snapshot.vaultSharesTotalSupply = ZERO_BI
+    snapshot.vaultUnderlyingTotalSupply = ZERO_BI
+    snapshot.vaultUnderlyingBreakdownBalances = []
+
     snapshot.underlyingToNativePrice = ZERO_BI
     snapshot.underlyingBreakdownToNativePrices = []
     snapshot.boostRewardToNativePrices = []
@@ -69,6 +73,9 @@ export function getClassicPositionSnapshot(
       snapshot.boostBalance = previousSnapshot.boostBalance
       snapshot.rewardPoolBalances = previousSnapshot.rewardPoolBalances
       snapshot.totalBalance = previousSnapshot.totalBalance
+      snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
+      snapshot.vaultUnderlyingTotalSupply = previousSnapshot.vaultUnderlyingTotalSupply
+      snapshot.vaultUnderlyingBreakdownBalances = previousSnapshot.vaultUnderlyingBreakdownBalances
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
       snapshot.underlyingBreakdownToNativePrices = previousSnapshot.underlyingBreakdownToNativePrices
       snapshot.boostRewardToNativePrices = previousSnapshot.boostRewardToNativePrices

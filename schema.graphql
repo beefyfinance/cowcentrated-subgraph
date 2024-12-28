@@ -517,6 +517,13 @@ type ClassicPositionSnapshot @entity {
   "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance."
   totalBalance: BigInt!
 
+  "The total supply of the vault shares token in circulation at the time of snapshot. Express with `sharesToken.decimals` decimals."
+  vaultSharesTotalSupply: BigInt!
+  "The total supply of the underlying token in the vault at the time of snapshot. Express with `underlyingToken.decimals` decimals."
+  vaultUnderlyingTotalSupply: BigInt!
+  "The total supply of the underlying tokens in the vault at the time of snapshot. Ordered by classic.underlyingBreakdownTokensOrder. Express with `underlyingBreakdownTokens[idx].decimals` decimals."
+  vaultUnderlyingBreakdownBalances: [BigInt!]!
+
   "LP token price in native at the time of snapshot. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
   "Breakdown token prices in native at the time of snapshot. Ordered by classic.underlyingBreakdownTokensOrder. Expressed with 18 decimals."

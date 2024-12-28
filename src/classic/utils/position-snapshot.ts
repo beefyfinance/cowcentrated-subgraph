@@ -46,6 +46,9 @@ export function updateClassicPositionSnapshotsIfEnabled(
     snapshot.boostBalance = position.boostBalance
     snapshot.rewardPoolBalances = position.rewardPoolBalances
     snapshot.totalBalance = position.totalBalance
+    snapshot.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
+    snapshot.vaultUnderlyingTotalSupply = classicData.vaultUnderlyingTotalSupply
+    snapshot.vaultUnderlyingBreakdownBalances = classicData.vaultUnderlyingBreakdownBalances
     snapshot.underlyingToNativePrice = classicData.underlyingToNativePrice
     snapshot.underlyingBreakdownToNativePrices = classicData.underlyingBreakdownToNativePrices
     snapshot.boostRewardToNativePrices = classicData.boostRewardToNativePrices
