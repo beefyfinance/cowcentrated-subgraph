@@ -1,4 +1,4 @@
-import { Address, log } from "@graphprotocol/graph-ts"
+import { Address, Bytes, log } from "@graphprotocol/graph-ts"
 import { ProxyCreated as VaultOrStrategyCreated } from "../../generated/ClassicVaultFactory/ClassicVaultFactory"
 import {
   ClassicVault as ClassicVaultContract,
@@ -213,8 +213,8 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
       removeClassicAndDependencies(classic)
     } else {
       const breakdown = getVaultTokenBreakdown(classic)
-      const underlyingBreakdownTokens = new Array<Address>()
-      const underlyingBreakdownTokensOrder = new Array<Address>()
+      const underlyingBreakdownTokens = new Array<Bytes>()
+      const underlyingBreakdownTokensOrder = new Array<Bytes>()
       for (let i = 0; i < breakdown.length; i++) {
         underlyingBreakdownTokens.push(breakdown[i].tokenAddress)
         underlyingBreakdownTokensOrder.push(breakdown[i].tokenAddress)

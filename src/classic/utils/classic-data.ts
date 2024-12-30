@@ -1,4 +1,4 @@
-import { BigInt, log, ethereum, Address } from "@graphprotocol/graph-ts"
+import { BigInt, log, ethereum, Address, Bytes } from "@graphprotocol/graph-ts"
 import { CLM, Classic } from "../../../generated/schema"
 import { ONE_BI, ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
 import {
@@ -330,7 +330,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
     }
   } else {
     const breakdown = getVaultTokenBreakdown(classic)
-    const breakdownByTokenAddress = new Map<Address, BigInt>()
+    const breakdownByTokenAddress = new Map<Bytes, BigInt>()
     for (let i = 0; i < breakdown.length; i++) {
       breakdownByTokenAddress.set(breakdown[i].tokenAddress, breakdown[i].rawBalance)
     }
