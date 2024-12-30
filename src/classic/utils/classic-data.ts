@@ -23,6 +23,7 @@ import { CLASSIC_SNAPSHOT_PERIODS } from "./snapshot"
 import { getClassicSnapshot, hasClassicBeenRemoved } from "../entity/classic"
 import { getCLM, getClmRewardPool, isClmManager, isClmRewardPool } from "../../clm/entity/clm"
 import { getToken } from "../../common/entity/token"
+import { getVaultTokenBreakdown } from "../platform"
 
 export function fetchClassicUnderlyingCLM(classic: Classic): CLM | null {
   let clm: CLM | null = null
@@ -264,68 +265,111 @@ export function fetchClassicData(classic: Classic): ClassicData {
 
   let underlyingToNativePrice = ZERO_BI
   let vaultUnderlyingBreakdownBalances = new Array<BigInt>()
-  if (
-    clm &&
-    clm.managerTotalSupply.notEqual(ZERO_BI) &&
-    clmManagerTotalSupplyRes &&
-    clmManagerBalancesRes &&
-    underlyingBreakdownToNativeRes.length == 2
-  ) {
-    const token0 = getToken(clm.underlyingToken0)
-    const token1 = getToken(clm.underlyingToken1)
+  if (clm) {
+    if (
+      clm.managerTotalSupply.notEqual(ZERO_BI) &&
+      clmManagerTotalSupplyRes &&
+      clmManagerBalancesRes &&
+      underlyingBreakdownToNativeRes.length == 2
+    ) {
+      const token0 = getToken(clm.underlyingToken0)
+      const token1 = getToken(clm.underlyingToken1)
 
-    const token0ToNativePriceRes = underlyingBreakdownToNativeRes[0]
-    let token0ToNativePrice = ZERO_BI
-    if (!token0ToNativePriceRes.reverted) {
-      token0ToNativePrice = token0ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-    } else {
-      log.error("Failed to fetch token0ToNativePrice for Classic {}", [classic.id.toHexString()])
+      const token0ToNativePriceRes = underlyingBreakdownToNativeRes[0]
+      let token0ToNativePrice = ZERO_BI
+      if (!token0ToNativePriceRes.reverted) {
+        token0ToNativePrice = token0ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+      } else {
+        log.error("Failed to fetch token0ToNativePrice for Classic {}", [classic.id.toHexString()])
+      }
+
+      const token1ToNativePriceRes = underlyingBreakdownToNativeRes[1]
+      let token1ToNativePrice = ZERO_BI
+      if (!token1ToNativePriceRes.reverted) {
+        token1ToNativePrice = token1ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+      } else {
+        log.error("Failed to fetch token1ToNativePrice for Classic {}", [classic.id.toHexString()])
+      }
+
+      let clmManagerTotalSupply = ZERO_BI
+      if (!clmManagerTotalSupplyRes.reverted) {
+        clmManagerTotalSupply = clmManagerTotalSupplyRes.value.toBigInt()
+        vaultUnderlyingTotalSupply = clmManagerTotalSupply
+      } else {
+        log.error("Failed to fetch clmManagerTotalSupply for Classic {}", [classic.id.toHexString()])
+      }
+
+      let clmToken0Balance = ZERO_BI
+      let clmToken1Balance = ZERO_BI
+      if (!clmManagerBalancesRes.reverted) {
+        const clmManagerBalancesTuple = clmManagerBalancesRes.value.toTuple()
+        clmToken0Balance = clmManagerBalancesTuple[0].toBigInt()
+        clmToken1Balance = clmManagerBalancesTuple[1].toBigInt()
+
+        vaultUnderlyingBreakdownBalances = [clmToken0Balance, clmToken1Balance]
+      } else {
+        log.error("Failed to fetch clmManagerBalances for Classic {}", [classic.id.toHexString()])
+      }
+
+      const totalNativeAmount0 = changeValueEncoding(
+        clmToken0Balance.times(token0ToNativePrice),
+        token0.decimals.plus(WNATIVE_DECIMALS),
+        WNATIVE_DECIMALS,
+      )
+      const totalNativeAmount1 = changeValueEncoding(
+        clmToken1Balance.times(token1ToNativePrice),
+        token1.decimals.plus(WNATIVE_DECIMALS),
+        WNATIVE_DECIMALS,
+      )
+      const totalNativeAmountInClm = totalNativeAmount0.plus(totalNativeAmount1)
+      const clmManagerToken = getToken(clm.managerToken)
+
+      underlyingToNativePrice = totalNativeAmountInClm
+        .times(changeValueEncoding(ONE_BI, ZERO_BI, WNATIVE_DECIMALS))
+        .div(changeValueEncoding(clmManagerTotalSupply, clmManagerToken.decimals, WNATIVE_DECIMALS))
+    }
+  } else {
+    const breakdown = getVaultTokenBreakdown(classic)
+    const breakdownByTokenAddress = new Map<Address, BigInt>()
+    for (let i = 0; i < breakdown.length; i++) {
+      breakdownByTokenAddress.set(breakdown[i].tokenAddress, breakdown[i].rawBalance)
     }
 
-    const token1ToNativePriceRes = underlyingBreakdownToNativeRes[1]
-    let token1ToNativePrice = ZERO_BI
-    if (!token1ToNativePriceRes.reverted) {
-      token1ToNativePrice = token1ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-    } else {
-      log.error("Failed to fetch token1ToNativePrice for Classic {}", [classic.id.toHexString()])
+    // set the breakdown balances
+    for (let i = 0; i < underlyingBreakdownTokenAddresses.length; i++) {
+      const rawBalance = breakdownByTokenAddress.get(underlyingBreakdownTokenAddresses[i])
+      if (rawBalance) {
+        vaultUnderlyingBreakdownBalances.push(rawBalance)
+      } else {
+        vaultUnderlyingBreakdownBalances.push(ZERO_BI)
+        log.error("Failed to fetch vaultUnderlyingBreakdownBalances for Classic {}", [classic.id.toHexString()])
+      }
     }
 
-    let clmManagerTotalSupply = ZERO_BI
-    if (!clmManagerTotalSupplyRes.reverted) {
-      clmManagerTotalSupply = clmManagerTotalSupplyRes.value.toBigInt()
-      vaultUnderlyingTotalSupply = clmManagerTotalSupply
-    } else {
-      log.error("Failed to fetch clmManagerTotalSupply for Classic {}", [classic.id.toHexString()])
+    // convert the breakdown balances to native prices
+    let totalNativeEquivalentAmount = ZERO_BI
+    for (let i = 0; i < underlyingBreakdownTokenAddresses.length; i++) {
+      const tokenAddress = underlyingBreakdownTokenAddresses[i]
+      const token = getToken(tokenAddress)
+      const tokenBalance = vaultUnderlyingBreakdownBalances[i]
+      const tokenToNativePrice = underlyingBreakdownToNativeRes[i]
+      if (!tokenToNativePrice.reverted) {
+        const tokenToNativePriceValue = tokenToNativePrice.value.toBigInt()
+        const tokenNativeAmount = changeValueEncoding(
+          tokenBalance.times(tokenToNativePriceValue),
+          token.decimals.plus(WNATIVE_DECIMALS),
+          WNATIVE_DECIMALS,
+        )
+        totalNativeEquivalentAmount = totalNativeEquivalentAmount.plus(tokenNativeAmount)
+      } else {
+        log.error("Failed to fetch tokenToNativePrice for Classic {} token {}", [
+          classic.id.toHexString(),
+          tokenAddress.toHexString(),
+        ])
+      }
     }
 
-    let clmToken0Balance = ZERO_BI
-    let clmToken1Balance = ZERO_BI
-    if (!clmManagerBalancesRes.reverted) {
-      const clmManagerBalancesTuple = clmManagerBalancesRes.value.toTuple()
-      clmToken0Balance = clmManagerBalancesTuple[0].toBigInt()
-      clmToken1Balance = clmManagerBalancesTuple[1].toBigInt()
-
-      vaultUnderlyingBreakdownBalances = [clmToken0Balance, clmToken1Balance]
-    } else {
-      log.error("Failed to fetch clmManagerBalances for Classic {}", [classic.id.toHexString()])
-    }
-
-    const totalNativeAmount0 = changeValueEncoding(
-      clmToken0Balance.times(token0ToNativePrice),
-      token0.decimals.plus(WNATIVE_DECIMALS),
-      WNATIVE_DECIMALS,
-    )
-    const totalNativeAmount1 = changeValueEncoding(
-      clmToken1Balance.times(token1ToNativePrice),
-      token1.decimals.plus(WNATIVE_DECIMALS),
-      WNATIVE_DECIMALS,
-    )
-    const totalNativeAmountInClm = totalNativeAmount0.plus(totalNativeAmount1)
-    const clmManagerToken = getToken(clm.managerToken)
-
-    underlyingToNativePrice = totalNativeAmountInClm
-      .times(changeValueEncoding(ONE_BI, ZERO_BI, WNATIVE_DECIMALS))
-      .div(changeValueEncoding(clmManagerTotalSupply, clmManagerToken.decimals, WNATIVE_DECIMALS))
+    underlyingToNativePrice = totalNativeEquivalentAmount.div(underlyingAmount)
   }
 
   let boostRewardToNativePrices: BigInt[] = []

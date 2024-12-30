@@ -149,6 +149,8 @@ type Classic @entity {
   "The reward pool token addresses of the CLM. This is the source of truth for other tables reward ordering."
   rewardPoolTokensOrder: [Bytes!]!
 
+  "The vault's underlying platform"
+  underlyingPlatform: String!
   "The vault's underlying LP token"
   underlyingToken: Token!
   "The vault underlying token breakdown. If that token is composed of multiple tokens, they are listed here."

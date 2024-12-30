@@ -44,6 +44,7 @@ import { ADDRESS_ZERO } from "../common/utils/address"
 import { isClmManager, isClmRewardPool } from "../clm/entity/clm"
 import { fetchClassicUnderlyingCLM } from "./utils/classic-data"
 import { CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES, ONLY_KEEP_CLM_CLASSIC_VAULTS } from "../config"
+import { detectClassicVaultUnderlyingPlatform, getVaultTokenBreakdown } from "./platform"
 
 export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreated): void {
   const address = event.params.proxy
@@ -202,6 +203,7 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
   classic.vaultSharesToken = vaultSharesToken.id
   classic.underlyingToken = underlyingToken.id
   classic.lifecycle = PRODUCT_LIFECYCLE_RUNNING
+  classic.underlyingPlatform = detectClassicVaultUnderlyingPlatform(classic)
   classic.save()
 
   const clm = fetchClassicUnderlyingCLM(classic)
@@ -209,12 +211,23 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
     if (ONLY_KEEP_CLM_CLASSIC_VAULTS) {
       log.error("Failed to fetch CLM data for Classic: {}", [classic.id.toHexString()])
       removeClassicAndDependencies(classic)
+    } else {
+      const breakdown = getVaultTokenBreakdown(classic)
+      const underlyingBreakdownTokens = new Array<Address>()
+      const underlyingBreakdownTokensOrder = new Array<Address>()
+      for (let i = 0; i < breakdown.length; i++) {
+        underlyingBreakdownTokens.push(breakdown[i].tokenAddress)
+        underlyingBreakdownTokensOrder.push(breakdown[i].tokenAddress)
+      }
+      classic.underlyingBreakdownTokens = underlyingBreakdownTokens
+      classic.underlyingBreakdownTokensOrder = underlyingBreakdownTokensOrder
+      classic.save()
     }
-    return
+  } else {
+    classic.underlyingBreakdownTokens = [clm.underlyingToken0, clm.underlyingToken1]
+    classic.underlyingBreakdownTokensOrder = [clm.underlyingToken0, clm.underlyingToken1]
+    classic.save()
   }
-  classic.underlyingBreakdownTokens = [clm.underlyingToken0, clm.underlyingToken1]
-  classic.underlyingBreakdownTokensOrder = [clm.underlyingToken0, clm.underlyingToken1]
-  classic.save()
 }
 
 export function handleClassicStrategyPaused(event: ClassicStrategyPaused): void {

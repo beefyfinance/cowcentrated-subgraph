@@ -105,3 +105,12 @@ export function _multicall3ParamsToCallData(callParam: Multicall3Params): Bytes 
 
   return functionCall
 }
+
+export function allResultsSuccess(results: Array<MulticallResult>): boolean {
+  for (let i = 0; i < results.length; i++) {
+    if (results[i].reverted) {
+      return false
+    }
+  }
+  return true
+}

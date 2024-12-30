@@ -175,13 +175,15 @@ WITH events AS (
         classic.id as pool_address,
         classic.underlyingToken as underlying_token_address,
         -- Calculate amount using share ratio
-        (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_underlying.decimals)) *
-        (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18))
+        (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_share.decimals)) +
+        (toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
+        (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, t_share.decimals))
         as amount,
         -- Calculate USD value
         (
-            (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_underlying.decimals)) *
-            (toDecimal256(classic.vaultUnderlyingTotalSupply, 18) / toDecimal256(classic.vaultSharesTotalSupply, 18))
+            (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_share.decimals)) +
+            (toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
+            (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, t_share.decimals))
         ) *
         (toDecimal256(i.underlyingToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18))
@@ -194,6 +196,7 @@ WITH events AS (
         END as event_type
     FROM ClassicPositionInteraction i
     JOIN Classic classic ON i.classic = classic.id
+    JOIN Token t_share ON classic.vaultSharesToken = t_share.id
     JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
     JOIN Transaction tx ON i.createdWith = tx.id
     WHERE i.type__ IN ('VAULT_DEPOSIT', 'VAULT_WITHDRAW')

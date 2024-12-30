@@ -64,6 +64,19 @@ dataSources:
         - name: ClassicBoost
           file: ./abis/beefy/classic/ClassicBoost.json
 
+        - name: PendleMarket
+          file: ./abis/platform/PendleMarket.json
+        - name: PendleSyToken
+          file: ./abis/platform/PendleSyToken.json
+        - name: BalancerPool
+          file: ./abis/platform/BalancerPool.json
+        - name: BalancerVault
+          file: ./abis/platform/BalancerVault.json
+        - name: CurveToken
+          file: ./abis/platform/CurveToken.json
+        - name: CurvePool
+          file: ./abis/platform/CurvePool.json
+
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
         - name: Multicall3

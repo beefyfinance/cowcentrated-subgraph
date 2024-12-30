@@ -13,6 +13,7 @@ import { getIntervalFromTimestamp } from "../../common/utils/time"
 import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from "../../common/utils/snapshot"
 import { getBeefyClassicProtocol } from "../../common/entity/protocol"
 import { PRODUCT_LIFECYCLE_INITIALIZING } from "../../common/entity/lifecycle"
+import { PLATFORM_UNKNOWN } from "../platform"
 
 export function isClassicInitialized(classic: Classic): boolean {
   return classic.lifecycle != PRODUCT_LIFECYCLE_INITIALIZING
@@ -34,6 +35,7 @@ export function getClassic(vaultAddress: Bytes): Classic {
     classic.lifecycle = PRODUCT_LIFECYCLE_INITIALIZING
 
     classic.vaultSharesToken = vaultAddress
+    classic.underlyingPlatform = PLATFORM_UNKNOWN
     classic.underlyingToken = ADDRESS_ZERO
     classic.underlyingBreakdownTokens = []
     classic.underlyingBreakdownTokensOrder = []
