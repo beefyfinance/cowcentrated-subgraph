@@ -263,6 +263,55 @@ export function fetchClassicData(classic: Classic): ClassicData {
     log.error("Failed to fetch vaultUnderlyingTotalSupply for Classic {}", [classic.id.toHexString()])
   }
 
+  let boostRewardToNativePrices: BigInt[] = []
+  for (let i = 0; i < boostRewardTokenOutputAmountsRes.length; i++) {
+    const amountOutRes = boostRewardTokenOutputAmountsRes[i]
+    if (!amountOutRes.reverted) {
+      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+      boostRewardToNativePrices.push(amountOut)
+    } else {
+      boostRewardToNativePrices.push(ZERO_BI)
+      log.error("Failed to fetch boostRewardToNativePrices for Classic {}", [classic.id.toHexString()])
+    }
+  }
+
+  // only some clms have a reward pool token
+  let rewardPoolsTotalSupply = new Array<BigInt>()
+  for (let i = 0; i < rewardPoolsTotalSupplyRes.length; i++) {
+    const totalSupplyRes = rewardPoolsTotalSupplyRes[i]
+    if (!totalSupplyRes.reverted) {
+      rewardPoolsTotalSupply.push(totalSupplyRes.value.toBigInt())
+    } else {
+      rewardPoolsTotalSupply.push(ZERO_BI)
+      log.error("Failed to fetch rewardPoolsTotalSupply for Classic {}", [classic.id.toHexString()])
+    }
+  }
+
+  // only some strategies have this
+  let rewardToNativePrices = new Array<BigInt>()
+  for (let i = 0; i < rewardTokenOutputAmountsRes.length; i++) {
+    const amountOutRes = rewardTokenOutputAmountsRes[i]
+    if (!amountOutRes.reverted) {
+      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+      rewardToNativePrices.push(amountOut)
+    } else {
+      rewardToNativePrices.push(ZERO_BI)
+      log.error("Failed to fetch rewardToNativePrices for Classic {}", [classic.id.toHexString()])
+    }
+  }
+
+  let underlyingBreakdownToNativePrices = new Array<BigInt>()
+  for (let i = 0; i < underlyingBreakdownToNativeRes.length; i++) {
+    const amountOutRes = underlyingBreakdownToNativeRes[i]
+    if (!amountOutRes.reverted) {
+      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+      underlyingBreakdownToNativePrices.push(amountOut)
+    } else {
+      underlyingBreakdownToNativePrices.push(ZERO_BI)
+      log.error("Failed to fetch underlyingBreakdownToNativePrices for Classic {}", [classic.id.toHexString()])
+    }
+  }
+
   let underlyingToNativePrice = ZERO_BI
   let vaultUnderlyingBreakdownBalances = new Array<BigInt>()
   if (clm) {
@@ -352,76 +401,19 @@ export function fetchClassicData(classic: Classic): ClassicData {
       const tokenAddress = underlyingBreakdownTokenAddresses[i]
       const token = getToken(tokenAddress)
       const tokenBalance = vaultUnderlyingBreakdownBalances[i]
-      const tokenToNativePrice = underlyingBreakdownToNativeRes[i]
-      if (!tokenToNativePrice.reverted) {
-        const tokenToNativePriceValue = tokenToNativePrice.value.toBigInt()
-        const tokenNativeAmount = changeValueEncoding(
-          tokenBalance.times(tokenToNativePriceValue),
-          token.decimals.plus(WNATIVE_DECIMALS),
-          WNATIVE_DECIMALS,
-        )
-        totalNativeEquivalentAmount = totalNativeEquivalentAmount.plus(tokenNativeAmount)
-      } else {
-        log.error("Failed to fetch tokenToNativePrice for Classic {} token {}", [
-          classic.id.toHexString(),
-          tokenAddress.toHexString(),
-        ])
-      }
+      const tokenToNativePrice = underlyingBreakdownToNativePrices[i]
+      const tokenNativeAmount = changeValueEncoding(
+        tokenBalance.times(tokenToNativePrice),
+        token.decimals.plus(WNATIVE_DECIMALS),
+        WNATIVE_DECIMALS,
+      )
+      totalNativeEquivalentAmount = totalNativeEquivalentAmount.plus(tokenNativeAmount)
     }
 
     if (underlyingAmount.notEqual(ZERO_BI)) {
       underlyingToNativePrice = totalNativeEquivalentAmount.div(underlyingAmount)
     } else {
       log.error("Failed to fetch underlyingAmount for Classic {}", [classic.id.toHexString()])
-    }
-  }
-
-  let boostRewardToNativePrices: BigInt[] = []
-  for (let i = 0; i < boostRewardTokenOutputAmountsRes.length; i++) {
-    const amountOutRes = boostRewardTokenOutputAmountsRes[i]
-    if (!amountOutRes.reverted) {
-      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-      boostRewardToNativePrices.push(amountOut)
-    } else {
-      boostRewardToNativePrices.push(ZERO_BI)
-      log.error("Failed to fetch boostRewardToNativePrices for Classic {}", [classic.id.toHexString()])
-    }
-  }
-
-  // only some clms have a reward pool token
-  let rewardPoolsTotalSupply = new Array<BigInt>()
-  for (let i = 0; i < rewardPoolsTotalSupplyRes.length; i++) {
-    const totalSupplyRes = rewardPoolsTotalSupplyRes[i]
-    if (!totalSupplyRes.reverted) {
-      rewardPoolsTotalSupply.push(totalSupplyRes.value.toBigInt())
-    } else {
-      rewardPoolsTotalSupply.push(ZERO_BI)
-      log.error("Failed to fetch rewardPoolsTotalSupply for Classic {}", [classic.id.toHexString()])
-    }
-  }
-
-  // only some strategies have this
-  let rewardToNativePrices = new Array<BigInt>()
-  for (let i = 0; i < rewardTokenOutputAmountsRes.length; i++) {
-    const amountOutRes = rewardTokenOutputAmountsRes[i]
-    if (!amountOutRes.reverted) {
-      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-      rewardToNativePrices.push(amountOut)
-    } else {
-      rewardToNativePrices.push(ZERO_BI)
-      log.error("Failed to fetch rewardToNativePrices for Classic {}", [classic.id.toHexString()])
-    }
-  }
-
-  let underlyingBreakdownToNativePrices = new Array<BigInt>()
-  for (let i = 0; i < underlyingBreakdownToNativeRes.length; i++) {
-    const amountOutRes = underlyingBreakdownToNativeRes[i]
-    if (!amountOutRes.reverted) {
-      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-      underlyingBreakdownToNativePrices.push(amountOut)
-    } else {
-      underlyingBreakdownToNativePrices.push(ZERO_BI)
-      log.error("Failed to fetch underlyingBreakdownToNativePrices for Classic {}", [classic.id.toHexString()])
     }
   }
 
