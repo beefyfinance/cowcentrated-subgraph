@@ -330,18 +330,18 @@ export function fetchClassicData(classic: Classic): ClassicData {
     }
   } else {
     const breakdown = getVaultTokenBreakdown(classic)
-    const breakdownByTokenAddress = new Map<Bytes, BigInt>()
-    for (let i = 0; i < breakdown.length; i++) {
-      breakdownByTokenAddress.set(breakdown[i].tokenAddress, breakdown[i].rawBalance)
-    }
 
     // set the breakdown balances
     for (let i = 0; i < underlyingBreakdownTokenAddresses.length; i++) {
-      const rawBalance = breakdownByTokenAddress.get(underlyingBreakdownTokenAddresses[i])
-      if (rawBalance) {
-        vaultUnderlyingBreakdownBalances.push(rawBalance)
-      } else {
-        vaultUnderlyingBreakdownBalances.push(ZERO_BI)
+      let rawBalance = ZERO_BI
+      for (let j = 0; j < breakdown.length; j++) {
+        if (breakdown[j].tokenAddress.equals(underlyingBreakdownTokenAddresses[i])) {
+          rawBalance = breakdown[j].rawBalance
+          break
+        }
+      }
+      vaultUnderlyingBreakdownBalances.push(rawBalance)
+      if (rawBalance.equals(ZERO_BI)) {
         log.error("Failed to fetch vaultUnderlyingBreakdownBalances for Classic {}", [classic.id.toHexString()])
       }
     }
@@ -369,7 +369,11 @@ export function fetchClassicData(classic: Classic): ClassicData {
       }
     }
 
-    underlyingToNativePrice = totalNativeEquivalentAmount.div(underlyingAmount)
+    if (underlyingAmount.notEqual(ZERO_BI)) {
+      underlyingToNativePrice = totalNativeEquivalentAmount.div(underlyingAmount)
+    } else {
+      log.error("Failed to fetch underlyingAmount for Classic {}", [classic.id.toHexString()])
+    }
   }
 
   let boostRewardToNativePrices: BigInt[] = []
