@@ -19,7 +19,7 @@ List of pools in the protocol.
 | strategy_vault_receipt_token_decimals | The decimal amount of the ERC20 receipt token.                                           | number |
 | strategy_vault_receipt_token_symbol   | The symbol of the receipt token.                                                         | string |
 
-```SQL
+```sql
 with data_res as (
     SELECT
         146 as chain_id,
@@ -39,8 +39,7 @@ with data_res as (
 )
 select *
 from data_res
-where timestamp > timestamp('${timestamp}') -- sentio
---where timestamp > timestamp('{{timestamp}}') -- obl
+where timestamp > timestamp('${timestamp}')
 ```
 
 ### Position Snapshot
@@ -61,8 +60,7 @@ Snapshot of the pool users.
 | underlying_token_amount_usd     | The amount based on the user's share of the total underlying token, in USD.                                       | number |
 | total_fees_usd                  | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
 
-```SQL
-
+```sql
 WITH position_snapshots AS (
     SELECT
         snapshot.timestamp,
@@ -72,10 +70,10 @@ WITH position_snapshots AS (
         clm.underlyingToken1 as token1_id,
         t0.symbol as token0_symbol,
         t1.symbol as token1_symbol,
-        -- Calculate token amounts
+        clm.strategy as strategy_vault_contract_address,
+        clm.underlyingProtocolPool as liquidity_pool_address,
         toDecimal256(snapshot.underlyingBalance0, 18) / pow(10, t0.decimals) as token0_amount,
         toDecimal256(snapshot.underlyingBalance1, 18) / pow(10, t1.decimals) as token1_amount,
-        -- Calculate USD values using native price conversions
         (toDecimal256(snapshot.underlyingBalance0, 18) / pow(10, t0.decimals)) *
         (toDecimal256(snapshot.token0ToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as token0_amount_usd,
@@ -92,28 +90,32 @@ WITH position_snapshots AS (
         Token t1 ON clm.underlyingToken1 = t1.id
 ),
 all_snapshots as (
-    -- Token0 records
     SELECT
         timestamp,
         block_date,
         user_address,
+        strategy_vault_contract_address,
+        liquidity_pool_address,
         token0_id as token_id,
         token0_symbol as token_symbol,
+        0 as token_index,
         token0_amount as token_amount,
-        token0_amount_usd as token_amount_usd
+        token0_amount_usd as token_amount_usd,
+        0 as total_fees_usd
     FROM position_snapshots
-
     UNION ALL
-
-    -- Token1 records
     SELECT
         timestamp,
         block_date,
         user_address,
+        strategy_vault_contract_address,
+        liquidity_pool_address,
         token1_id as token_id,
         token1_symbol as token_symbol,
+        1 as token_index,
         token1_amount as token_amount,
-        token1_amount_usd as token_amount_usd
+        token1_amount_usd as token_amount_usd,
+        0 as total_fees_usd
     FROM position_snapshots
 ),
 data_res as (
@@ -121,18 +123,20 @@ data_res as (
         timestamp,
         block_date,
         146 as chain_id,
+        strategy_vault_contract_address,
         user_address,
-        token_id as token_address,
-        token_symbol,
-        token_amount,
-        token_amount_usd
+        liquidity_pool_address,
+        token_id as underlying_token_address,
+        token_index as underlying_token_index,
+        token_amount as underlying_token_amount,
+        token_amount_usd as underlying_token_amount_usd,
+        total_fees_usd
     FROM all_snapshots
     ORDER BY timestamp DESC, user_address, token_symbol
 )
 select *
 from data_res
-where timestamp > timestamp('${timestamp}') -- sentio
---where timestamp > timestamp('{{timestamp}}') -- obl
+where timestamp > timestamp('${timestamp}')
 ```
 
 ### Pool Snapshot
@@ -152,7 +156,7 @@ TVL, fees, and incentives data at the pool level.
 | underlying_token_amount_usd     | The amount of underlying tokens supplied in this pool, in USD.                                                    | number |
 | total_fees_usd                  | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
 
-```SQL
+```sql
 WITH data_res AS (
     SELECT
         snapshot.timestamp,
@@ -160,7 +164,6 @@ WITH data_res AS (
         146 as chain_id,
         strategy.id as strategy_vault_contract_address,
         clm.underlyingProtocolPool as liquidity_pool_address,
-        -- For token0
         clm.underlyingToken0 as underlying_token_address,
         0 as underlying_token_index,
         toDecimal256(snapshot.totalUnderlyingAmount0, 18) / pow(10, t0.decimals) as underlying_token_amount,
@@ -172,9 +175,7 @@ WITH data_res AS (
     JOIN CLM clm ON snapshot.clm = clm.id
     JOIN ClmStrategy strategy ON clm.strategy = strategy.id
     JOIN Token t0 ON clm.underlyingToken0 = t0.id
-
     UNION ALL
-
     SELECT
         snapshot.timestamp,
         fromUnixTimestamp(toInt64(snapshot.roundedTimestamp)) as block_date,
@@ -196,8 +197,7 @@ WITH data_res AS (
 )
 select *
 from data_res
-where timestamp > timestamp('${timestamp}') -- sentio
---where timestamp > timestamp('{{timestamp}}') -- obl
+where timestamp > timestamp('${timestamp}')
 ```
 
 ### ERC-20 LP Token Transfer Events
@@ -284,8 +284,7 @@ data_res as (
 )
 select *
 from data_res
-where timestamp > timestamp('${timestamp}') -- sentio
---where timestamp > timestamp('{{timestamp}}') -- obl
+where timestamp > timestamp('${timestamp}')
 ```
 
 ### Events
@@ -308,19 +307,25 @@ All user events (ie, Deposit, Withdrawal)
 
 ```SQL
 with
-data_res as (
+token_amounts AS (
     SELECT
-        -- Timestamp and date fields
         i.timestamp,
-        fromUnixTimestamp(toInt64(i.timestamp)) as block_date,
-        -- Chain and block info
-        146 as chain_id,
         i.blockNumber as block_number,
-        -- Transaction details
-        tx.sender as signer_address,
-        i.createdWith as transaction_hash,
         i.logIndex as log_index,
-        -- Event name mapping
+        i.createdWith as transaction_hash,
+        i.investor as user_address,
+        c.id as pool_address,
+        c.managerToken as underlying_token_address,
+        i.managerBalanceDelta as amount,
+        (
+            (toDecimal256(i.underlyingBalance0Delta, 18) / pow(10, t0.decimals)) *
+            (toDecimal256(i.token0ToNativePrice, 18) / pow(10, 18)) *
+            (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18))
+        ) + (
+            (toDecimal256(i.underlyingBalance1Delta, 18) / pow(10, t1.decimals)) *
+            (toDecimal256(i.token1ToNativePrice, 18) / pow(10, 18)) *
+            (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18))
+        ) as amount_usd,
         CASE
             WHEN i.type__ = 'MANAGER_DEPOSIT' THEN 'deposit'
             WHEN i.type__ = 'MANAGER_WITHDRAW' THEN 'withdraw'
@@ -328,13 +333,12 @@ data_res as (
             WHEN i.type__ = 'CLM_REWARD_POOL_UNSTAKE' THEN 'unstake'
             WHEN i.type__ = 'CLM_REWARD_POOL_CLAIM' THEN 'claim'
             ELSE 'unknown'
-        END as event_name,
-        -- Transaction fees (placeholder values since gas data isn't in schema)
-        0 as transaction_fee,
-        0 as transaction_fee_usd
+        END as event_type
     FROM ClmPositionInteraction i
     JOIN Transaction tx ON i.createdWith = tx.id
     JOIN CLM c ON i.clm = c.id
+    JOIN Token t0 ON c.underlyingToken0 = t0.id
+    JOIN Token t1 ON c.underlyingToken1 = t1.id
     JOIN Protocol p ON c.protocol = p.id
     WHERE i.type__ IN (
         'MANAGER_DEPOSIT',
@@ -343,12 +347,26 @@ data_res as (
         'CLM_REWARD_POOL_UNSTAKE',
         'CLM_REWARD_POOL_CLAIM'
     )
-    ORDER BY i.timestamp DESC, i.logIndex ASC
+),
+data_res as (
+    SELECT
+        timestamp,
+        146 as chain_id,
+        block_number,
+        log_index,
+        transaction_hash,
+        user_address,
+        pool_address,
+        underlying_token_address,
+        amount,
+        amount_usd,
+        event_type
+    FROM token_amounts
+    ORDER BY timestamp DESC, log_index ASC
 )
 select *
 from data_res
-where timestamp > timestamp('${timestamp}') -- sentio
---where timestamp > timestamp('{{timestamp}}') -- obl
+where timestamp > timestamp('${timestamp}')
 ```
 
 ### Incentive Claim Data
@@ -416,6 +434,5 @@ data_res as (
 )
 select *
 from data_res
-where timestamp > timestamp('${timestamp}') -- sentio
---where timestamp > timestamp('{{timestamp}}') -- obl
+where timestamp > timestamp('${timestamp}')
 ```

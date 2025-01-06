@@ -154,7 +154,6 @@ SELECT
     sum(fees_usd) as fees_usd
 FROM
 (
-    -- Interactions
     SELECT
         timestamp,
         hex(investor) as user_address,
@@ -164,7 +163,6 @@ FROM
 
     UNION ALL
 
-    -- Harvest events
     SELECT
         h.timestamp,
         hex(h.createdWith) as user_address,
@@ -206,10 +204,8 @@ WITH position_snapshots AS (
         clm.underlyingToken1 as token1_id,
         t0.symbol as token0_symbol,
         t1.symbol as token1_symbol,
-        -- Calculate token amounts
         toDecimal256(snapshot.underlyingAmount0, 18) / pow(10, t0.decimals) as token0_amount,
         toDecimal256(snapshot.underlyingAmount1, 18) / pow(10, t1.decimals) as token1_amount,
-        -- Calculate USD values using native price conversions
         (toDecimal256(snapshot.underlyingAmount0, 18) / pow(10, t0.decimals)) *
         (toDecimal256(snapshot.token0ToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as token0_amount_usd,
@@ -236,7 +232,6 @@ SELECT
     token_amount_usd
 FROM
 (
-    -- Token0 records
     SELECT
         timestamp,
         block_date,
@@ -249,7 +244,6 @@ FROM
 
     UNION ALL
 
-    -- Token1 records
     SELECT
         timestamp,
         block_date,
@@ -282,17 +276,13 @@ Generic table at a user and transaction level
 
 ```SQL
 SELECT
-    -- Timestamp and date fields
     i.timestamp,
     fromUnixTimestamp(toInt64(i.timestamp)) as block_date,
-    -- Chain and block info
     146 as chain_id,
     i.blockNumber as block_number,
-    -- Transaction details
     tx.sender as signer_address,
     i.createdWith as transaction_hash,
     i.logIndex as log_index,
-    -- Event name mapping
     CASE
         WHEN i.type__ = 'MANAGER_DEPOSIT' THEN 'deposit'
         WHEN i.type__ = 'MANAGER_WITHDRAW' THEN 'withdraw'
@@ -301,7 +291,6 @@ SELECT
         WHEN i.type__ = 'CLM_REWARD_POOL_CLAIM' THEN 'claim'
         ELSE 'unknown'
     END as event_name,
-    -- Transaction fees (placeholder values since gas data isn't in schema)
     0 as transaction_fee,
     0 as transaction_fee_usd
 FROM ClmPositionInteraction i
@@ -339,8 +328,8 @@ SELECT
     146 as chain_id,
     i.investor as user_address,
     count(*) as transaction_count,
-    0 as transaction_fees,      -- Placeholder since gas data isn't in schema
-    0 as transaction_fees_usd   -- Placeholder since gas data isn't in schema
+    0 as transaction_fees,
+    0 as transaction_fees_usd
 FROM
     ClmPositionInteraction i
 GROUP BY

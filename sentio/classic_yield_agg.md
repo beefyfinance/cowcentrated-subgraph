@@ -70,17 +70,15 @@ Snapshot of the pool users.
 WITH data_res AS (
     SELECT
         snapshot.timestamp,
-        fromUnixTimestamp(toInt64(snapshot.roundedTimestamp)) as block_date,
+        toDate(fromUnixTimestamp(toInt64(snapshot.roundedTimestamp))) as block_date,
         146 as chain_id,
         classic.id as pool_address,
         snapshot.investor as user_address,
         classic.underlyingToken as underlying_token_address,
         0 as underlying_token_index,
-        -- Calculate underlying token amount using share ratio
         (toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)) *
         (toDecimal256(snapshot.vaultUnderlyingTotalSupply, 18) / toDecimal256(snapshot.vaultSharesTotalSupply, 18))
         as underlying_token_amount,
-        -- Calculate USD value
         (
             (toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)) *
             (toDecimal256(snapshot.vaultUnderlyingTotalSupply, 18) / toDecimal256(snapshot.vaultSharesTotalSupply, 18))
@@ -93,11 +91,11 @@ WITH data_res AS (
     JOIN Classic classic ON snapshot.classic = classic.id
     JOIN Token t_share ON classic.vaultSharesToken = t_share.id
     JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
+    WHERE snapshot.period = 86400
 )
 select *
 from data_res
-where timestamp > timestamp('${timestamp}') -- sentio
---where timestamp > timestamp('{{timestamp}}') -- obl
+where timestamp > timestamp('${timestamp}')
 ```
 
 ### Pool Snapshot
@@ -120,15 +118,13 @@ TVL, fees, and incentives data at the pool level.
 WITH data_res AS (
     SELECT
         snapshot.timestamp,
-        fromUnixTimestamp(toInt64(snapshot.roundedTimestamp)) as block_date,
+        toDate(fromUnixTimestamp(toInt64(snapshot.roundedTimestamp))) as block_date,
         146 as chain_id,
         classic.underlyingToken as underlying_token_address,
         0 as underlying_token_index,
         classic.id as pool_address,
-        -- Calculate total underlying token amount
         toDecimal256(snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
         as underlying_token_amount,
-        -- Calculate USD value using price conversion
         (toDecimal256(snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)) *
         (toDecimal256(snapshot.underlyingToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18))
@@ -137,11 +133,11 @@ WITH data_res AS (
     FROM ClassicSnapshot snapshot
     JOIN Classic classic ON snapshot.classic = classic.id
     JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
+    WHERE snapshot.period = 86400
 )
 select *
 from data_res
-where timestamp > timestamp('${timestamp}') -- sentio
---where timestamp > timestamp('{{timestamp}}') -- obl
+where timestamp > timestamp('${timestamp}')
 ```
 
 ### Events
@@ -174,12 +170,10 @@ WITH events AS (
         i.investor as taker_address,
         classic.id as pool_address,
         classic.underlyingToken as underlying_token_address,
-        -- Calculate amount using share ratio
         (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_share.decimals)) +
         (toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
         (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, t_share.decimals))
         as amount,
-        -- Calculate USD value
         (
             (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_share.decimals)) +
             (toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
@@ -188,7 +182,6 @@ WITH events AS (
         (toDecimal256(i.underlyingToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18))
         as amount_usd,
-        -- Map event types
         CASE
             WHEN i.type__ = 'VAULT_DEPOSIT' THEN 'deposit'
             WHEN i.type__ = 'VAULT_WITHDRAW' THEN 'withdraw'
@@ -220,8 +213,7 @@ data_res as (
 )
 select *
 from data_res
-where timestamp > timestamp('${timestamp}') -- sentio
---where timestamp > timestamp('{{timestamp}}') -- obl
+where timestamp > timestamp('${timestamp}')
 ```
 
 ### Incentive Claim Data
@@ -290,6 +282,5 @@ data_res as (
 )
 select *
 from data_res
-where timestamp > timestamp('${timestamp}') -- sentio
---where timestamp > timestamp('{{timestamp}}') -- obl
+where timestamp > timestamp('${timestamp}')
 ```
