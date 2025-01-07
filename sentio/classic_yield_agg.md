@@ -70,7 +70,7 @@ Snapshot of the pool users.
 WITH data_res AS (
     SELECT
         snapshot.timestamp,
-        toDate(fromUnixTimestamp(toInt64(snapshot.roundedTimestamp))) as block_date,
+        formatDateTime(toDate(fromUnixTimestamp(toInt64(snapshot.roundedTimestamp))), '%Y-%m-%d') as block_date,
         146 as chain_id,
         classic.id as pool_address,
         snapshot.investor as user_address,
@@ -118,7 +118,7 @@ TVL, fees, and incentives data at the pool level.
 WITH data_res AS (
     SELECT
         snapshot.timestamp,
-        toDate(fromUnixTimestamp(toInt64(snapshot.roundedTimestamp))) as block_date,
+        formatDateTime(toDate(fromUnixTimestamp(toInt64(snapshot.roundedTimestamp))), '%Y-%m-%d') as block_date,
         146 as chain_id,
         classic.underlyingToken as underlying_token_address,
         0 as underlying_token_index,
