@@ -1,4 +1,4 @@
-import { Address, log } from "@graphprotocol/graph-ts"
+import { Address, Bytes, log } from "@graphprotocol/graph-ts"
 import { ProxyCreated as VaultOrStrategyCreated } from "../../generated/ClassicVaultFactory/ClassicVaultFactory"
 import {
   ClassicVault as ClassicVaultContract,
@@ -23,6 +23,8 @@ import {
 import {
   ClassicVault as ClassicVaultTemplate,
   ClassicStrategy as ClassicStrategyTemplate,
+  ClassicStrategyStratHarvest0 as ClassicStrategyStratHarvest0Template,
+  ClassicStrategyStratHarvest1 as ClassicStrategyStratHarvest1Template,
   ClassicBoost as ClassicBoostTemplate,
 } from "../../generated/templates"
 import {
@@ -35,18 +37,19 @@ import {
   removeClassicAndDependencies,
 } from "./entity/classic"
 import { Classic } from "../../generated/schema"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { PRODUCT_LIFECYCLE_PAUSED, PRODUCT_LIFECYCLE_RUNNING } from "../common/entity/lifecycle"
 import { ADDRESS_ZERO } from "../common/utils/address"
 import { isClmManager, isClmRewardPool } from "../clm/entity/clm"
 import { fetchClassicUnderlyingCLM } from "./utils/classic-data"
+import { CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES, ONLY_KEEP_CLM_CLASSIC_VAULTS } from "../config"
+import { detectClassicVaultUnderlyingPlatform, getVaultTokenBreakdown } from "./platform"
 
 export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreated): void {
   const address = event.params.proxy
 
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   // test if we are creating a vault or a strategy
   const vaultContract = ClassicVaultContract.bind(address)
@@ -76,6 +79,15 @@ export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreate
     strategy.save()
 
     ClassicStrategyTemplate.create(address)
+    for (let i = 0; i < CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES.length; i++) {
+      const harvest1ForAddress = CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES[i]
+      if (harvest1ForAddress.equals(address)) {
+        ClassicStrategyStratHarvest1Template.create(address)
+      } else {
+        // most common case
+        ClassicStrategyStratHarvest0Template.create(address)
+      }
+    }
   }
 }
 
@@ -83,8 +95,7 @@ export function handleClassicStrategyCreated(event: ClassicStrategyCreated): voi
   const address = event.params.proxy
   log.info("Creating Classic Strategy: {}", [address.toHexString()])
 
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   const strategyContract = ClassicStrategyContract.bind(address)
   const strategyVaultRes = strategyContract.try_vault()
@@ -180,7 +191,7 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
   const underlyingTokenAddress = underlyingTokenAddressRes.value
 
   const isClmUnderlying = isClmRewardPool(underlyingTokenAddress) || isClmManager(underlyingTokenAddress)
-  if (!isClmUnderlying) {
+  if (!isClmUnderlying && ONLY_KEEP_CLM_CLASSIC_VAULTS) {
     log.info("Underlying token address is not related to clm, removing: {}", [underlyingTokenAddress.toHexString()])
     removeClassicAndDependencies(classic)
     return
@@ -192,17 +203,31 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
   classic.vaultSharesToken = vaultSharesToken.id
   classic.underlyingToken = underlyingToken.id
   classic.lifecycle = PRODUCT_LIFECYCLE_RUNNING
+  classic.underlyingPlatform = detectClassicVaultUnderlyingPlatform(classic)
   classic.save()
 
   const clm = fetchClassicUnderlyingCLM(classic)
   if (clm == null) {
-    log.error("Failed to fetch CLM data for Classic: {}", [classic.id.toHexString()])
-    removeClassicAndDependencies(classic)
-    return
+    if (ONLY_KEEP_CLM_CLASSIC_VAULTS) {
+      log.error("Failed to fetch CLM data for Classic: {}", [classic.id.toHexString()])
+      removeClassicAndDependencies(classic)
+    } else {
+      const breakdown = getVaultTokenBreakdown(classic)
+      const underlyingBreakdownTokens = new Array<Bytes>()
+      const underlyingBreakdownTokensOrder = new Array<Bytes>()
+      for (let i = 0; i < breakdown.length; i++) {
+        underlyingBreakdownTokens.push(breakdown[i].tokenAddress)
+        underlyingBreakdownTokensOrder.push(breakdown[i].tokenAddress)
+      }
+      classic.underlyingBreakdownTokens = underlyingBreakdownTokens
+      classic.underlyingBreakdownTokensOrder = underlyingBreakdownTokensOrder
+      classic.save()
+    }
+  } else {
+    classic.underlyingBreakdownTokens = [clm.underlyingToken0, clm.underlyingToken1]
+    classic.underlyingBreakdownTokensOrder = [clm.underlyingToken0, clm.underlyingToken1]
+    classic.save()
   }
-  classic.underlyingBreakdownTokens = [clm.underlyingToken0, clm.underlyingToken1]
-  classic.underlyingBreakdownTokensOrder = [clm.underlyingToken0, clm.underlyingToken1]
-  classic.save()
 }
 
 export function handleClassicStrategyPaused(event: ClassicStrategyPaused): void {
@@ -271,8 +296,7 @@ export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStra
   newStrategy.vault = classic.id
   newStrategy.classic = classic.id
   if (newStrategy.createdWith.equals(ADDRESS_ZERO)) {
-    const tx = getTransaction(event.block, event.transaction)
-    tx.save()
+    const tx = getAndSaveTransaction(event.block, event.transaction)
     newStrategy.createdWith = tx.id
   }
   newStrategy.save()
