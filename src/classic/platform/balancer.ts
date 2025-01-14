@@ -3,7 +3,7 @@ import { TokenBalance } from "./common"
 import { ClassicVault as ClassicVaultContract } from "../../../generated/templates/ClassicVault/ClassicVault"
 import { BalancerPool as BalancerPoolContract } from "../../../generated/templates/ClassicVault/BalancerPool"
 import { BalancerVault as BalancerVaultContract } from "../../../generated/templates/ClassicVault/BalancerVault"
-import { Address } from "@graphprotocol/graph-ts"
+import { Address, log } from "@graphprotocol/graph-ts"
 
 export function isBalancerVault(classic: Classic): boolean {
   const breakdown = getVaultTokenBreakdownBalancer(classic)
@@ -21,7 +21,8 @@ export function getVaultTokenBreakdownBalancer(classic: Classic): Array<TokenBal
   const wantTotalBalance = wantTotalBalanceResult.value
 
   // fetch on chain data
-  const balancerPoolContract = BalancerPoolContract.bind(Address.fromBytes(classic.underlyingToken))
+  const wantAddress = Address.fromBytes(classic.underlyingToken)
+  const balancerPoolContract = BalancerPoolContract.bind(wantAddress)
   const balancerVaultAddressResult = balancerPoolContract.try_getVault()
   if (balancerVaultAddressResult.reverted) {
     return []
@@ -49,6 +50,14 @@ export function getVaultTokenBreakdownBalancer(classic: Classic): Array<TokenBal
   for (let i = 0; i < poolTokens.length; i++) {
     const poolToken = poolTokens[i]
     const poolBalance = poolBalances[i]
+
+    // some balancer pools are recursive, they mint all the LP at creation,
+    // and it becomes part of the pool, then you swap with the pool to get the LP tokens rather than mint/burning them
+    if (poolToken.equals(wantAddress)) {
+      log.info("Balancer pool is recursive, skipping pool token {}", [poolToken.toHexString()])
+      continue
+    }
+
     balances.push(new TokenBalance(poolToken, poolBalance.times(wantTotalBalance).div(balancerTotalSupply)))
   }
 

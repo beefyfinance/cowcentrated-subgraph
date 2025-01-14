@@ -47,7 +47,6 @@ export function fetchClassicData(classic: Classic): ClassicData {
   const rewardPoolTokenAddresses = classic.rewardPoolTokensOrder
   const underlyingTokenAddress = classic.underlyingToken
   const underlyingBreakdownTokenAddresses = classic.underlyingBreakdownTokensOrder
-  const underlyingToken = getToken(underlyingTokenAddress)
   const clm = fetchClassicUnderlyingCLM(classic)
 
   const calls = [
@@ -303,9 +302,31 @@ export function fetchClassicData(classic: Classic): ClassicData {
 
   let underlyingBreakdownToNativePrices = new Array<BigInt>()
   for (let i = 0; i < underlyingBreakdownToNativeRes.length; i++) {
+    const underlyingBreakdownTokenAddress = underlyingBreakdownTokenAddresses[i]
     const amountOutRes = underlyingBreakdownToNativeRes[i]
     if (!amountOutRes.reverted) {
-      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+      let amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+
+      // manual beefy oracle fixes
+      const isObviouslyWrongAmount = BigInt.fromString("10000000000000000000000000000000").equals(amountOut)
+      const isVeryLargeAmount = amountOut.gt(BigInt.fromString("1000000000000000000000000"))
+      if (isObviouslyWrongAmount) {
+        log.error("Obviously wrong amount out for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
+          classic.id.toHexString(),
+          underlyingBreakdownTokenAddress.toHexString(),
+          amountOut.toString(),
+        ])
+        amountOut = ZERO_BI
+      } else if (isVeryLargeAmount) {
+        log.error("Very large amount out for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
+          classic.id.toHexString(),
+          underlyingBreakdownTokenAddress.toHexString(),
+          amountOut.toString(),
+        ])
+        const underlyingToken = getToken(underlyingBreakdownTokenAddress)
+        amountOut = changeValueEncoding(ONE_BI, ZERO_BI, underlyingToken.decimals) // set price to 1-1
+      }
+
       underlyingBreakdownToNativePrices.push(amountOut)
     } else {
       underlyingBreakdownToNativePrices.push(ZERO_BI)
@@ -413,23 +434,17 @@ export function fetchClassicData(classic: Classic): ClassicData {
     if (underlyingAmount.notEqual(ZERO_BI)) {
       const underlyingToken = getToken(underlyingTokenAddress)
       underlyingToNativePrice = totalNativeEquivalentAmount
-        .times(changeValueEncoding(ONE_BI, ZERO_BI, WNATIVE_DECIMALS))
-        .div(changeValueEncoding(underlyingAmount, underlyingToken.decimals, WNATIVE_DECIMALS))
+        .times(changeValueEncoding(ONE_BI, ZERO_BI, underlyingToken.decimals))
+        .div(underlyingAmount)
     } else {
       log.error("Failed to fetch underlyingAmount for Classic {}", [classic.id.toHexString()])
     }
-  }
-
-  let vaultUnderlyingBalance = ZERO_BI
-  if (underlyingAmount.notEqual(ZERO_BI)) {
-    vaultUnderlyingBalance = changeValueEncoding(ONE_BI, ZERO_BI, underlyingToken.decimals).div(underlyingToNativePrice)
   }
 
   return new ClassicData(
     vaultSharesTotalSupply,
     vaultUnderlyingTotalSupply,
     vaultUnderlyingBreakdownBalances,
-    vaultUnderlyingBalance,
     rewardPoolsTotalSupply,
     underlyingAmount,
     underlyingToNativePrice,
@@ -445,7 +460,6 @@ export class ClassicData {
     public vaultSharesTotalSupply: BigInt,
     public vaultUnderlyingTotalSupply: BigInt,
     public vaultUnderlyingBreakdownBalances: Array<BigInt>,
-    public vaultUnderlyingBalance: BigInt,
     public rewardPoolsTotalSupply: Array<BigInt>,
     public underlyingAmount: BigInt,
     public underlyingToNativePrice: BigInt,
@@ -469,7 +483,7 @@ export function updateClassicDataAndSnapshots(
   classic.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
   classic.vaultUnderlyingTotalSupply = classicData.vaultUnderlyingTotalSupply
   classic.vaultUnderlyingBreakdownBalances = classicData.vaultUnderlyingBreakdownBalances
-  classic.vaultUnderlyingBalance = classicData.vaultUnderlyingBalance
+  classic.vaultUnderlyingBalance = classicData.underlyingAmount
   classic.rewardPoolsTotalSupply = classicData.rewardPoolsTotalSupply
   classic.underlyingAmount = classicData.underlyingAmount
   classic.underlyingToNativePrice = classicData.underlyingToNativePrice
