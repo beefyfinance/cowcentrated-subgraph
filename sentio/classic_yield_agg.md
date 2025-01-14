@@ -76,17 +76,34 @@ WITH data_res AS (
         snapshot.investor as user_address,
         classic.underlyingToken as underlying_token_address,
         0 as underlying_token_index,
-
-        (toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)) *
-        (toDecimal256(snapshot.vaultUnderlyingTotalSupply, 18) / toDecimal256(snapshot.vaultSharesTotalSupply, 18))
-        as underlying_token_amount,
         (
-            (toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)) *
-            (toDecimal256(snapshot.vaultUnderlyingTotalSupply, 18) / toDecimal256(snapshot.vaultSharesTotalSupply, 18))
-        ) *
-        (toDecimal256(snapshot.underlyingToNativePrice, 18) / pow(10, 18)) *
-        (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18))
-        as underlying_token_amount_usd,
+            toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)
+        ) * (
+            (
+                toDecimal256 (snapshot.vaultUnderlyingBalance, 18) / pow(10, t_underlying.decimals)
+            )
+            /
+            (
+                toDecimal256 (snapshot.vaultSharesTotalSupply, 18) / pow(10, t_share.decimals)
+            )
+        ) as underlying_token_amount,
+
+        (
+            toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)
+        ) * (
+            (
+                toDecimal256 (snapshot.vaultUnderlyingBalance, 18) / pow(10, t_underlying.decimals)
+            )
+            /
+            (
+                toDecimal256 (snapshot.vaultSharesTotalSupply, 18) / pow(10, t_share.decimals)
+            )
+        ) * (
+            toDecimal256 (snapshot.underlyingToNativePrice, 18) / pow(10, 18)
+        ) * (
+            toDecimal256 (snapshot.nativeToUSDPrice, 18) / pow(10, 18)
+        ) as underlying_token_amount_usd,
+
         0 as total_fees_usd
     FROM ClassicPositionSnapshot snapshot
     JOIN Classic classic ON snapshot.classic = classic.id
@@ -124,12 +141,19 @@ WITH data_res AS (
         classic.underlyingToken as underlying_token_address,
         0 as underlying_token_index,
         classic.id as pool_address,
-        toDecimal256(snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
+        (
+            toDecimal256 (snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
+        )
         as underlying_token_amount,
-        (toDecimal256(snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)) *
-        (toDecimal256(snapshot.underlyingToNativePrice, 18) / pow(10, 18)) *
-        (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18))
-        as underlying_token_amount_usd,
+
+        (
+            toDecimal256 (snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
+        ) * (
+            toDecimal256 (snapshot.underlyingToNativePrice, 18) / pow(10, 18)
+        ) * (
+            toDecimal256 (snapshot.nativeToUSDPrice, 18) / pow(10, 18)
+        ) as underlying_token_amount_usd,
+
         0 as total_fees_usd
     FROM ClassicSnapshot snapshot
     JOIN Classic classic ON snapshot.classic = classic.id
