@@ -175,6 +175,8 @@ type Classic @entity {
   vaultUnderlyingTotalSupply: BigInt!
   "Latest total supply of the underlying tokens in the vault. Ordered by classic.underlyingBreakdownTokensOrder. Expressed with `underlyingBreakdownTokens[idx].decimals` decimals."
   vaultUnderlyingBreakdownBalances: [BigInt!]!
+  "Balance of the underlying token in the vault. Express with `underlyingToken.decimals` decimals."
+  vaultUnderlyingBalance: BigInt!
   "Total supply of the reward pool token. Express with `clm.rewardTokensOrder[idx].decimals` decimals."
   rewardPoolsTotalSupply: [BigInt!]!
 
@@ -240,6 +242,8 @@ type ClassicSnapshot @entity {
   vaultUnderlyingTotalSupply: BigInt!
   "Latest total supply of the underlying tokens in the vault. Ordered by classic.underlyingBreakdownTokensOrder. Expressed with `underlyingBreakdownTokens[idx].decimals` decimals."
   vaultUnderlyingBreakdownBalances: [BigInt!]!
+  "Balance of the underlying token in the vault at the time of snapshot. Express with `underlyingToken.decimals` decimals."
+  vaultUnderlyingBalance: BigInt!
   "Total supply of the reward pool token. Ordered by clm.rewardTokensOrder. Express with `clm.rewardTokensOrder[idx].decimals` decimals."
   rewardPoolsTotalSupply: [BigInt!]!
 
@@ -456,6 +460,8 @@ type ClassicPositionInteraction @entity(immutable: true) {
   vaultUnderlyingBreakdownBalances: [BigInt!]!
   "The amount of underlying the vault contains at the time of the interaction"
   vaultUnderlyingAmount: BigInt!
+  "The amount of underlying the vault contains at the time of the interaction"
+  vaultUnderlyingBalance: BigInt!
 
   "Amount of vault shares change in the interaction"
   vaultBalanceDelta: BigInt!
@@ -523,6 +529,8 @@ type ClassicPositionSnapshot @entity {
   vaultSharesTotalSupply: BigInt!
   "The total supply of the underlying token in the vault at the time of snapshot. Express with `underlyingToken.decimals` decimals."
   vaultUnderlyingTotalSupply: BigInt!
+  "Balance of the underlying token in the vault at the time of snapshot. Express with `underlyingToken.decimals` decimals."
+  vaultUnderlyingBalance: BigInt!
   "The total supply of the underlying tokens in the vault at the time of snapshot. Ordered by classic.underlyingBreakdownTokensOrder. Express with `underlyingBreakdownTokens[idx].decimals` decimals."
   vaultUnderlyingBreakdownBalances: [BigInt!]!
 

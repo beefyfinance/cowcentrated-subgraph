@@ -57,6 +57,7 @@ export function getClassicPositionSnapshot(
 
     snapshot.vaultSharesTotalSupply = ZERO_BI
     snapshot.vaultUnderlyingTotalSupply = ZERO_BI
+    snapshot.vaultUnderlyingBalance = ZERO_BI
     snapshot.vaultUnderlyingBreakdownBalances = []
 
     snapshot.underlyingToNativePrice = ZERO_BI
@@ -76,6 +77,7 @@ export function getClassicPositionSnapshot(
       snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
       snapshot.vaultUnderlyingTotalSupply = previousSnapshot.vaultUnderlyingTotalSupply
       snapshot.vaultUnderlyingBreakdownBalances = previousSnapshot.vaultUnderlyingBreakdownBalances
+      snapshot.vaultUnderlyingBalance = previousSnapshot.vaultUnderlyingBalance
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
       snapshot.underlyingBreakdownToNativePrices = previousSnapshot.underlyingBreakdownToNativePrices
       snapshot.boostRewardToNativePrices = previousSnapshot.boostRewardToNativePrices

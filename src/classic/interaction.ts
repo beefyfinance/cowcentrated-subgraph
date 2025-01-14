@@ -373,6 +373,7 @@ function updateUserPositionAndSnapshots(
   interaction.vaultUnderlyingTotalSupply = classicData.vaultUnderlyingTotalSupply
   interaction.vaultUnderlyingBreakdownBalances = classicData.vaultUnderlyingBreakdownBalances
   interaction.vaultUnderlyingAmount = classicData.underlyingAmount
+  interaction.vaultUnderlyingBalance = classicData.vaultUnderlyingBalance
   interaction.vaultBalanceDelta = vaultBalanceDelta
   interaction.boostBalanceDelta = boostBalanceDelta
   interaction.boostRewardBalancesDelta = boostRewardBalancesDelta

@@ -47,6 +47,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
   const rewardPoolTokenAddresses = classic.rewardPoolTokensOrder
   const underlyingTokenAddress = classic.underlyingToken
   const underlyingBreakdownTokenAddresses = classic.underlyingBreakdownTokensOrder
+  const underlyingToken = getToken(underlyingTokenAddress)
   const clm = fetchClassicUnderlyingCLM(classic)
 
   const calls = [
@@ -419,10 +420,16 @@ export function fetchClassicData(classic: Classic): ClassicData {
     }
   }
 
+  let vaultUnderlyingBalance = ZERO_BI
+  if (underlyingAmount.notEqual(ZERO_BI)) {
+    vaultUnderlyingBalance = changeValueEncoding(ONE_BI, ZERO_BI, underlyingToken.decimals).div(underlyingToNativePrice)
+  }
+
   return new ClassicData(
     vaultSharesTotalSupply,
     vaultUnderlyingTotalSupply,
     vaultUnderlyingBreakdownBalances,
+    vaultUnderlyingBalance,
     rewardPoolsTotalSupply,
     underlyingAmount,
     underlyingToNativePrice,
@@ -438,6 +445,7 @@ export class ClassicData {
     public vaultSharesTotalSupply: BigInt,
     public vaultUnderlyingTotalSupply: BigInt,
     public vaultUnderlyingBreakdownBalances: Array<BigInt>,
+    public vaultUnderlyingBalance: BigInt,
     public rewardPoolsTotalSupply: Array<BigInt>,
     public underlyingAmount: BigInt,
     public underlyingToNativePrice: BigInt,
@@ -461,6 +469,7 @@ export function updateClassicDataAndSnapshots(
   classic.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
   classic.vaultUnderlyingTotalSupply = classicData.vaultUnderlyingTotalSupply
   classic.vaultUnderlyingBreakdownBalances = classicData.vaultUnderlyingBreakdownBalances
+  classic.vaultUnderlyingBalance = classicData.vaultUnderlyingBalance
   classic.rewardPoolsTotalSupply = classicData.rewardPoolsTotalSupply
   classic.underlyingAmount = classicData.underlyingAmount
   classic.underlyingToNativePrice = classicData.underlyingToNativePrice

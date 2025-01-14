@@ -76,6 +76,7 @@ WITH data_res AS (
         snapshot.investor as user_address,
         classic.underlyingToken as underlying_token_address,
         0 as underlying_token_index,
+
         (toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)) *
         (toDecimal256(snapshot.vaultUnderlyingTotalSupply, 18) / toDecimal256(snapshot.vaultSharesTotalSupply, 18))
         as underlying_token_amount,
