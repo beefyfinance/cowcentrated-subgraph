@@ -195,13 +195,13 @@ WITH events AS (
         i.investor as taker_address,
         classic.id as pool_address,
         classic.underlyingToken as underlying_token_address,
-        (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_share.decimals)) +
-        (toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
+        abs(toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_share.decimals)) +
+        abs(toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
         (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, t_share.decimals))
         as amount,
         (
-            (toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_share.decimals)) +
-            (toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
+            abs(toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_share.decimals)) +
+            abs(toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
             (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, t_share.decimals))
         ) *
         (toDecimal256(i.underlyingToNativePrice, 18) / pow(10, 18)) *
