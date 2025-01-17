@@ -219,71 +219,35 @@ All LP Token transfer events
 
 ```SQL
 WITH
-balance_changes AS (
+  data_res as (
     SELECT
-        i.timestamp,
-        i.blockNumber as block_number,
-        i.logIndex as log_index,
-        i.createdWith as transaction_hash,
-        i.investor as user_address,
-        clm.managerToken as pool_address,
-        token.decimals as token_decimals,
-        i.type__ as interaction_type,
-        toDecimal256(i.managerBalanceDelta, 18) as manager_balance_delta,
-        arraySum(arrayMap(x -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) as reward_pool_balance_delta
-    FROM ClmPositionInteraction i
-    JOIN CLM clm ON i.clm = clm.id
-    JOIN Token token ON clm.managerToken = token.id
-    WHERE i.type__ IN ('MANAGER_WITHDRAW', 'MANAGER_DEPOSIT')
-),
-from_events AS (
-    SELECT
-        timestamp,
-        block_number,
-        log_index,
-        transaction_hash,
-        user_address as from_address,
-        '0x0000000000000000000000000000000000000000' as to_address,
-        pool_address,
-        (manager_balance_delta + reward_pool_balance_delta) / pow(10, token_decimals) as amount,
-        'withdrawal' as event_type
-    FROM balance_changes
-    WHERE interaction_type = 'MANAGER_WITHDRAW'
-),
-to_events AS (
-    SELECT
-        timestamp,
-        block_number,
-        log_index,
-        transaction_hash,
-        '0x0000000000000000000000000000000000000000' as from_address,
-        user_address as to_address,
-        pool_address,
-        (manager_balance_delta + reward_pool_balance_delta) / pow(10, token_decimals) as amount,
-        'deposit' as event_type
-    FROM balance_changes
-    WHERE interaction_type = 'MANAGER_DEPOSIT'
-),
-data_res as (
-    SELECT
-        COALESCE(f.timestamp, t.timestamp) as timestamp,
-        146 as chain_id,
-        COALESCE(f.block_number, t.block_number) as block_number,
-        COALESCE(f.log_index, t.log_index) as log_index,
-        COALESCE(f.transaction_hash, t.transaction_hash) as transaction_hash,
-        COALESCE(f.from_address, t.from_address) as from_address,
-        COALESCE(f.to_address, t.to_address) as to_address,
-        COALESCE(f.pool_address, t.pool_address) as pool_address,
-        COALESCE(f.amount, t.amount) as amount,
-        COALESCE(f.event_type, t.event_type) as event_type
-    FROM from_events f
-    FULL OUTER JOIN to_events t
-        ON f.transaction_hash = t.transaction_hash
-        AND f.log_index = t.log_index
-    ORDER BY timestamp DESC, log_index ASC
-)
-select *
-from data_res
+      tt.blockTimestamp as timestamp,
+      146 as chain_id,
+      tt.blockNumber as block_number,
+      tt.logIndex as log_index,
+      tt.transactionHash as transaction_hash,
+      tt.from__ as from_address,
+      tt.to__ as to_address,
+      tt.token as pool_address,
+      toDecimal256 (tt.amount, 18) / pow(10, t.decimals) as amount,
+      CASE
+        WHEN tt.from__ = '0x0000000000000000000000000000000000000000' THEN 'mint'
+        WHEN tt.from__ = '0x000000000000000000000000000000000000dead' THEN 'mint'
+        WHEN tt.to__ = '0x0000000000000000000000000000000000000000' THEN 'burn'
+        WHEN tt.to__ = '0x000000000000000000000000000000000000dead' THEN 'burn'
+        ELSE 'transfer'
+      END as event_type
+    FROM
+      TokenTransfer tt
+      JOIN Token t ON tt.token = t.id
+    ORDER BY
+      tt.blockTimestamp DESC,
+      tt.logIndex ASC
+  )
+select
+  *
+from
+  data_res
 where timestamp > timestamp('${timestamp}')
 ```
 
@@ -307,7 +271,7 @@ All user events (ie, Deposit, Withdrawal)
 
 ```SQL
 with
-token_amounts AS (
+data_res AS (
     SELECT
         i.timestamp,
         i.blockNumber as block_number,
@@ -316,13 +280,16 @@ token_amounts AS (
         i.investor as user_address,
         c.id as pool_address,
         c.managerToken as underlying_token_address,
-        i.managerBalanceDelta as amount,
+        abs(
+            toDecimal256(i.managerBalanceDelta, 18) / pow(10, st.decimals)
+            + arraySum(arrayMap(x -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, st.decimals)
+        ) as amount,
         (
-            (toDecimal256(i.underlyingBalance0Delta, 18) / pow(10, t0.decimals)) *
+            abs(toDecimal256(i.underlyingBalance0Delta, 18) / pow(10, t0.decimals)) *
             (toDecimal256(i.token0ToNativePrice, 18) / pow(10, 18)) *
             (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18))
         ) + (
-            (toDecimal256(i.underlyingBalance1Delta, 18) / pow(10, t1.decimals)) *
+            abs(toDecimal256(i.underlyingBalance1Delta, 18) / pow(10, t1.decimals)) *
             (toDecimal256(i.token1ToNativePrice, 18) / pow(10, 18)) *
             (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18))
         ) as amount_usd,
@@ -334,12 +301,12 @@ token_amounts AS (
             WHEN i.type__ = 'CLM_REWARD_POOL_CLAIM' THEN 'claim'
             ELSE 'unknown'
         END as event_type
-    FROM ClmPositionInteraction i
-    JOIN Transaction tx ON i.createdWith = tx.id
-    JOIN CLM c ON i.clm = c.id
-    JOIN Token t0 ON c.underlyingToken0 = t0.id
-    JOIN Token t1 ON c.underlyingToken1 = t1.id
-    JOIN Protocol p ON c.protocol = p.id
+    FROM `ClmPositionInteraction` i
+    JOIN `Transaction` tx ON i.createdWith = tx.id
+    JOIN `CLM` c ON i.clm = c.id
+    JOIN `Token` t0 ON c.underlyingToken0 = t0.id
+    JOIN `Token` t1 ON c.underlyingToken1 = t1.id
+    JOIN `Token` st ON c.managerToken = st.id
     WHERE i.type__ IN (
         'MANAGER_DEPOSIT',
         'MANAGER_WITHDRAW',
@@ -347,92 +314,19 @@ token_amounts AS (
         'CLM_REWARD_POOL_UNSTAKE',
         'CLM_REWARD_POOL_CLAIM'
     )
-),
-data_res as (
-    SELECT
-        timestamp,
-        146 as chain_id,
-        block_number,
-        log_index,
-        transaction_hash,
-        user_address,
-        pool_address,
-        underlying_token_address,
-        amount,
-        amount_usd,
-        event_type
-    FROM token_amounts
-    ORDER BY timestamp DESC, log_index ASC
 )
-select *
-from data_res
-where timestamp > timestamp('${timestamp}')
-```
-
-### Incentive Claim Data
-
-Transactional data on user level incentives claimed data.
-
-| Property              | Description                                                                                          | Type   |
-| --------------------- | ---------------------------------------------------------------------------------------------------- | ------ |
-| timestamp             | The timestamp of the claim.                                                                          | number |
-| chain_id              | The standard chain id.                                                                               | number |
-| transaction_hash      | The hash of the transaction.                                                                         | string |
-| log_index             | The event log. For transactions that don't emit event, create arbitrary index starting from 0.       | number |
-| transaction_signer    | The address of the account that signed the transaction.                                              | string |
-| user_address          | The address of the user who claimed the incentives (could be different from the transaction_signer). | string |
-| claimed_token_address | The smart contract address of the claimed token.                                                     | string |
-| amount                | The amount of the token claimed, decimal normalized.                                                 | number |
-| amount_usd            | The amount of claimed tokens in USD.                                                                 | number |
-| other_incentive_usd   | (Optional) Any incentives outside of the claimed token, in this transaction, summed up in USD terms. | number |
-
-```SQL
-WITH
-raw_arrays AS (
-    SELECT
-        i.timestamp,
-        i.createdWith as transaction_hash,
-        i.logIndex as log_index,
-        tx.sender as transaction_signer,
-        i.investor as user_address,
-        i.nativeToUSDPrice as native_to_usd,
-        arrayJoin(arrayZip(clm.rewardTokensOrder, i.rewardBalancesDelta, i.rewardToNativePrices)) AS token_data
-    FROM ClmPositionInteraction i
-    JOIN CLM clm ON i.clm = clm.id
-    JOIN Transaction tx ON i.createdWith = tx.id
-    WHERE i.type__ = 'CLM_REWARD_POOL_CLAIM'
-),
-calculated_amounts AS (
-    SELECT
-        timestamp,
-        transaction_hash,
-        log_index,
-        transaction_signer,
-        user_address,
-        token_data.1 as claimed_token_address,
-        toDecimal256(token_data.2, 18) / pow(10, t.decimals) as amount,
-        (toDecimal256(token_data.2, 18) / pow(10, t.decimals)) *
-        (toDecimal256(token_data.3, 18) / pow(10, 18)) *
-        (toDecimal256(native_to_usd, 18) / pow(10, 18)) as amount_usd
-    FROM raw_arrays
-    JOIN Token t ON t.id = token_data.1
-),
-data_res as (
-    SELECT
-        timestamp,
-        146 as chain_id,
-        transaction_hash,
-        log_index,
-        transaction_signer,
-        user_address,
-        claimed_token_address,
-        amount,
-        amount_usd,
-        0 as other_incentive_usd
-    FROM calculated_amounts
-    ORDER BY timestamp DESC, log_index ASC
-)
-select *
-from data_res
-where timestamp > timestamp('${timestamp}')
+SELECT
+    timestamp,
+    146 as chain_id,
+    block_number,
+    log_index,
+    transaction_hash,
+    user_address,
+    pool_address,
+    underlying_token_address,
+    amount,
+    amount_usd,
+    event_type
+FROM data_res
+--where timestamp > timestamp('${timestamp}')
 ```

@@ -25,6 +25,35 @@ type Token @entity(immutable: true) {
   name: String
   "The number of decimals the token uses"
   decimals: BigInt!
+
+  "All token transfers"
+  transfers: [TokenTransfer!]! @derivedFrom(field: "token")
+}
+
+"""
+A token transfer event, emitted by the ERC20 standard.
+"""
+type TokenTransfer @entity(immutable: true) {
+  "The transaction hash + log index"
+  id: Bytes!
+
+  "The transaction that caused the transfer"
+  transactionHash: Bytes!
+  "The block number the transaction was included in"
+  blockNumber: BigInt!
+  "The timestamp of the block the transaction was included in"
+  blockTimestamp: BigInt!
+  "The log index of the transaction"
+  logIndex: BigInt!
+
+  "The token that was transferred"
+  token: Token!
+  "The address of the sender"
+  from: Bytes!
+  "The address of the receiver"
+  to: Bytes!
+  "The amount of tokens transferred"
+  amount: BigInt!
 }
 
 """

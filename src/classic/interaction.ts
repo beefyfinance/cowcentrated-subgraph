@@ -11,7 +11,7 @@ import {
 } from "../../generated/templates/ClmRewardPool/RewardPool"
 import { getAndSaveTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
-import { Classic, ClassicPositionInteraction } from "../../generated/schema"
+import { Classic, ClassicPositionInteraction, TokenTransfer } from "../../generated/schema"
 import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
 import { ZERO_BI } from "../common/utils/decimal"
 import { getEventIdentifier } from "../common/utils/event"
@@ -25,8 +25,11 @@ import {
 import { getClassicPosition } from "./entity/position"
 import { fetchClassicData, updateClassicDataAndSnapshots } from "./utils/classic-data"
 import { updateClassicPositionSnapshotsIfEnabled } from "./utils/position-snapshot"
+import { createAndSaveTokenTransfer } from "../common/entity/token"
 
 export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
+  createAndSaveTokenTransfer(event, event.params.from, event.params.to, event.params.value)
+
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
@@ -151,6 +154,8 @@ export function handleClassicBoostRewardPaid(event: ClassicBoostRewardPaid): voi
 }
 
 export function handleClassicRewardPoolTransfer(event: RewardPoolTransferEvent): void {
+  createAndSaveTokenTransfer(event, event.params.from, event.params.to, event.params.value)
+
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return

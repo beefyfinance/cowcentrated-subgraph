@@ -14,8 +14,10 @@ import { ZERO_BI } from "../common/utils/decimal"
 import { fetchCLMData, updateCLMDataAndSnapshots } from "./utils/clm-data"
 import { getEventIdentifier } from "../common/utils/event"
 import { updateClmPositionSnapshotsIfEnabled } from "./utils/position-snapshot"
+import { createAndSaveTokenTransfer } from "../common/entity/token"
 
 export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
+  createAndSaveTokenTransfer(event, event.params.from, event.params.to, event.params.value)
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
@@ -63,6 +65,8 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
 }
 
 export function handleClmRewardPoolTransfer(event: RewardPoolTransferEvent): void {
+  createAndSaveTokenTransfer(event, event.params.from, event.params.to, event.params.value)
+
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
