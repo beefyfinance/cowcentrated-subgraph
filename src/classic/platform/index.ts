@@ -22,6 +22,7 @@ import {
 import { getVaultTokenBreakdownNile, isNileVault } from "./nile"
 import { getVaultTokenBreakdownPendle, isPendleVault } from "./pendle"
 import { getVaultTokenBreakdownSolidly, isSolidlyVault } from "./solidly"
+import { getVaultTokenBreakdownSilo, isSiloVault } from "./silo"
 
 const PLATFORM_AAVE = "AAVE"
 const PLATFORM_BALANCER_AURA = "BALANCER_AURA"
@@ -34,6 +35,7 @@ const PLATFORM_MENDI_LEVERAGE = "MENDI_LEVERAGE"
 const PLATFORM_NILE = "NILE"
 const PLATFORM_PENDLE_EQUILIBRIA = "PENDLE_EQUILIBRIA"
 const PLATFORM_SOLIDLY = "SOLIDLY"
+const PLATFORM_SILO = "SILO"
 const PLATFORM_BEEFY_CLM = "BEEFY_CLM"
 const PLATFORM_BEEFY_CLM_VAULT = "BEEFY_CLM_VAULT"
 export const PLATFORM_UNKNOWN = "UNKNOWN"
@@ -53,6 +55,8 @@ export function getVaultTokenBreakdown(vault: Classic): Array<TokenBalance> {
     return getVaultTokenBreakdownPendle(vault)
   } else if (vault.underlyingPlatform == PLATFORM_BALANCER_AURA) {
     return getVaultTokenBreakdownBalancer(vault)
+  } else if (vault.underlyingPlatform == PLATFORM_SILO) {
+    return getVaultTokenBreakdownSilo(vault)
   } else if (vault.underlyingPlatform == PLATFORM_CURVE) {
     return getVaultTokenBreakdownCurve(vault)
   } else if (vault.underlyingPlatform == PLATFORM_SOLIDLY) {
@@ -82,6 +86,10 @@ export function getVaultTokenBreakdown(vault: Classic): Array<TokenBalance> {
 }
 
 export function detectClassicVaultUnderlyingPlatform(vault: Classic): string {
+  if (isSiloVault(vault)) {
+    return PLATFORM_SILO
+  }
+
   if (isSolidlyVault(vault)) {
     return PLATFORM_SOLIDLY
   }
