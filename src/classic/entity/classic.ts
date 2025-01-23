@@ -13,6 +13,7 @@ import { getIntervalFromTimestamp } from "../../common/utils/time"
 import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from "../../common/utils/snapshot"
 import { getBeefyClassicProtocol } from "../../common/entity/protocol"
 import { PRODUCT_LIFECYCLE_INITIALIZING } from "../../common/entity/lifecycle"
+import { PLATFORM_UNKNOWN } from "../platform"
 
 export function isClassicInitialized(classic: Classic): boolean {
   return classic.lifecycle != PRODUCT_LIFECYCLE_INITIALIZING
@@ -34,6 +35,7 @@ export function getClassic(vaultAddress: Bytes): Classic {
     classic.lifecycle = PRODUCT_LIFECYCLE_INITIALIZING
 
     classic.vaultSharesToken = vaultAddress
+    classic.underlyingPlatform = PLATFORM_UNKNOWN
     classic.underlyingToken = ADDRESS_ZERO
     classic.underlyingBreakdownTokens = []
     classic.underlyingBreakdownTokensOrder = []
@@ -48,7 +50,7 @@ export function getClassic(vaultAddress: Bytes): Classic {
     classic.vaultUnderlyingTotalSupply = ZERO_BI
     classic.vaultUnderlyingBreakdownBalances = []
     classic.rewardPoolsTotalSupply = []
-
+    classic.vaultUnderlyingBalance = ZERO_BI
     classic.underlyingToNativePrice = ZERO_BI
     classic.underlyingBreakdownToNativePrices = []
     classic.boostRewardToNativePrices = []
@@ -155,7 +157,7 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
     snapshot.vaultUnderlyingTotalSupply = ZERO_BI
     snapshot.vaultUnderlyingBreakdownBalances = []
     snapshot.rewardPoolsTotalSupply = []
-
+    snapshot.vaultUnderlyingBalance = ZERO_BI
     snapshot.underlyingToNativePrice = ZERO_BI
     snapshot.underlyingBreakdownToNativePrices = []
     snapshot.boostRewardToNativePrices = []
@@ -171,6 +173,7 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
       snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
       snapshot.vaultUnderlyingTotalSupply = previousSnapshot.vaultUnderlyingTotalSupply
       snapshot.vaultUnderlyingBreakdownBalances = previousSnapshot.vaultUnderlyingBreakdownBalances
+      snapshot.vaultUnderlyingBalance = previousSnapshot.vaultUnderlyingBalance
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
       snapshot.underlyingBreakdownToNativePrices = previousSnapshot.underlyingBreakdownToNativePrices
       snapshot.boostRewardToNativePrices = previousSnapshot.boostRewardToNativePrices

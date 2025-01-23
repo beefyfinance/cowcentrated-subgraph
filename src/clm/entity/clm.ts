@@ -24,6 +24,7 @@ export function getCLM(managerAddress: Bytes): CLM {
     clm.protocol = getBeefyCLProtocol().id
     clm.manager = managerAddress
     clm.strategy = ADDRESS_ZERO
+    clm.underlyingProtocolPool = ADDRESS_ZERO
     clm.lifecycle = PRODUCT_LIFECYCLE_INITIALIZING
 
     clm.managerToken = managerAddress
