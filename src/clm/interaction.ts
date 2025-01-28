@@ -5,7 +5,7 @@ import {
   RewardPaid as RewardPoolRewardPaidEvent,
 } from "../../generated/templates/ClmRewardPool/RewardPool"
 import { getClmRewardPool, getCLM, isClmInitialized } from "./entity/clm"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
 import { getClmPosition } from "./entity/position"
 import { CLM, ClmPositionInteraction, ClmRewardPool } from "../../generated/schema"
@@ -13,8 +13,11 @@ import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
 import { ZERO_BI } from "../common/utils/decimal"
 import { fetchCLMData, updateCLMDataAndSnapshots } from "./utils/clm-data"
 import { getEventIdentifier } from "../common/utils/event"
+import { updateClmPositionSnapshotsIfEnabled } from "./utils/position-snapshot"
+import { createAndSaveTokenTransfer } from "../common/entity/token"
 
 export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
+  createAndSaveTokenTransfer(event, event.params.from, event.params.to, event.params.value)
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
@@ -48,7 +51,7 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
     !event.params.from.equals(managerAddress) &&
     !isRewardPoolFrom
   ) {
-    updateUserPosition(clm, event, event.params.from, event.params.value.neg(), [], [], null)
+    updateUserPositionAndSnapshots(clm, event, event.params.from, event.params.value.neg(), [], [], null)
   }
 
   if (
@@ -57,11 +60,13 @@ export function handleClmManagerTransfer(event: ClmManagerTransferEvent): void {
     !event.params.to.equals(managerAddress) &&
     !isRewardPoolTo
   ) {
-    updateUserPosition(clm, event, event.params.to, event.params.value, [], [], null)
+    updateUserPositionAndSnapshots(clm, event, event.params.to, event.params.value, [], [], null)
   }
 }
 
 export function handleClmRewardPoolTransfer(event: RewardPoolTransferEvent): void {
+  createAndSaveTokenTransfer(event, event.params.from, event.params.to, event.params.value)
+
   // sending to self
   if (event.params.from.equals(event.params.to)) {
     return
@@ -109,7 +114,7 @@ export function handleClmRewardPoolTransfer(event: RewardPoolTransferEvent): voi
     !event.params.to.equals(managerAddress) &&
     !isRewardPoolTo
   ) {
-    updateUserPosition(clm, event, event.params.to, ZERO_BI, rewardPoolBalancesDelta, [], null)
+    updateUserPositionAndSnapshots(clm, event, event.params.to, ZERO_BI, rewardPoolBalancesDelta, [], null)
   }
 
   if (
@@ -122,7 +127,7 @@ export function handleClmRewardPoolTransfer(event: RewardPoolTransferEvent): voi
     for (let i = 0; i < rewardPoolBalancesDelta.length; i++) {
       negRewardPoolBalancesDelta.push(rewardPoolBalancesDelta[i].neg())
     }
-    updateUserPosition(clm, event, event.params.from, ZERO_BI, negRewardPoolBalancesDelta, [], null)
+    updateUserPositionAndSnapshots(clm, event, event.params.from, ZERO_BI, negRewardPoolBalancesDelta, [], null)
   }
 }
 
@@ -140,10 +145,10 @@ export function handleClmRewardPoolRewardPaid(event: RewardPoolRewardPaidEvent):
     }
   }
 
-  updateUserPosition(clm, event, event.params.user, ZERO_BI, [], rewardBalancesDelta, rewardPool)
+  updateUserPositionAndSnapshots(clm, event, event.params.user, ZERO_BI, [], rewardBalancesDelta, rewardPool)
 }
 
-function updateUserPosition(
+function updateUserPositionAndSnapshots(
   clm: CLM,
   event: ethereum.Event,
   investorAddress: Address,
@@ -160,8 +165,7 @@ function updateUserPosition(
   const investor = getInvestor(investorAddress)
   const position = getClmPosition(clm, investor)
 
-  let tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  let tx = getAndSaveTransaction(event.block, event.transaction)
 
   ///////
   // fetch data on chain and update clm
@@ -224,6 +228,7 @@ function updateUserPosition(
   interaction.investorPosition = position.id
   interaction.createdWith = event.transaction.hash
   interaction.blockNumber = event.block.number
+  interaction.logIndex = event.logIndex
   interaction.timestamp = event.block.timestamp
   if (isSharesTransfer) {
     interaction.type = managerBalanceDelta.gt(ZERO_BI) ? "MANAGER_DEPOSIT" : "MANAGER_WITHDRAW"
@@ -275,4 +280,7 @@ function updateUserPosition(
   interaction.rewardToNativePrices = clmData.rewardToNativePrices
   interaction.nativeToUSDPrice = clmData.nativeToUSDPrice
   interaction.save()
+
+  // update position snapshots if needed
+  updateClmPositionSnapshotsIfEnabled(clm, clmData, position, event.block.timestamp)
 }

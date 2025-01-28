@@ -4,7 +4,7 @@ set -e
 
 # config
 valid_chains=($(ls config | sed 's/\.json//g'))
-valid_providers=("goldsky" "0xgraph")
+valid_providers=("goldsky" "0xgraph" "sentio")
 
 function exit_help {
     echo "Usage: $0 <version> <provider> <deploy_key>"
