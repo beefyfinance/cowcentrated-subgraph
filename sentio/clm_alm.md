@@ -88,6 +88,7 @@ WITH position_snapshots AS (
         Token t0 ON clm.underlyingToken0 = t0.id
     JOIN
         Token t1 ON clm.underlyingToken1 = t1.id
+    WHERE snapshot.period = 86400
 ),
 all_snapshots as (
     SELECT
@@ -175,6 +176,7 @@ WITH data_res AS (
     JOIN CLM clm ON snapshot.clm = clm.id
     JOIN ClmStrategy strategy ON clm.strategy = strategy.id
     JOIN Token t0 ON clm.underlyingToken0 = t0.id
+    WHERE snapshot.period = 86400
     UNION ALL
     SELECT
         snapshot.timestamp,
@@ -194,6 +196,7 @@ WITH data_res AS (
     JOIN CLM clm ON snapshot.clm = clm.id
     JOIN ClmStrategy strategy ON clm.strategy = strategy.id
     JOIN Token t1 ON clm.underlyingToken1 = t1.id
+    WHERE snapshot.period = 86400
 )
 select *
 from data_res
