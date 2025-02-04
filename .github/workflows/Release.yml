@@ -27,6 +27,7 @@ jobs:
           - "avax"
           - "rootstock"
           - "scroll"
+          - "sonic"
           - "mode"
           - "lisk"
         os: [ubuntu-latest]
