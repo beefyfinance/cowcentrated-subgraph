@@ -753,6 +753,28 @@ type ClmStrategyTVLEvent @entity(immutable: true) {
 }
 
 """
+This schema tracks all calls to the `moveTicks` function of the strategy.
+"""
+type ClmMoveTickCall @entity(immutable: true) {
+  "strategy address + transaction hash"
+  id: Bytes!
+
+  "The CLM the move tick call is for"
+  clm: CLM!
+  "The strategy that the move tick call is for"
+  strategy: ClmStrategy!
+  "The transaction that created the move tick call"
+  createdWith: Transaction!
+  "The block number of the move tick call"
+  blockNumber: BigInt!
+  "The timestamp of the move tick call so you can sort by time"
+  timestamp: BigInt!
+
+  "The msg.sender of the move tick call"
+  sender: Bytes!
+}
+
+"""
 This event is emitted when we collect earned trading fees from the underlying pool.
 """
 type ClmManagerCollectionEvent @entity(immutable: true) {

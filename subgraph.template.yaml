@@ -240,6 +240,9 @@ templates:
           handler: handleClmStrategyClaimedRewards
         - event: TVL(uint256,uint256)
           handler: handleClmStrategyTVL
+      callHandlers:
+        - function: moveTicks()
+          handler: handleClmStrategyMoveTicks
 
   - name: RewardPool
     kind: ethereum/contract

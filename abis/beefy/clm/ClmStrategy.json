@@ -230,5 +230,12 @@
       }
     ],
     "anonymous": false
+  },
+  {
+    "type": "function",
+    "name": "moveTicks",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   }
 ]
