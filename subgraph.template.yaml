@@ -210,9 +210,9 @@ templates:
           handler: handleClmManagerInitialized
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleClmManagerTransfer
-        - event: Deposit(address indexed, uint256, uint256, uint256, uint256, uint256)
+        - event: Deposit(indexed address,uint256,uint256,uint256,uint256,uint256)
           handler: handleClmManagerDeposit
-        - event: Withdraw(address indexed, uint256, uint256, uint256)
+        - event: Withdraw(indexed address,uint256,uint256,uint256)
           handler: handleClmManagerWithdraw
 
   - name: ClmStrategy
