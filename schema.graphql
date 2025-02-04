@@ -558,6 +558,15 @@ type CLM @entity {
 
   "All CLM interactions for this CLM"
   interactions: [ClmPositionInteraction!]! @derivedFrom(field: "clm")
+
+  "All CLM deposits for this CLM"
+  deposits: [ClmDepositEvent!]! @derivedFrom(field: "clm")
+
+  "All CLM withdrawals for this CLM"
+  withdrawals: [ClmWithdrawEvent!]! @derivedFrom(field: "clm")
+
+  "All CLM TVL events for this CLM"
+  tvlEvents: [ClmStrategyTVLEvent!]! @derivedFrom(field: "clm")
 }
 
 """
