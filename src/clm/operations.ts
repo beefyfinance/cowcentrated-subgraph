@@ -1,11 +1,9 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts"
 import {
   TVL as CLMStrategyTVLEvent,
-  MoveTicksCall as ClmStrategyMoveTicksCall,
 } from "../../generated/templates/ClmStrategy/ClmStrategy"
 import { getClmStrategy, getCLM } from "./entity/clm"
 import { getTransaction } from "../common/entity/transaction"
-import { ClmStrategyTVLEvent, ClmMoveTickCall } from "../../generated/schema"
+import { ClmStrategyTVLEvent } from "../../generated/schema"
 import { getEventIdentifier } from "../common/utils/event"
 
 export function handleClmStrategyTVL(event: CLMStrategyTVLEvent): void {
@@ -28,23 +26,4 @@ export function handleClmStrategyTVL(event: CLMStrategyTVLEvent): void {
   clmStrategyTVLEvent.underlyingAmount1 = underlyingAmount1
 
   clmStrategyTVLEvent.save()
-}
-
-export function handleClmStrategyMoveTicks(call: ClmStrategyMoveTicksCall): void {
-  const strategy = getClmStrategy(call.to)
-
-  const clm = getCLM(strategy.clm)
-
-  const tx = getTransaction(call.block, call.transaction)
-  tx.save()
-
-  const id = strategy.id.concat(call.transaction.hash)
-  const moveTickCall = new ClmMoveTickCall(id)
-  moveTickCall.clm = clm.id
-  moveTickCall.strategy = strategy.id
-  moveTickCall.createdWith = tx.id
-  moveTickCall.blockNumber = call.block.number
-  moveTickCall.timestamp = call.block.timestamp
-  moveTickCall.sender = call.from
-  moveTickCall.save()
 }

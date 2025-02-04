@@ -755,24 +755,64 @@ type ClmStrategyTVLEvent @entity(immutable: true) {
 """
 This schema tracks all calls to the `moveTicks` function of the strategy.
 """
-type ClmMoveTickCall @entity(immutable: true) {
+type ClmDepositEvent @entity(immutable: true) {
   "strategy address + transaction hash"
   id: Bytes!
 
   "The CLM the move tick call is for"
   clm: CLM!
-  "The strategy that the move tick call is for"
-  strategy: ClmStrategy!
   "The transaction that created the move tick call"
   createdWith: Transaction!
+  "The event log index in the transaction that created the move tick call."
+  logIndex: BigInt!
   "The block number of the move tick call"
   blockNumber: BigInt!
   "The timestamp of the move tick call so you can sort by time"
   timestamp: BigInt!
 
-  "The msg.sender of the move tick call"
-  sender: Bytes!
+  "The investor that deposited the shares"
+  investor: Investor!
+  "The amount of shares deposited"
+  shares: BigInt!
+  "The amount of first underlying tokens deposited"
+  amount0: BigInt!
+  "The amount of second underlying tokens deposited"
+  amount1: BigInt!
+  "The amount of first underlying tokens fees"
+  fee0: BigInt!
+  "The amount of second underlying tokens fees"
+  fee1: BigInt!
 }
+
+"""
+This event is emitted when we collect earned trading fees from the underlying pool.
+"""
+type ClmWithdrawEvent @entity(immutable: true) {
+  "transaction hash + log index"
+  id: Bytes!
+
+  "The CLM the withdraw event is for"
+  clm: CLM!
+  "The transaction that created the withdraw event"
+  createdWith: Transaction!
+  "The event log index in the transaction that created the withdraw event."
+  logIndex: BigInt!
+  "The block number of the withdraw event"
+  blockNumber: BigInt!
+  "The timestamp of the withdraw event so you can sort by time"
+  timestamp: BigInt!
+
+  "The investor that withdrew the shares"
+  investor: Investor!
+  "The amount of shares withdrawn"
+  shares: BigInt!
+  "The amount of first underlying tokens withdrawn"
+  amount0: BigInt!
+  "The amount of second underlying tokens withdrawn"
+  amount1: BigInt!
+}
+
+
 
 """
 This event is emitted when we collect earned trading fees from the underlying pool.

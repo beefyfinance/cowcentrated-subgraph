@@ -210,6 +210,10 @@ templates:
           handler: handleClmManagerInitialized
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleClmManagerTransfer
+        - event: Deposit(address indexed, uint256, uint256, uint256, uint256, uint256)
+          handler: handleClmManagerDeposit
+        - event: Withdraw(address indexed, uint256, uint256, uint256)
+          handler: handleClmManagerWithdraw
 
   - name: ClmStrategy
     kind: ethereum/contract
@@ -240,9 +244,6 @@ templates:
           handler: handleClmStrategyClaimedRewards
         - event: TVL(uint256,uint256)
           handler: handleClmStrategyTVL
-      callHandlers:
-        - function: moveTicks()
-          handler: handleClmStrategyMoveTicks
 
   - name: RewardPool
     kind: ethereum/contract
