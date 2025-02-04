@@ -1,14 +1,11 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts"
-import {
-  TVL as CLMStrategyTVLEvent,
-} from "../../generated/templates/ClmStrategy/ClmStrategy"
+import { TVL as CLMStrategyTVLEvent } from "../../generated/templates/ClmStrategy/ClmStrategy"
 import { getClmStrategy, getCLM } from "./entity/clm"
 import { getTransaction } from "../common/entity/transaction"
 import { ClmStrategyTVLEvent } from "../../generated/schema"
 import { getEventIdentifier } from "../common/utils/event"
 
 export function handleClmStrategyTVL(event: CLMStrategyTVLEvent): void {
-
   const strategy = getClmStrategy(event.address)
   const clm = getCLM(strategy.clm)
 
