@@ -812,8 +812,6 @@ type ClmWithdrawEvent @entity(immutable: true) {
   amount1: BigInt!
 }
 
-
-
 """
 This event is emitted when we collect earned trading fees from the underlying pool.
 """

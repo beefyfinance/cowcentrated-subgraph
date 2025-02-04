@@ -1,5 +1,9 @@
 import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
-import { Transfer as ClmManagerTransferEvent, Deposit as ClmManagerDepositEvent, Withdraw as ClmManagerWithdrawEvent } from "../../generated/templates/ClmManager/ClmManager"
+import {
+  Transfer as ClmManagerTransferEvent,
+  Deposit as ClmManagerDepositEvent,
+  Withdraw as ClmManagerWithdrawEvent,
+} from "../../generated/templates/ClmManager/ClmManager"
 import {
   Transfer as RewardPoolTransferEvent,
   RewardPaid as RewardPoolRewardPaidEvent,
@@ -277,7 +281,6 @@ function updateUserPosition(
   interaction.save()
 }
 
-
 export function handleClmManagerDeposit(event: ClmManagerDepositEvent): void {
   const clm = getCLM(event.address)
 
@@ -286,7 +289,7 @@ export function handleClmManagerDeposit(event: ClmManagerDepositEvent): void {
 
   let tx = getTransaction(event.block, event.transaction)
   tx.save()
-  
+
   const depositEvent = new ClmDepositEvent(getEventIdentifier(event))
   depositEvent.clm = clm.id
   depositEvent.createdWith = tx.id
@@ -303,7 +306,6 @@ export function handleClmManagerDeposit(event: ClmManagerDepositEvent): void {
 
   depositEvent.save()
 }
-
 
 export function handleClmManagerWithdraw(event: ClmManagerWithdrawEvent): void {
   const clm = getCLM(event.address)
