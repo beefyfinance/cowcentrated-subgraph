@@ -238,6 +238,8 @@ templates:
           handler: handleClmStrategyClaimedFees
         - event: ClaimedRewards(uint256)
           handler: handleClmStrategyClaimedRewards
+        - event: TVL(uint256,uint256)
+          handler: handleClmStrategyTVL
 
   - name: RewardPool
     kind: ethereum/contract

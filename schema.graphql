@@ -729,6 +729,30 @@ type ClmHarvestEvent @entity(immutable: true) {
 }
 
 """
+This event is emitted when the strategy's TVL is updated.
+"""
+type ClmStrategyTVLEvent @entity(immutable: true) {
+  "transaction hash + log index"
+  id: Bytes!
+
+  "The CLM the TVL event is for"
+  clm: CLM!
+  "The strategy that the TVL event is for"
+  strategy: ClmStrategy!
+  "The transaction that created the TVL event"
+  createdWith: Transaction!
+  "The event log index in the transaction that created the TVL event."
+  logIndex: BigInt!
+  "The timestamp of the TVL event so you can sort by time"
+  timestamp: BigInt!
+
+  "Underlying balance of the first token after the TVL event"
+  underlyingAmount0: BigInt!
+  "Underlying balance of the second token after the TVL event"
+  underlyingAmount1: BigInt!
+}
+
+"""
 This event is emitted when we collect earned trading fees from the underlying pool.
 """
 type ClmManagerCollectionEvent @entity(immutable: true) {
