@@ -30,6 +30,7 @@ jobs:
           - "sonic"
           - "mode"
           - "lisk"
+          - "berachain"
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
