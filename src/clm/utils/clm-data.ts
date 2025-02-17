@@ -345,7 +345,7 @@ export function fetchCLMData(clm: CLM): CLMData {
   )
 }
 
-class CLMData {
+export class CLMData {
   constructor(
     public managerTotalSupply: BigInt,
     public rewardPoolsTotalSupply: Array<BigInt>,

@@ -11,7 +11,7 @@ import {
   AddReward as RewardPoolAddRewardEvent,
   RemoveReward as RewardPoolRemoveRewardEvent,
 } from "../../generated/RewardPoolFactory/RewardPool"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { ZERO_BI } from "../common/utils/decimal"
 import { getCLM, getClmRewardPool, isClmManagerAddress, isClmRewardPool, removeClmRewardPool } from "../clm/entity/clm"
@@ -52,8 +52,7 @@ export function handleRewardPoolInitialized(event: RewardPoolInitialized): void 
   }
   const stakedTokenAddress = stakedTokenAddressRes.value
 
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   const rewardPoolToken = fetchAndSaveTokenData(rewardPoolAddress)
 
