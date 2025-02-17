@@ -24,6 +24,7 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 - [Rootstock](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-rootstock/latest/gn)
 - [sei](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-sei/latest/gn)
 - [Sonic](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-sonic/latest/gn)
+- [Unichain](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-unichain/latest/gn)
 - [ZkSync](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-zksync/latest/gn)
 
 ### Historical endpoints
