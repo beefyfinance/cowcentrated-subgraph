@@ -1,5 +1,6 @@
 subgraph.template.yaml
 src/config.template.ts
+.goldsky/template/*.template.yaml
 tests/.latest.json
 .prettierignore
 yarn.lock
