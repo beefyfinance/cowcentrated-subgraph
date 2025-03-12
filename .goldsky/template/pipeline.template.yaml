@@ -26,18 +26,18 @@ sinks:
     type: postgres
     table: clm_strategy_tvl_event
     schema: {{target_schema}}
-    secret_name: POSTGRES_SECRET_CM764FAZQ0
+    secret_name: POSTGRES_MONITORING_DB_URL
     from: source__{{name}}__clm_strategy_tvl_event
   sink__{{name}}__clm_deposit_event:
     type: postgres
     table: clm_deposit_event
     schema: {{target_schema}}
-    secret_name: POSTGRES_SECRET_CM764FAZQ0
+    secret_name: POSTGRES_MONITORING_DB_URL
     from: source__{{name}}__clm_deposit_event
   sink__{{name}}__clm_withdraw_event:
     type: postgres
     table: clm_withdraw_event
     schema: {{target_schema}}
-    secret_name: POSTGRES_SECRET_CM764FAZQ0
+    secret_name: POSTGRES_MONITORING_DB_URL
     from: source__{{name}}__clm_withdraw_event
 dedicated_egress_ip: false

@@ -29,7 +29,7 @@ for chain in $(ls config | sed 's/\.json//g'); do
     }" > .goldsky/generated/temp.json
     
     # Generate the pipeline file for this chain
-    yarn --silent run mustache .goldsky/temp.json .goldsky/template/pipeline.template.yaml > ".goldsky/generated/${chain}.pipeline.yaml"
+    yarn --silent run mustache .goldsky/generated/temp.json .goldsky/template/pipeline.template.yaml > ".goldsky/generated/${chain}.pipeline.yaml"
     
     # Apply the pipeline
     echo "Applying pipeline for $chain..."
