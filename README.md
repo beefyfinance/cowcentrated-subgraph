@@ -88,6 +88,9 @@ yarn test:lint # run prettier linter
 4. Release the first version of the subgraph for the new network using the [./bin/release.sh](./bin/release.sh) script.
    - Must be logged in to goldsky with the provided cli.
    - Only used to deploy the first version, see below for updating a subgraph.
+5. Release the sync pipeline for the new network using the [.goldsky/bin/pipeline-deploy.sh](.goldsky/bin/pipeline-deploy.sh) script.
+   - `./bin/pipeline-deploy.sh <chain> <version>`
+   - `./bin/pipeline-deploy-all.sh` to release the sync pipeline for all networks.
 
 When ready: 4. Tag the new version on Goldsky's UI as "latest" to create a stable endpoint.
 
