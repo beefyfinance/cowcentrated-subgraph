@@ -18,6 +18,7 @@ jobs:
           - "base"
           - "berachain"
           - "bsc"
+          - "gnosis"
           - "linea"
           - "lisk"
           - "manta"
