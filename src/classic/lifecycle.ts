@@ -139,6 +139,28 @@ export function handleClassicVaultInitialized(event: ClassicVaultInitialized): v
 
   const strategy = getClassicStrategy(strategyAddress)
 
+  // the strategy may or may not be initialized
+  // this is a test to know if it is the case
+  const strategyContract = ClassicStrategyContract.bind(strategyAddress)
+  const strategyVaultAddressRes = strategyContract.try_vault()
+  if (strategyVaultAddressRes.reverted) {
+    log.error("Failed to fetch vault address for strategy: {}", [strategyAddress.toHexString()])
+    return
+  }
+  const strategyVaultAddress = strategyVaultAddressRes.value
+
+  strategy.isInitialized = !strategyVaultAddress.equals(ADDRESS_ZERO)
+  strategy.save()
+
+  // we start watching strategy events
+  ClassicStrategyTemplate.create(strategyAddress)
+
+  log.info("handleClassicVaultInitialized: ClassicVault {} initialized with strategy {} on block {}", [
+    vaultAddress.toHexString(),
+    strategyAddress.toHexString(),
+    event.block.number.toString(),
+  ])
+
   if (strategy.isInitialized && vault.isInitialized) {
     fetchInitialClassicDataAndSave(classic)
   }
