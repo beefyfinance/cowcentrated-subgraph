@@ -54,6 +54,7 @@ export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
 
   const vaultAddress = classic.vault
   const rewardPoolAddresses = classic.rewardPoolTokensOrder
+  const erc4626AdapterAddresses = classic.erc4626AdapterTokensOrder
 
   let isRewardPoolFrom = false
   let isRewardPoolTo = false
@@ -67,12 +68,25 @@ export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
     }
   }
 
+  let isErc4626AdapterFrom = false
+  let isErc4626AdapterTo = false
+  for (let i = 0; i < erc4626AdapterAddresses.length; i++) {
+    const erc4626AdapterAddress = erc4626AdapterAddresses[i]
+    if (event.params.from.equals(erc4626AdapterAddress)) {
+      isErc4626AdapterFrom = true
+    }
+    if (event.params.to.equals(erc4626AdapterAddress)) {
+      isErc4626AdapterTo = true
+    }
+  }
+
   // don't store transfers to/from the share token mint address
   if (
     !event.params.from.equals(SHARE_TOKEN_MINT_ADDRESS) &&
     !event.params.from.equals(BURN_ADDRESS) &&
     !event.params.from.equals(vaultAddress) &&
-    !isRewardPoolFrom
+    !isRewardPoolFrom &&
+    !isErc4626AdapterFrom
   ) {
     updateUserPositionAndSnapshots(classic, event, event.params.from, event.params.value.neg(), ZERO_BI, [], [], [], [])
   }
@@ -81,7 +95,8 @@ export function handleClassicVaultTransfer(event: ClassicVaultTransfer): void {
     !event.params.to.equals(SHARE_TOKEN_MINT_ADDRESS) &&
     !event.params.to.equals(BURN_ADDRESS) &&
     !event.params.to.equals(vaultAddress) &&
-    !isRewardPoolTo
+    !isRewardPoolTo &&
+    !isErc4626AdapterTo
   ) {
     updateUserPositionAndSnapshots(classic, event, event.params.to, event.params.value, ZERO_BI, [], [], [], [])
   }
