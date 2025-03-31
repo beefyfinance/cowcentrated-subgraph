@@ -17,6 +17,8 @@
   "beefyClassicStrategyFactoryStartBlock": 219696027,
   "beefyClassicBoostFactoryAddress": "0x2951c806a75b19954ce0bed477676a54f3c1c200",
   "beefyClassicBoostFactoryStartBlock": 219696027,
+  "beefyClassicErc4626AdapterFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "beefyClassicErc4626AdapterFactoryStartBlock": 219696027,
   "clockTickBlocks": 1300,
 
   "wrappedNativeAddress": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",

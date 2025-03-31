@@ -163,10 +163,10 @@ type Classic @entity {
   strategy: ClassicStrategy!
   "The vault boosts"
   boosts: [ClassicBoost!]! @derivedFrom(field: "classic")
-  """
-  The reward pools of this vault.
-  """
+  "The reward pools of this vault"
   rewardPools: [ClassicRewardPool!]! @derivedFrom(field: "classic")
+  "The adapters of this vault"
+  erc4626Adapters: [ClassicErc4626Adapter!]! @derivedFrom(field: "classic")
 
   "The current lifecycle status of the vault"
   lifecycle: ProductLifecycle!
@@ -177,6 +177,10 @@ type Classic @entity {
   rewardPoolTokens: [Token!]!
   "The reward pool token addresses of the CLM. This is the source of truth for other tables reward ordering."
   rewardPoolTokensOrder: [Bytes!]!
+  "The ERC4626 adapter tokens"
+  erc4626AdapterTokens: [Token!]!
+  "The ERC4626 adapter token addresses. This is the source of truth for other tables adapter ordering."
+  erc4626AdapterTokensOrder: [Bytes!]!
 
   "The vault's underlying platform"
   underlyingPlatform: String!
@@ -208,6 +212,8 @@ type Classic @entity {
   vaultUnderlyingBalance: BigInt!
   "Total supply of the reward pool token. Express with `clm.rewardTokensOrder[idx].decimals` decimals."
   rewardPoolsTotalSupply: [BigInt!]!
+  "Total supply of the ERC4626 adapter token. Express with `erc4626AdapterTokens[idx].decimals` decimals."
+  erc4626AdaptersTotalSupply: [BigInt!]!
 
   "Latest LP token price in native we have seen. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
@@ -275,6 +281,8 @@ type ClassicSnapshot @entity {
   vaultUnderlyingBalance: BigInt!
   "Total supply of the reward pool token. Ordered by clm.rewardTokensOrder. Express with `clm.rewardTokensOrder[idx].decimals` decimals."
   rewardPoolsTotalSupply: [BigInt!]!
+  "Total supply of the ERC4626 adapter token. Express with `erc4626AdapterTokens[idx].decimals` decimals."
+  erc4626AdaptersTotalSupply: [BigInt!]!
 
   "Latest LP token price in native of this snapshot. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
@@ -360,6 +368,23 @@ type ClassicRewardPool @entity {
 }
 
 """
+An adapter is a wrapping contract that allows a classic vault to be used as an ERC4626 vault.
+One share of the adapter is equal to one share of the classic vault.
+"""
+type ClassicErc4626Adapter @entity {
+  "The adapter address"
+  id: Bytes!
+  "The classic product the adapter belongs to"
+  classic: Classic!
+  "The vault the adapter is managing"
+  vault: ClassicVault!
+  "The transaction that created the adapter"
+  createdWith: Transaction!
+  "Technical field to remember if the adapter was already initialized"
+  isInitialized: Boolean!
+}
+
+"""
 Classic products are harvested by the strategy. This event is emitted when the strategy harvests the vault.
 """
 type ClassicHarvestEvent @entity(immutable: true) {
@@ -420,6 +445,8 @@ type ClassicPosition @entity {
   boostBalance: BigInt!
   "Amount of reward pool shares the investor holds. Ordered by clm.rewardPoolTokensOrder."
   rewardPoolBalances: [BigInt!]!
+  "Amount of ERC4626 adapter shares the investor holds. Ordered by classic.erc4626AdapterTokensOrder."
+  erc4626AdapterBalances: [BigInt!]!
   "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance. This is mostly used for filtering."
   totalBalance: BigInt!
 
@@ -447,6 +474,10 @@ enum ClassicPositionInteractionType {
   CLASSIC_REWARD_POOL_UNSTAKE
   "The investor claimed their rewards from the reward pool of the CLM"
   CLASSIC_REWARD_POOL_CLAIM
+  "The investor deposited funds into the ERC4626 adapter"
+  CLASSIC_ERC4626_ADAPTER_STAKE
+  "The investor withdrew funds from the ERC4626 adapter"
+  CLASSIC_ERC4626_ADAPTER_UNSTAKE
 }
 
 type ClassicPositionInteraction @entity(immutable: true) {
@@ -478,6 +509,8 @@ type ClassicPositionInteraction @entity(immutable: true) {
   boostBalance: BigInt!
   "The amount of reward pool shares the investor holds at the time of the interaction. Ordered by clm.rewardPoolTokensOrder."
   rewardPoolBalances: [BigInt!]!
+  "The amount of ERC4626 adapter shares the investor holds at the time of the interaction. Ordered by classic.erc4626AdapterTokensOrder."
+  erc4626AdapterBalances: [BigInt!]!
   "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance. This is mostly used for filtering."
   totalBalance: BigInt!
 
@@ -502,6 +535,8 @@ type ClassicPositionInteraction @entity(immutable: true) {
   rewardPoolBalancesDelta: [BigInt!]!
   "Amount of reward tokens change in the interaction. Ordered by clm.rewardTokensOrder."
   rewardBalancesDelta: [BigInt!]!
+  "Amount of ERC4626 adapter shares change in the interaction. Ordered by classic.erc4626AdapterTokensOrder."
+  erc4626AdapterBalancesDelta: [BigInt!]!
 
   "LP token price in native at the time of the interaction. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
@@ -551,6 +586,8 @@ type ClassicPositionSnapshot @entity {
   boostBalance: BigInt!
   "Amount of reward pool shares the investor holds. Ordered by clm.rewardPoolTokensOrder."
   rewardPoolBalances: [BigInt!]!
+  "Amount of ERC4626 adapter shares the investor holds. Ordered by classic.erc4626AdapterTokensOrder."
+  erc4626AdapterBalances: [BigInt!]!
   "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance."
   totalBalance: BigInt!
 

@@ -22,6 +22,7 @@ export function getClassicPosition(classic: Classic, investor: Investor): Classi
     position.vaultBalance = ZERO_BI
     position.boostBalance = ZERO_BI
     position.rewardPoolBalances = []
+    position.erc4626AdapterBalances = []
     position.totalBalance = ZERO_BI
   }
   return position
@@ -53,6 +54,7 @@ export function getClassicPositionSnapshot(
     snapshot.vaultBalance = ZERO_BI
     snapshot.boostBalance = ZERO_BI
     snapshot.rewardPoolBalances = []
+    snapshot.erc4626AdapterBalances = []
     snapshot.totalBalance = ZERO_BI
 
     snapshot.vaultSharesTotalSupply = ZERO_BI
@@ -73,6 +75,7 @@ export function getClassicPositionSnapshot(
       snapshot.vaultBalance = previousSnapshot.vaultBalance
       snapshot.boostBalance = previousSnapshot.boostBalance
       snapshot.rewardPoolBalances = previousSnapshot.rewardPoolBalances
+      snapshot.erc4626AdapterBalances = previousSnapshot.erc4626AdapterBalances
       snapshot.totalBalance = previousSnapshot.totalBalance
       snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
       snapshot.vaultUnderlyingTotalSupply = previousSnapshot.vaultUnderlyingTotalSupply

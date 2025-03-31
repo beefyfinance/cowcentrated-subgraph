@@ -47,6 +47,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
   const rewardPoolTokenAddresses = classic.rewardPoolTokensOrder
   const underlyingTokenAddress = classic.underlyingToken
   const underlyingBreakdownTokenAddresses = classic.underlyingBreakdownTokensOrder
+  const erc4626AdapterTokenAddresses = classic.erc4626AdapterTokensOrder
   const clm = fetchClassicUnderlyingCLM(classic)
 
   const calls = [
@@ -63,6 +64,11 @@ export function fetchClassicData(classic: Classic): ClassicData {
   for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
     const rewardPoolTokenAddress = Address.fromBytes(rewardPoolTokenAddresses[i])
     calls.push(new Multicall3Params(rewardPoolTokenAddress, "totalSupply()", "uint256"))
+  }
+
+  for (let i = 0; i < erc4626AdapterTokenAddresses.length; i++) {
+    const erc4626AdapterTokenAddress = Address.fromBytes(erc4626AdapterTokenAddresses[i])
+    calls.push(new Multicall3Params(erc4626AdapterTokenAddress, "totalSupply()", "uint256"))
   }
 
   const tokensToRefresh = new Array<Address>()
@@ -195,6 +201,10 @@ export function fetchClassicData(classic: Classic): ClassicData {
   for (let i = 0; i < rewardPoolTokenAddresses.length; i++) {
     rewardPoolsTotalSupplyRes.push(results[idx++])
   }
+  const erc4626AdapterTotalSupplyRes = new Array<MulticallResult>()
+  for (let i = 0; i < erc4626AdapterTokenAddresses.length; i++) {
+    erc4626AdapterTotalSupplyRes.push(results[idx++])
+  }
   idx = idx + tokensToRefresh.length
   const priceFeedRes = results[idx++]
   const boostRewardTokenOutputAmountsRes = new Array<MulticallResult>()
@@ -284,6 +294,14 @@ export function fetchClassicData(classic: Classic): ClassicData {
     } else {
       rewardPoolsTotalSupply.push(ZERO_BI)
       log.error("Failed to fetch rewardPoolsTotalSupply for Classic {}", [classic.id.toHexString()])
+    }
+  }
+
+  let erc4626AdapterTotalSupply = new Array<BigInt>()
+  for (let i = 0; i < erc4626AdapterTotalSupplyRes.length; i++) {
+    const totalSupplyRes = erc4626AdapterTotalSupplyRes[i]
+    if (!totalSupplyRes.reverted) {
+      erc4626AdapterTotalSupply.push(totalSupplyRes.value.toBigInt())
     }
   }
 
@@ -446,6 +464,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
     vaultUnderlyingTotalSupply,
     vaultUnderlyingBreakdownBalances,
     rewardPoolsTotalSupply,
+    erc4626AdapterTotalSupply,
     underlyingAmount,
     underlyingToNativePrice,
     underlyingBreakdownToNativePrices,
@@ -461,6 +480,7 @@ export class ClassicData {
     public vaultUnderlyingTotalSupply: BigInt,
     public vaultUnderlyingBreakdownBalances: Array<BigInt>,
     public rewardPoolsTotalSupply: Array<BigInt>,
+    public erc4626AdaptersTotalSupply: Array<BigInt>,
     public underlyingAmount: BigInt,
     public underlyingToNativePrice: BigInt,
     public underlyingBreakdownToNativePrices: Array<BigInt>,
@@ -485,6 +505,7 @@ export function updateClassicDataAndSnapshots(
   classic.vaultUnderlyingBreakdownBalances = classicData.vaultUnderlyingBreakdownBalances
   classic.vaultUnderlyingBalance = classicData.underlyingAmount
   classic.rewardPoolsTotalSupply = classicData.rewardPoolsTotalSupply
+  classic.erc4626AdaptersTotalSupply = classicData.erc4626AdaptersTotalSupply
   classic.underlyingAmount = classicData.underlyingAmount
   classic.underlyingToNativePrice = classicData.underlyingToNativePrice
   classic.underlyingBreakdownToNativePrices = classicData.underlyingBreakdownToNativePrices
@@ -506,10 +527,12 @@ export function updateClassicDataAndSnapshots(
     snapshot.vaultUnderlyingTotalSupply = classic.vaultUnderlyingTotalSupply
     snapshot.vaultUnderlyingBreakdownBalances = classic.vaultUnderlyingBreakdownBalances
     snapshot.rewardPoolsTotalSupply = classic.rewardPoolsTotalSupply
+    snapshot.erc4626AdaptersTotalSupply = classic.erc4626AdaptersTotalSupply
     snapshot.underlyingAmount = classic.underlyingAmount
     snapshot.underlyingToNativePrice = classic.underlyingToNativePrice
     snapshot.underlyingBreakdownToNativePrices = classic.underlyingBreakdownToNativePrices
     snapshot.boostRewardToNativePrices = classic.boostRewardToNativePrices
+    snapshot.rewardToNativePrices = classic.rewardToNativePrices
     snapshot.nativeToUSDPrice = classic.nativeToUSDPrice
     snapshot.save()
   }

@@ -63,6 +63,10 @@ dataSources:
           file: ./abis/beefy/classic/ClassicBoostFactory.json
         - name: ClassicBoost
           file: ./abis/beefy/classic/ClassicBoost.json
+        - name: ClassicErc4626AdapterFactory
+          file: ./abis/beefy/classic/ClassicErc4626AdapterFactory.json
+        - name: ClassicErc4626Adapter
+          file: ./abis/beefy/classic/ClassicErc4626Adapter.json
 
         - name: PendleMarket
           file: ./abis/platform/PendleMarket.json
@@ -163,6 +167,7 @@ dataSources:
         - ClassicSnapshot
         - ClassicStrategy
         - ClassicVault
+        - ClassicErc4626Adapter
         - ClockTick
         - Investor
         - Protocol
@@ -208,7 +213,25 @@ dataSources:
       eventHandlers:
         - event: BoostDeployed(indexed address)
           handler: handleClassicBoostCreated
-    
+  
+  - kind: ethereum/contract
+    name: ClassicErc4626AdapterFactory
+    network: "{{{network}}}"
+    source:
+      address: "{{beefyClassicErc4626AdapterFactoryAddress}}"
+      abi: ClassicErc4626AdapterFactory
+      startBlock: {{beefyClassicErc4626AdapterFactoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/erc4626-adapter-factory.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
+        - event: ProxyCreated(address)
+          handler: handleClassicErc4626AdapterCreated
+
 templates:
   - name: ClmManager
     kind: ethereum/contract
@@ -411,3 +434,21 @@ templates:
           handler: handleClassicBoostWithdrawn
         - event: RewardPaid(indexed address,uint256)
           handler: handleClassicBoostRewardPaid
+
+  - name: ClassicErc4626Adapter
+    kind: ethereum/contract
+    network: "{{{network}}}"
+    source:
+      abi: ClassicErc4626Adapter
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/erc4626-adapter.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
+        - event: Initialized(uint8)
+          handler: handleClassicErc4626AdapterInitialized
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleClassicErc4626AdapterTransfer

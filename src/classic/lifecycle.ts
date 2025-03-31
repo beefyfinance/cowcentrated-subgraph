@@ -9,6 +9,11 @@ import {
   ProxyCreated as ClassicStrategyCreated,
   ClassicStrategyFactory as ClassicStrategyFactoryContract,
 } from "../../generated/ClassicStrategyFactory/ClassicStrategyFactory"
+import { ProxyCreated as ClassicErc4626AdapterCreated } from "../../generated/ClassicErc4626AdapterFactory/ClassicErc4626AdapterFactory"
+import {
+  Initialized as ClassicErc4626AdapterInitialized,
+  ClassicErc4626Adapter as ClassicErc4626AdapterContract,
+} from "../../generated/templates/ClassicErc4626Adapter/ClassicErc4626Adapter"
 import { BoostDeployed as ClassicBoostDeployed } from "../../generated/ClassicBoostFactory/ClassicBoostFactory"
 import {
   Initialized as ClassicBoostInitialized,
@@ -26,10 +31,12 @@ import {
   ClassicStrategyStratHarvest0 as ClassicStrategyStratHarvest0Template,
   ClassicStrategyStratHarvest1 as ClassicStrategyStratHarvest1Template,
   ClassicBoost as ClassicBoostTemplate,
+  ClassicErc4626Adapter as ClassicErc4626AdapterTemplate,
 } from "../../generated/templates"
 import {
   getClassic,
   getClassicBoost,
+  getClassicErc4626Adapter,
   getClassicStrategy,
   getClassicVault,
   hasClassicBeenRemoved,
@@ -402,6 +409,70 @@ export function handleClassicBoostInitialized(event: ClassicBoostInitialized): v
 
     classic.boostRewardTokens = boostRewardTokens
     classic.boostRewardTokensOrder = boostRewardTokensOrder
+
+    classic.save()
+  }
+}
+
+export function handleClassicErc4626AdapterCreated(event: ClassicErc4626AdapterCreated): void {
+  const erc4626AdapterAddress = event.params.proxy
+  log.info("Creating Classic Erc4626 Adapter: {}", [erc4626AdapterAddress.toHexString()])
+
+  const erc4626Adapter = getClassicErc4626Adapter(erc4626AdapterAddress)
+  erc4626Adapter.isInitialized = false
+  erc4626Adapter.save()
+
+  ClassicErc4626AdapterTemplate.create(erc4626AdapterAddress)
+}
+
+export function handleClassicErc4626AdapterInitialized(event: ClassicErc4626AdapterInitialized): void {
+  const erc4626AdapterAddress = event.address
+  log.debug("Erc4626 Adapter initialized: {}", [erc4626AdapterAddress.toHexString()])
+
+  const erc4626AdapterContract = ClassicErc4626AdapterContract.bind(erc4626AdapterAddress)
+  const vaultAddressRes = erc4626AdapterContract.try_vault()
+  if (vaultAddressRes.reverted) {
+    log.error("Failed to fetch vault address for Classic Erc4626 Adapter: {}", [erc4626AdapterAddress.toHexString()])
+    return
+  }
+  const vaultAddress = vaultAddressRes.value
+  const classic = getClassic(vaultAddress)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring handleClassicErc4626AdapterInitialized", [
+      classic.id.toHexString(),
+    ])
+    return
+  }
+
+  const tx = getAndSaveTransaction(event.block, event.transaction)
+
+  const erc4626Adapter = getClassicErc4626Adapter(erc4626AdapterAddress)
+  erc4626Adapter.isInitialized = true
+  erc4626Adapter.vault = classic.id
+  erc4626Adapter.classic = classic.id
+  if (erc4626Adapter.createdWith.equals(ADDRESS_ZERO)) {
+    erc4626Adapter.createdWith = tx.id
+  }
+  erc4626Adapter.save()
+
+  const currentErc4626AdapterAddresses = classic.erc4626AdapterTokensOrder
+  let foundToken = false
+  for (let i = 0; i < currentErc4626AdapterAddresses.length; i++) {
+    if (currentErc4626AdapterAddresses[i].equals(erc4626AdapterAddress)) {
+      foundToken = true
+      break
+    }
+  }
+
+  if (!foundToken) {
+    const erc4626AdapterTokens = classic.erc4626AdapterTokens
+    const erc4626AdapterTokensOrder = classic.erc4626AdapterTokensOrder
+
+    erc4626AdapterTokens.push(erc4626AdapterAddress)
+    erc4626AdapterTokensOrder.push(erc4626AdapterAddress)
+
+    classic.erc4626AdapterTokens = erc4626AdapterTokens
+    classic.erc4626AdapterTokensOrder = erc4626AdapterTokensOrder
 
     classic.save()
   }
