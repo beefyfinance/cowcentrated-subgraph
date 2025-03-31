@@ -419,7 +419,15 @@ export function handleClassicErc4626AdapterCreated(event: ClassicErc4626AdapterC
   log.info("Creating Classic Erc4626 Adapter: {}", [erc4626AdapterAddress.toHexString()])
 
   const erc4626Adapter = getClassicErc4626Adapter(erc4626AdapterAddress)
-  erc4626Adapter.isInitialized = false
+
+  // check if the erc4626 adapter is already initialized
+  const erc4626AdapterContract = ClassicErc4626AdapterContract.bind(erc4626AdapterAddress)
+  const vaultAddressRes = erc4626AdapterContract.try_vault()
+  if (!vaultAddressRes.reverted && !vaultAddressRes.value.equals(ADDRESS_ZERO)) {
+    erc4626Adapter.isInitialized = true
+  } else {
+    erc4626Adapter.isInitialized = false
+  }
   erc4626Adapter.save()
 
   ClassicErc4626AdapterTemplate.create(erc4626AdapterAddress)
