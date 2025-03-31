@@ -87,7 +87,7 @@ export function getClassicPositionSnapshot(
       snapshot.vaultUnderlyingTotalSupply = previousSnapshot.vaultUnderlyingTotalSupply
       snapshot.vaultUnderlyingBalance = previousSnapshot.vaultUnderlyingBalance
       snapshot.vaultUnderlyingBreakdownBalances = previousSnapshot.vaultUnderlyingBreakdownBalances
-      
+
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
       snapshot.underlyingBreakdownToNativePrices = previousSnapshot.underlyingBreakdownToNativePrices
       snapshot.boostRewardToNativePrices = previousSnapshot.boostRewardToNativePrices
