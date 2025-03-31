@@ -161,6 +161,7 @@ type Classic @entity {
   vault: ClassicVault!
   "The vault strategy"
   strategy: ClassicStrategy!
+
   "The vault boosts"
   boosts: [ClassicBoost!]! @derivedFrom(field: "classic")
   "The reward pools of this vault"
@@ -598,6 +599,8 @@ type ClassicPositionSnapshot @entity {
   rewardPoolBalances: [BigInt!]!
   "Amount of ERC4626 adapter shares the investor holds. Ordered by classic.erc4626AdapterTokensOrder."
   erc4626AdapterBalances: [BigInt!]!
+  "Amount of vault shares the investor holds in the ERC4626 adapter. Ordered by classic.erc4626AdapterTokensOrder."
+  erc4626AdapterVaultSharesBalances: [BigInt!]!
   "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance."
   totalBalance: BigInt!
 

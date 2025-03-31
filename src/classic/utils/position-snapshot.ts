@@ -46,16 +46,20 @@ export function updateClassicPositionSnapshotsIfEnabled(
     snapshot.boostBalance = position.boostBalance
     snapshot.rewardPoolBalances = position.rewardPoolBalances
     snapshot.erc4626AdapterBalances = position.erc4626AdapterBalances
+    snapshot.erc4626AdapterVaultSharesBalances = position.erc4626AdapterVaultSharesBalances
     snapshot.totalBalance = position.totalBalance
+
     snapshot.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
     snapshot.vaultUnderlyingTotalSupply = classicData.vaultUnderlyingTotalSupply
-    snapshot.vaultUnderlyingBreakdownBalances = classicData.vaultUnderlyingBreakdownBalances
     snapshot.vaultUnderlyingBalance = classicData.underlyingAmount
+    snapshot.vaultUnderlyingBreakdownBalances = classicData.vaultUnderlyingBreakdownBalances
+
     snapshot.underlyingToNativePrice = classicData.underlyingToNativePrice
     snapshot.underlyingBreakdownToNativePrices = classicData.underlyingBreakdownToNativePrices
     snapshot.boostRewardToNativePrices = classicData.boostRewardToNativePrices
     snapshot.rewardToNativePrices = classicData.rewardToNativePrices
     snapshot.nativeToUSDPrice = classicData.nativeToUSDPrice
+
     snapshot.save()
   }
 }

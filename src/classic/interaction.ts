@@ -419,8 +419,7 @@ function updateUserPositionAndSnapshots(
 
   const investor = getInvestor(investorAddress)
   const position = getClassicPosition(classic, investor)
-
-  let tx = getAndSaveTransaction(event.block, event.transaction)
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   ///////
   // fetch data on chain and update clm
@@ -453,8 +452,9 @@ function updateUserPositionAndSnapshots(
     !hasPreviousRewardPoolBalance &&
     !hasPreviousErc4626AdapterBalance
   ) {
-    position.createdWith = event.transaction.hash
+    position.createdWith = tx.id
   }
+
   position.vaultBalance = position.vaultBalance.plus(vaultBalanceDelta)
   position.boostBalance = position.boostBalance.plus(boostBalanceDelta)
   const positionRewardPoolBalances = position.rewardPoolBalances // required by thegraph
@@ -555,11 +555,13 @@ function updateUserPositionAndSnapshots(
   interaction.erc4626AdapterBalances = position.erc4626AdapterBalances
   interaction.erc4626AdapterVaultSharesBalances = position.erc4626AdapterVaultSharesBalances
   interaction.totalBalance = position.totalBalance
+
   interaction.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
   interaction.vaultUnderlyingTotalSupply = classicData.vaultUnderlyingTotalSupply
   interaction.vaultUnderlyingBreakdownBalances = classicData.vaultUnderlyingBreakdownBalances
   interaction.vaultUnderlyingAmount = classicData.underlyingAmount
   interaction.vaultUnderlyingBalance = classicData.underlyingAmount
+
   interaction.vaultBalanceDelta = vaultBalanceDelta
   interaction.boostBalanceDelta = boostBalanceDelta
   interaction.boostRewardBalancesDelta = boostRewardBalancesDelta
@@ -567,11 +569,13 @@ function updateUserPositionAndSnapshots(
   interaction.rewardBalancesDelta = rewardBalancesDelta
   interaction.erc4626AdapterBalancesDelta = erc4626AdapterBalanceDelta
   interaction.erc4626AdapterVaultSharesBalancesDelta = positionErc4626AdapterVaultSharesBalancesDelta
+
   interaction.underlyingToNativePrice = classicData.underlyingToNativePrice
   interaction.underlyingBreakdownToNativePrices = classicData.underlyingBreakdownToNativePrices
   interaction.boostRewardToNativePrices = classicData.boostRewardToNativePrices
   interaction.rewardToNativePrices = classicData.rewardToNativePrices
   interaction.nativeToUSDPrice = classicData.nativeToUSDPrice
+
   interaction.save()
 
   // update position snapshot

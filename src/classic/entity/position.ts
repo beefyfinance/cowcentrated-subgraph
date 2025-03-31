@@ -16,13 +16,16 @@ export function getClassicPosition(classic: Classic, investor: Investor): Classi
   let position = ClassicPosition.load(id)
   if (!position) {
     position = new ClassicPosition(id)
+
     position.classic = classic.id
     position.investor = investor.id
     position.createdWith = ADDRESS_ZERO
+
     position.vaultBalance = ZERO_BI
     position.boostBalance = ZERO_BI
     position.rewardPoolBalances = []
     position.erc4626AdapterBalances = []
+    position.erc4626AdapterVaultSharesBalances = []
     position.totalBalance = ZERO_BI
   }
   return position
@@ -55,6 +58,7 @@ export function getClassicPositionSnapshot(
     snapshot.boostBalance = ZERO_BI
     snapshot.rewardPoolBalances = []
     snapshot.erc4626AdapterBalances = []
+    snapshot.erc4626AdapterVaultSharesBalances = []
     snapshot.totalBalance = ZERO_BI
 
     snapshot.vaultSharesTotalSupply = ZERO_BI
@@ -76,11 +80,14 @@ export function getClassicPositionSnapshot(
       snapshot.boostBalance = previousSnapshot.boostBalance
       snapshot.rewardPoolBalances = previousSnapshot.rewardPoolBalances
       snapshot.erc4626AdapterBalances = previousSnapshot.erc4626AdapterBalances
+      snapshot.erc4626AdapterVaultSharesBalances = previousSnapshot.erc4626AdapterVaultSharesBalances
       snapshot.totalBalance = previousSnapshot.totalBalance
+
       snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
       snapshot.vaultUnderlyingTotalSupply = previousSnapshot.vaultUnderlyingTotalSupply
-      snapshot.vaultUnderlyingBreakdownBalances = previousSnapshot.vaultUnderlyingBreakdownBalances
       snapshot.vaultUnderlyingBalance = previousSnapshot.vaultUnderlyingBalance
+      snapshot.vaultUnderlyingBreakdownBalances = previousSnapshot.vaultUnderlyingBreakdownBalances
+      
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
       snapshot.underlyingBreakdownToNativePrices = previousSnapshot.underlyingBreakdownToNativePrices
       snapshot.boostRewardToNativePrices = previousSnapshot.boostRewardToNativePrices

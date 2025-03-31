@@ -36,27 +36,29 @@ export function getClassic(vaultAddress: Bytes): Classic {
     classic.lifecycle = PRODUCT_LIFECYCLE_INITIALIZING
 
     classic.vaultSharesToken = vaultAddress
-    classic.underlyingPlatform = PLATFORM_UNKNOWN
-    classic.underlyingToken = ADDRESS_ZERO
-    classic.underlyingBreakdownTokens = []
-    classic.underlyingBreakdownTokensOrder = []
-    classic.boostRewardTokens = []
-    classic.boostRewardTokensOrder = []
     classic.rewardPoolTokens = []
     classic.rewardPoolTokensOrder = []
     classic.erc4626AdapterTokens = []
     classic.erc4626AdapterTokensOrder = []
+
+    classic.underlyingPlatform = PLATFORM_UNKNOWN
+    classic.underlyingToken = ADDRESS_ZERO
+    classic.underlyingBreakdownTokens = []
+    classic.underlyingBreakdownTokensOrder = []
+
+    classic.boostRewardTokens = []
+    classic.boostRewardTokensOrder = []
     classic.rewardTokens = []
     classic.rewardTokensOrder = []
 
     classic.vaultSharesTotalSupply = ZERO_BI
     classic.vaultUnderlyingTotalSupply = ZERO_BI
     classic.vaultUnderlyingBreakdownBalances = []
+    classic.vaultUnderlyingBalance = ZERO_BI
     classic.rewardPoolsTotalSupply = []
     classic.erc4626AdaptersTotalSupply = []
     classic.erc4626AdapterVaultSharesBalances = []
 
-    classic.vaultUnderlyingBalance = ZERO_BI
     classic.underlyingToNativePrice = ZERO_BI
     classic.underlyingBreakdownToNativePrices = []
     classic.boostRewardToNativePrices = []
@@ -174,10 +176,11 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
     snapshot.vaultSharesTotalSupply = ZERO_BI
     snapshot.vaultUnderlyingTotalSupply = ZERO_BI
     snapshot.vaultUnderlyingBreakdownBalances = []
+    snapshot.vaultUnderlyingBalance = ZERO_BI
     snapshot.rewardPoolsTotalSupply = []
     snapshot.erc4626AdaptersTotalSupply = []
     snapshot.erc4626AdapterVaultSharesBalances = []
-    snapshot.vaultUnderlyingBalance = ZERO_BI
+
     snapshot.underlyingToNativePrice = ZERO_BI
     snapshot.underlyingBreakdownToNativePrices = []
     snapshot.boostRewardToNativePrices = []
@@ -193,15 +196,17 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
       snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
       snapshot.vaultUnderlyingTotalSupply = previousSnapshot.vaultUnderlyingTotalSupply
       snapshot.vaultUnderlyingBreakdownBalances = previousSnapshot.vaultUnderlyingBreakdownBalances
+      snapshot.vaultUnderlyingBalance = previousSnapshot.vaultUnderlyingBalance
       snapshot.rewardPoolsTotalSupply = previousSnapshot.rewardPoolsTotalSupply
       snapshot.erc4626AdaptersTotalSupply = previousSnapshot.erc4626AdaptersTotalSupply
       snapshot.erc4626AdapterVaultSharesBalances = previousSnapshot.erc4626AdapterVaultSharesBalances
-      snapshot.vaultUnderlyingBalance = previousSnapshot.vaultUnderlyingBalance
+
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
       snapshot.underlyingBreakdownToNativePrices = previousSnapshot.underlyingBreakdownToNativePrices
       snapshot.boostRewardToNativePrices = previousSnapshot.boostRewardToNativePrices
       snapshot.rewardToNativePrices = previousSnapshot.rewardToNativePrices
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
+
       snapshot.underlyingAmount = previousSnapshot.underlyingAmount
     }
   }
