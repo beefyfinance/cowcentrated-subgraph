@@ -429,6 +429,8 @@ export function handleClassicErc4626AdapterInitialized(event: ClassicErc4626Adap
   const erc4626AdapterAddress = event.address
   log.debug("Erc4626 Adapter initialized: {}", [erc4626AdapterAddress.toHexString()])
 
+  fetchAndSaveTokenData(erc4626AdapterAddress)
+
   const erc4626AdapterContract = ClassicErc4626AdapterContract.bind(erc4626AdapterAddress)
   const vaultAddressRes = erc4626AdapterContract.try_vault()
   if (vaultAddressRes.reverted) {
