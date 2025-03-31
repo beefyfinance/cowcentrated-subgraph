@@ -719,6 +719,15 @@ type CLM @entity {
 
   "All CLM interactions for this CLM"
   interactions: [ClmPositionInteraction!]! @derivedFrom(field: "clm")
+
+  "All CLM deposits for this CLM"
+  deposits: [ClmDepositEvent!]! @derivedFrom(field: "clm")
+
+  "All CLM withdrawals for this CLM"
+  withdrawals: [ClmWithdrawEvent!]! @derivedFrom(field: "clm")
+
+  "All CLM TVL events for this CLM"
+  tvlEvents: [ClmStrategyTVLEvent!]! @derivedFrom(field: "clm")
 }
 
 """
@@ -887,6 +896,90 @@ type ClmHarvestEvent @entity(immutable: true) {
   rewardToNativePrices: [BigInt!]!
   "Native token price at the time of harvest. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
+}
+
+"""
+This event is emitted when the strategy's TVL is updated.
+"""
+type ClmStrategyTVLEvent @entity(immutable: true) {
+  "transaction hash + log index"
+  id: Bytes!
+
+  "The CLM the TVL event is for"
+  clm: CLM!
+  "The strategy that the TVL event is for"
+  strategy: ClmStrategy!
+  "The transaction that created the TVL event"
+  createdWith: Transaction!
+  "The event log index in the transaction that created the TVL event."
+  logIndex: BigInt!
+  "The timestamp of the TVL event so you can sort by time"
+  timestamp: BigInt!
+
+  "Underlying balance of the first token after the TVL event"
+  underlyingAmount0: BigInt!
+  "Underlying balance of the second token after the TVL event"
+  underlyingAmount1: BigInt!
+}
+
+"""
+This schema tracks all calls to the `moveTicks` function of the strategy.
+"""
+type ClmDepositEvent @entity(immutable: true) {
+  "strategy address + transaction hash"
+  id: Bytes!
+
+  "The CLM the move tick call is for"
+  clm: CLM!
+  "The transaction that created the move tick call"
+  createdWith: Transaction!
+  "The event log index in the transaction that created the move tick call."
+  logIndex: BigInt!
+  "The block number of the move tick call"
+  blockNumber: BigInt!
+  "The timestamp of the move tick call so you can sort by time"
+  timestamp: BigInt!
+
+  "The investor that deposited the shares"
+  investor: Investor!
+  "The amount of shares deposited"
+  shares: BigInt!
+  "The amount of first underlying tokens deposited"
+  amount0: BigInt!
+  "The amount of second underlying tokens deposited"
+  amount1: BigInt!
+  "The amount of first underlying tokens fees"
+  fee0: BigInt!
+  "The amount of second underlying tokens fees"
+  fee1: BigInt!
+}
+
+"""
+This event is emitted when we collect earned trading fees from the underlying pool.
+"""
+type ClmWithdrawEvent @entity(immutable: true) {
+  "transaction hash + log index"
+  id: Bytes!
+
+  "The CLM the withdraw event is for"
+  clm: CLM!
+  "The transaction that created the withdraw event"
+  createdWith: Transaction!
+  "The event log index in the transaction that created the withdraw event."
+  logIndex: BigInt!
+  "The block number of the withdraw event"
+  blockNumber: BigInt!
+  "The timestamp of the withdraw event so you can sort by time"
+  timestamp: BigInt!
+
+  "The investor that withdrew the shares"
+  investor: Investor!
+  "The amount of shares withdrawn"
+  shares: BigInt!
+  "The amount of first underlying tokens withdrawn"
+  amount0: BigInt!
+  "The amount of second underlying tokens withdrawn"
+  amount1: BigInt!
 }
 
 """

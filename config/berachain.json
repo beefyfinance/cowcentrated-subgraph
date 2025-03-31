@@ -1,0 +1,37 @@
+{
+  "network": "berachain-mainnet",
+
+  "multicall3Address": "0xcA11bde05977b3631167028862bE2a173976CA11",
+  "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
+  "burnAddress": "0x000000000000000000000000000000000000dead",
+
+  "clmManagerFactoryAddress": "0x70127945067E4224d7B6ABfDc6f57e3ea45d5CA4",
+  "clmManagerFactoryStartBlock": 794081,
+  "clmStrategyFactoryAddress": "0x7cac900B2f504047b40F5554F633248f78bD960A",
+  "clmStrategyFactoryStartBlock": 794099,
+  "rewardPoolFactoryAddress": "0x542Bf9f89c3Ba0edb7aE5EB4Cf582d349fCdC608",
+  "rewardPoolFactoryStartBlock": 794087,
+  "beefyClassicVaultFactoryAddress": "0x9818dF1Bdce8D0E79B982e2C3a93ac821b3c17e0",
+  "beefyClassicVaultFactoryStartBlock": 792380,
+  "beefyClassicStrategyFactoryAddress": "0x8e0B63846ebEFf857EE35eF3BD3A2df9EF7D6456",
+  "beefyClassicStrategyFactoryStartBlock": 792341,
+  "beefyClassicBoostFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "beefyClassicBoostFactoryStartBlock": 792341,
+  "clockTickBlocks": 170,
+
+  "wrappedNativeAddress": "0x6969696969696969696969696969696969696969",
+  "wrappedNativeDecimals": 18,
+
+  "priceOracleType": "beefy",
+  "chainlinkNativePriceFeedAddress": "0x0000000000000000000000000000000000000000",
+  "chainlinkNativePriceFeedDecimals": 8,
+  "pythPriceFeedAddress": "0x2880ab155794e7179c9ee2e38200202908c17b43",
+  "pythNativePriceId": "0xf490b178d0c85683b7a0f2388b40af2e6f7c90cbe0f96b31f315f08d0e5a2d6d",
+  "umbrellaRegistryAddress": "0x0000000000000000000000000000000000000000",
+  "umbrellaRegistryPriceFeedName": "WRBTC-rUSDT",
+  "umbrellaRegistryPriceFeedNameBytes32": "0xd2a0ad2667ba45a57ce6a98d6f51a4a4d256d704f578b3b90d7ee12e2f6af854",
+  "umbrellaRegistryPriceFeedDecimals": 8,
+
+  "beefySwapperAddress": "0xBC4a342B0c057501E081484A2d24e576E854F823",
+  "beefyOracleAddress": "0x448a3539a591dE3Fb9D5AAE407471D21d40cD315"
+}

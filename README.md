@@ -11,7 +11,9 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 - [Arbitrum](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-arbitrum/latest/gn)
 - [Avax](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-avax/latest/gn)
 - [Base](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-base/latest/gn)
+- [Berachain](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-berachain/latest/gn)
 - [Bsc](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-bsc/latest/gn)
+- [Gnosis](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-gnosis/latest/gn)
 - [Linea](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-linea/latest/gn)
 - [Lisk](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-lisk/latest/gn)
 - [Manta](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-manta/latest/gn)
@@ -23,6 +25,7 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 - [Rootstock](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-rootstock/latest/gn)
 - [sei](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-sei/latest/gn)
 - [Sonic](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-sonic/latest/gn)
+- [Unichain](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-unichain/latest/gn)
 - [ZkSync](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-zksync/latest/gn)
 
 ### Historical endpoints
@@ -85,6 +88,9 @@ yarn test:lint # run prettier linter
 4. Release the first version of the subgraph for the new network using the [./bin/release.sh](./bin/release.sh) script.
    - Must be logged in to goldsky with the provided cli.
    - Only used to deploy the first version, see below for updating a subgraph.
+5. Release the sync pipeline for the new network using the [.goldsky/bin/pipeline-deploy.sh](.goldsky/bin/pipeline-deploy.sh) script.
+   - `./bin/pipeline-deploy.sh <chain> <version>`
+   - `./bin/pipeline-deploy-all.sh` to release the sync pipeline for all networks.
 
 When ready: 4. Tag the new version on Goldsky's UI as "latest" to create a stable endpoint.
 

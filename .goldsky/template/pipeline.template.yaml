@@ -1,0 +1,43 @@
+name: {{original_name}}-extract-move-tick
+resource_size: s
+apiVersion: 3
+sources:
+  source__{{name}}__clm_strategy_tvl_event:
+    type: subgraph_entity
+    subgraphs:
+      - name: beefy-clm-{{original_name}}
+        version: "{{version}}"
+    name: clm_strategy_tvl_event
+  source__{{name}}__clm_deposit_event:
+    type: subgraph_entity
+    subgraphs:
+      - name: beefy-clm-{{original_name}}
+        version: "{{version}}"
+    name: clm_deposit_event
+  source__{{name}}__clm_withdraw_event:
+    type: subgraph_entity
+    subgraphs:
+      - name: beefy-clm-{{original_name}}
+        version: "{{version}}"
+    name: clm_withdraw_event
+transforms: {}
+sinks:
+  sink__{{name}}__clm_strategy_tvl_event:
+    type: postgres
+    table: clm_strategy_tvl_event
+    schema: {{target_schema}}
+    secret_name: POSTGRES_MONITORING_DB_URL
+    from: source__{{name}}__clm_strategy_tvl_event
+  sink__{{name}}__clm_deposit_event:
+    type: postgres
+    table: clm_deposit_event
+    schema: {{target_schema}}
+    secret_name: POSTGRES_MONITORING_DB_URL
+    from: source__{{name}}__clm_deposit_event
+  sink__{{name}}__clm_withdraw_event:
+    type: postgres
+    table: clm_withdraw_event
+    schema: {{target_schema}}
+    secret_name: POSTGRES_MONITORING_DB_URL
+    from: source__{{name}}__clm_withdraw_event
+dedicated_egress_ip: false

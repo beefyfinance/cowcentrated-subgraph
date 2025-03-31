@@ -1,5 +1,9 @@
 import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
-import { Transfer as ClmManagerTransferEvent } from "../../generated/templates/ClmManager/ClmManager"
+import {
+  Transfer as ClmManagerTransferEvent,
+  Deposit as ClmManagerDepositEvent,
+  Withdraw as ClmManagerWithdrawEvent,
+} from "../../generated/templates/ClmManager/ClmManager"
 import {
   Transfer as RewardPoolTransferEvent,
   RewardPaid as RewardPoolRewardPaidEvent,
@@ -8,7 +12,7 @@ import { getClmRewardPool, getCLM, isClmInitialized } from "./entity/clm"
 import { getAndSaveTransaction } from "../common/entity/transaction"
 import { getInvestor } from "../common/entity/investor"
 import { getClmPosition } from "./entity/position"
-import { CLM, ClmPositionInteraction, ClmRewardPool } from "../../generated/schema"
+import { CLM, ClmPositionInteraction, ClmRewardPool, ClmDepositEvent, ClmWithdrawEvent } from "../../generated/schema"
 import { BURN_ADDRESS, SHARE_TOKEN_MINT_ADDRESS } from "../config"
 import { ZERO_BI } from "../common/utils/decimal"
 import { fetchCLMData, updateCLMDataAndSnapshots } from "./utils/clm-data"
@@ -283,4 +287,52 @@ function updateUserPositionAndSnapshots(
 
   // update position snapshots if needed
   updateClmPositionSnapshotsIfEnabled(clm, clmData, position, event.block.timestamp)
+}
+
+export function handleClmManagerDeposit(event: ClmManagerDepositEvent): void {
+  const clm = getCLM(event.address)
+
+  const investor = getInvestor(event.params.user)
+  investor.save()
+
+  let tx = getAndSaveTransaction(event.block, event.transaction)
+
+  const depositEvent = new ClmDepositEvent(getEventIdentifier(event))
+  depositEvent.clm = clm.id
+  depositEvent.createdWith = tx.id
+  depositEvent.logIndex = event.logIndex
+  depositEvent.blockNumber = event.block.number
+  depositEvent.timestamp = event.block.timestamp
+
+  depositEvent.investor = investor.id
+  depositEvent.shares = event.params.shares
+  depositEvent.amount0 = event.params.amount0
+  depositEvent.amount1 = event.params.amount1
+  depositEvent.fee0 = event.params.fee0
+  depositEvent.fee1 = event.params.fee1
+
+  depositEvent.save()
+}
+
+export function handleClmManagerWithdraw(event: ClmManagerWithdrawEvent): void {
+  const clm = getCLM(event.address)
+
+  const investor = getInvestor(event.params.user)
+  investor.save()
+
+  let tx = getAndSaveTransaction(event.block, event.transaction)
+
+  const withdrawEvent = new ClmWithdrawEvent(getEventIdentifier(event))
+  withdrawEvent.clm = clm.id
+  withdrawEvent.createdWith = tx.id
+  withdrawEvent.logIndex = event.logIndex
+  withdrawEvent.blockNumber = event.block.number
+  withdrawEvent.timestamp = event.block.timestamp
+
+  withdrawEvent.investor = investor.id
+  withdrawEvent.shares = event.params.shares
+  withdrawEvent.amount0 = event.params.amount0
+  withdrawEvent.amount1 = event.params.amount1
+
+  withdrawEvent.save()
 }

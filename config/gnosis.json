@@ -1,0 +1,44 @@
+{
+  "network": "xdai",
+
+  "multicall3Address": "0xcA11bde05977b3631167028862bE2a173976CA11",
+  "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
+  "burnAddress": "0x000000000000000000000000000000000000dead",
+
+  "clmManagerFactoryAddress": "0xb60dD550c246EB6b6c9000c78D62AF98Dbcc1ec0",
+  "clmManagerFactoryStartBlock": 39219220,
+  "clmStrategyFactoryAddress": "0x83679030CC0A4cBC1b397fce1A59fE2772F8C5E2",
+  "clmStrategyFactoryStartBlock": 39219227,
+  "rewardPoolFactoryAddress": "0x6b933E01730199a47532915a6CEAc6f0C3f9755F",
+  "rewardPoolFactoryStartBlock": 39219222,
+  "beefyClassicVaultFactoryAddress": "0x2b0C9702A4724f2BFe7922DB92c4082098533c62",
+  "beefyClassicVaultFactoryStartBlock": 30489787,
+  "beefyClassicStrategyFactoryAddress": "0xAF393b8ded8b8C1bd0c8707f43E6972C9bF19EE5",
+  "beefyClassicStrategyFactoryStartBlock": 38492090,
+  "beefyClassicBoostFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "beefyClassicBoostFactoryStartBlock": 38492090,
+  "beefyClassicErc4626AdapterFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "beefyClassicErc4626AdapterFactoryStartBlock": 38492090,
+  "clockTickBlocks": 50,
+
+  "wrappedNativeAddress": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+  "wrappedNativeDecimals": 18,
+
+  "priceOracleType": "beefy",
+  "chainlinkNativePriceFeedAddress": "0x0000000000000000000000000000000000000000",
+  "chainlinkNativePriceFeedDecimals": 8,
+  "pythPriceFeedAddress": "0x2880ab155794e7179c9ee2e38200202908c17b43",
+  "pythNativePriceId": "0xf490b178d0c85683b7a0f2388b40af2e6f7c90cbe0f96b31f315f08d0e5a2d6d",
+  "umbrellaRegistryAddress": "0x0000000000000000000000000000000000000000",
+  "umbrellaRegistryPriceFeedName": "WRBTC-rUSDT",
+  "umbrellaRegistryPriceFeedNameBytes32": "0xd2a0ad2667ba45a57ce6a98d6f51a4a4d256d704f578b3b90d7ee12e2f6af854",
+  "umbrellaRegistryPriceFeedDecimals": 8,
+
+  "beefySwapperAddress": "0x83e61C634BCD5f7cD79B11d63f27B8005Aa8Fd54",
+  "beefyOracleAddress": "0x482f7aBa53d24DC7d3dDe58a36d3666DA2Eed3df",
+
+  "classicStratHarvest1ForAddresses": [],
+
+  "onlyKeepClmClassicVaults": true,
+  "positionSnapshotEnabled": false
+}
