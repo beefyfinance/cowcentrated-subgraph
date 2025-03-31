@@ -69,6 +69,11 @@ export function fetchClassicData(classic: Classic): ClassicData {
   for (let i = 0; i < erc4626AdapterTokenAddresses.length; i++) {
     const erc4626AdapterTokenAddress = Address.fromBytes(erc4626AdapterTokenAddresses[i])
     calls.push(new Multicall3Params(erc4626AdapterTokenAddress, "totalSupply()", "uint256"))
+    calls.push(
+      new Multicall3Params(vaultAddress, "balanceOf(address)", "uint256", [
+        ethereum.Value.fromAddress(erc4626AdapterTokenAddress),
+      ]),
+    )
   }
 
   const tokensToRefresh = new Array<Address>()
@@ -202,8 +207,10 @@ export function fetchClassicData(classic: Classic): ClassicData {
     rewardPoolsTotalSupplyRes.push(results[idx++])
   }
   const erc4626AdapterTotalSupplyRes = new Array<MulticallResult>()
+  const erc4626AdapterVaultSharesBalancesRes = new Array<MulticallResult>()
   for (let i = 0; i < erc4626AdapterTokenAddresses.length; i++) {
     erc4626AdapterTotalSupplyRes.push(results[idx++])
+    erc4626AdapterVaultSharesBalancesRes.push(results[idx++])
   }
   idx = idx + tokensToRefresh.length
   const priceFeedRes = results[idx++]
@@ -302,6 +309,20 @@ export function fetchClassicData(classic: Classic): ClassicData {
     const totalSupplyRes = erc4626AdapterTotalSupplyRes[i]
     if (!totalSupplyRes.reverted) {
       erc4626AdapterTotalSupply.push(totalSupplyRes.value.toBigInt())
+    } else {
+      erc4626AdapterTotalSupply.push(ZERO_BI)
+      log.error("Failed to fetch erc4626AdapterTotalSupply for Classic {}", [classic.id.toHexString()])
+    }
+  }
+
+  let erc4626AdapterVaultSharesBalances = new Array<BigInt>()
+  for (let i = 0; i < erc4626AdapterVaultSharesBalancesRes.length; i++) {
+    const shareBalanceRes = erc4626AdapterVaultSharesBalancesRes[i]
+    if (!shareBalanceRes.reverted) {
+      erc4626AdapterVaultSharesBalances.push(shareBalanceRes.value.toBigInt())
+    } else {
+      erc4626AdapterVaultSharesBalances.push(ZERO_BI)
+      log.error("Failed to fetch erc4626AdapterShareBalances for Classic {}", [classic.id.toHexString()])
     }
   }
 
@@ -465,6 +486,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
     vaultUnderlyingBreakdownBalances,
     rewardPoolsTotalSupply,
     erc4626AdapterTotalSupply,
+    erc4626AdapterVaultSharesBalances,
     underlyingAmount,
     underlyingToNativePrice,
     underlyingBreakdownToNativePrices,
@@ -481,6 +503,7 @@ export class ClassicData {
     public vaultUnderlyingBreakdownBalances: Array<BigInt>,
     public rewardPoolsTotalSupply: Array<BigInt>,
     public erc4626AdaptersTotalSupply: Array<BigInt>,
+    public erc4626AdapterVaultSharesBalances: Array<BigInt>,
     public underlyingAmount: BigInt,
     public underlyingToNativePrice: BigInt,
     public underlyingBreakdownToNativePrices: Array<BigInt>,
@@ -506,6 +529,7 @@ export function updateClassicDataAndSnapshots(
   classic.vaultUnderlyingBalance = classicData.underlyingAmount
   classic.rewardPoolsTotalSupply = classicData.rewardPoolsTotalSupply
   classic.erc4626AdaptersTotalSupply = classicData.erc4626AdaptersTotalSupply
+  classic.erc4626AdapterVaultSharesBalances = classicData.erc4626AdapterVaultSharesBalances
   classic.underlyingAmount = classicData.underlyingAmount
   classic.underlyingToNativePrice = classicData.underlyingToNativePrice
   classic.underlyingBreakdownToNativePrices = classicData.underlyingBreakdownToNativePrices
@@ -528,6 +552,7 @@ export function updateClassicDataAndSnapshots(
     snapshot.vaultUnderlyingBreakdownBalances = classic.vaultUnderlyingBreakdownBalances
     snapshot.rewardPoolsTotalSupply = classic.rewardPoolsTotalSupply
     snapshot.erc4626AdaptersTotalSupply = classic.erc4626AdaptersTotalSupply
+    snapshot.erc4626AdapterVaultSharesBalances = classic.erc4626AdapterVaultSharesBalances
     snapshot.underlyingAmount = classic.underlyingAmount
     snapshot.underlyingToNativePrice = classic.underlyingToNativePrice
     snapshot.underlyingBreakdownToNativePrices = classic.underlyingBreakdownToNativePrices

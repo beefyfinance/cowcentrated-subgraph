@@ -214,6 +214,8 @@ type Classic @entity {
   rewardPoolsTotalSupply: [BigInt!]!
   "Total supply of the ERC4626 adapter token. Express with `erc4626AdapterTokens[idx].decimals` decimals."
   erc4626AdaptersTotalSupply: [BigInt!]!
+  "Share balances of the ERC4626 adapter tokens. Ordered by classic.erc4626AdapterTokensOrder. Express with `vaultSharesToken.decimals` decimals."
+  erc4626AdapterVaultSharesBalances: [BigInt!]!
 
   "Latest LP token price in native we have seen. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
@@ -283,6 +285,8 @@ type ClassicSnapshot @entity {
   rewardPoolsTotalSupply: [BigInt!]!
   "Total supply of the ERC4626 adapter token. Express with `erc4626AdapterTokens[idx].decimals` decimals."
   erc4626AdaptersTotalSupply: [BigInt!]!
+  "Share balances of the ERC4626 adapter tokens. Ordered by classic.erc4626AdapterTokensOrder. Express with `vaultSharesToken.decimals` decimals."
+  erc4626AdapterVaultSharesBalances: [BigInt!]!
 
   "Latest LP token price in native of this snapshot. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!
@@ -447,6 +451,8 @@ type ClassicPosition @entity {
   rewardPoolBalances: [BigInt!]!
   "Amount of ERC4626 adapter shares the investor holds. Ordered by classic.erc4626AdapterTokensOrder."
   erc4626AdapterBalances: [BigInt!]!
+  "Amount of vault shares the investor holds in the ERC4626 adapter. Ordered by classic.erc4626AdapterTokensOrder."
+  erc4626AdapterVaultSharesBalances: [BigInt!]!
   "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance. This is mostly used for filtering."
   totalBalance: BigInt!
 
@@ -511,6 +517,8 @@ type ClassicPositionInteraction @entity(immutable: true) {
   rewardPoolBalances: [BigInt!]!
   "The amount of ERC4626 adapter shares the investor holds at the time of the interaction. Ordered by classic.erc4626AdapterTokensOrder."
   erc4626AdapterBalances: [BigInt!]!
+  "The amount of vault shares the investor holds in the ERC4626 adapter at the time of the interaction. Ordered by classic.erc4626AdapterTokensOrder."
+  erc4626AdapterVaultSharesBalances: [BigInt!]!
   "Total amount of vault shares the investor holds. Should always equal vaultBalance + boostBalance. This is mostly used for filtering."
   totalBalance: BigInt!
 
@@ -537,6 +545,8 @@ type ClassicPositionInteraction @entity(immutable: true) {
   rewardBalancesDelta: [BigInt!]!
   "Amount of ERC4626 adapter shares change in the interaction. Ordered by classic.erc4626AdapterTokensOrder."
   erc4626AdapterBalancesDelta: [BigInt!]!
+  "Amount of ERC4626 adapter shares the investor holds in the ERC4626 adapter at the time of the interaction. Ordered by classic.erc4626AdapterTokensOrder."
+  erc4626AdapterVaultSharesBalancesDelta: [BigInt!]!
 
   "LP token price in native at the time of the interaction. Expressed with 18 decimals."
   underlyingToNativePrice: BigInt!

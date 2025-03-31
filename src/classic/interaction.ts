@@ -462,12 +462,28 @@ function updateUserPositionAndSnapshots(
   }
   position.erc4626AdapterBalances = positionErc4626AdapterBalances
 
+  const positionErc4626AdapterVaultSharesBalances = position.erc4626AdapterVaultSharesBalances // required by thegraph
+  const positionErc4626AdapterVaultSharesBalancesDelta = new Array<BigInt>()
+  for (let i = 0; i < erc4626AdapterBalanceDelta.length; i++) {
+    if (positionErc4626AdapterVaultSharesBalances.length <= i) {
+      // happens when position is created before the second erc4626 adapter is added
+      positionErc4626AdapterVaultSharesBalances.push(ZERO_BI)
+    }
+    const balanceDelta = erc4626AdapterBalanceDelta[i]
+      .times(classicData.erc4626AdapterVaultSharesBalances[i])
+      .div(classicData.erc4626AdaptersTotalSupply[i])
+
+    positionErc4626AdapterVaultSharesBalances[i] = positionErc4626AdapterVaultSharesBalances[i].plus(balanceDelta)
+    positionErc4626AdapterVaultSharesBalancesDelta.push(balanceDelta)
+  }
+  position.erc4626AdapterVaultSharesBalances = positionErc4626AdapterVaultSharesBalances
+
   let totalBalance = position.vaultBalance.plus(position.boostBalance)
   for (let i = 0; i < positionRewardPoolBalances.length; i++) {
     totalBalance = totalBalance.plus(positionRewardPoolBalances[i])
   }
-  for (let i = 0; i < positionErc4626AdapterBalances.length; i++) {
-    totalBalance = totalBalance.plus(positionErc4626AdapterBalances[i])
+  for (let i = 0; i < positionErc4626AdapterVaultSharesBalances.length; i++) {
+    totalBalance = totalBalance.plus(positionErc4626AdapterVaultSharesBalances[i])
   }
   position.totalBalance = totalBalance
   position.save()
@@ -522,6 +538,7 @@ function updateUserPositionAndSnapshots(
   interaction.boostBalance = position.boostBalance
   interaction.rewardPoolBalances = position.rewardPoolBalances
   interaction.erc4626AdapterBalances = position.erc4626AdapterBalances
+  interaction.erc4626AdapterVaultSharesBalances = position.erc4626AdapterVaultSharesBalances
   interaction.totalBalance = position.totalBalance
   interaction.vaultSharesTotalSupply = classicData.vaultSharesTotalSupply
   interaction.vaultUnderlyingTotalSupply = classicData.vaultUnderlyingTotalSupply
@@ -534,7 +551,7 @@ function updateUserPositionAndSnapshots(
   interaction.rewardPoolBalancesDelta = rewardPoolBalancesDelta
   interaction.rewardBalancesDelta = rewardBalancesDelta
   interaction.erc4626AdapterBalancesDelta = erc4626AdapterBalanceDelta
-
+  interaction.erc4626AdapterVaultSharesBalancesDelta = positionErc4626AdapterVaultSharesBalancesDelta
   interaction.underlyingToNativePrice = classicData.underlyingToNativePrice
   interaction.underlyingBreakdownToNativePrices = classicData.underlyingBreakdownToNativePrices
   interaction.boostRewardToNativePrices = classicData.boostRewardToNativePrices

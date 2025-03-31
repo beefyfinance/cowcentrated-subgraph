@@ -197,12 +197,14 @@ WITH events AS (
         classic.underlyingToken as underlying_token_address,
         abs(toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_share.decimals)) +
         abs(toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
-        (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, t_share.decimals))
+        (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, t_share.decimals)) +
+        (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.erc4626AdapterVaultSharesBalancesDelta)) / pow(10, t_share.decimals))
         as amount,
         (
             abs(toDecimal256(i.vaultBalanceDelta, 18) / pow(10, t_share.decimals)) +
             abs(toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
-            (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, t_share.decimals))
+            (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, t_share.decimals)) +
+            (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.erc4626AdapterVaultSharesBalancesDelta)) / pow(10, t_share.decimals))
         ) *
         (toDecimal256(i.underlyingToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18))
@@ -210,6 +212,8 @@ WITH events AS (
         CASE
             WHEN i.type__ = 'VAULT_DEPOSIT' THEN 'deposit'
             WHEN i.type__ = 'VAULT_WITHDRAW' THEN 'withdraw'
+            WHEN i.type__ = 'CLASSIC_ERC4626_ADAPTER_STAKE' THEN 'deposit'
+            WHEN i.type__ = 'CLASSIC_ERC4626_ADAPTER_UNSTAKE' THEN 'withdraw'
             ELSE 'unknown'
         END as event_type
     FROM ClassicPositionInteraction i
@@ -217,7 +221,7 @@ WITH events AS (
     JOIN Token t_share ON classic.vaultSharesToken = t_share.id
     JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
     JOIN Transaction tx ON i.createdWith = tx.id
-    WHERE i.type__ IN ('VAULT_DEPOSIT', 'VAULT_WITHDRAW')
+    WHERE i.type__ IN ('VAULT_DEPOSIT', 'VAULT_WITHDRAW', 'CLASSIC_ERC4626_ADAPTER_STAKE', 'CLASSIC_ERC4626_ADAPTER_UNSTAKE')
 ),
 data_res as (
     SELECT
