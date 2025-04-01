@@ -205,6 +205,9 @@ WITH events AS (
             abs(toDecimal256(i.boostBalanceDelta, 18) / pow(10, t_share.decimals)) +
             (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.rewardPoolBalancesDelta)) / pow(10, t_share.decimals)) +
             (arraySum(arrayMap((x) -> toDecimal256(x, 18), i.erc4626AdapterVaultSharesBalancesDelta)) / pow(10, t_share.decimals))
+        ) * (
+            (toDecimal256(i.vaultUnderlyingBalance, 18) / pow(10, t_underlying.decimals))
+            / (toDecimal256(i.vaultSharesTotalSupply, 18) / pow(10, t_share.decimals))
         ) *
         (toDecimal256(i.underlyingToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(i.nativeToUSDPrice, 18) / pow(10, 18))
