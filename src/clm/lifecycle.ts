@@ -16,7 +16,7 @@ import {
 } from "../../generated/templates/ClmStrategy/ClmStrategy"
 import { ProxyCreated as CLMManagerCreatedEvent } from "../../generated/ClmManagerFactory/ClmManagerFactory"
 import { GlobalPause as ClmStrategyFactoryGlobalPauseEvent } from "../../generated/ClmStrategyFactory/ClmStrategyFactory"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { getBeefyCLProtocol } from "../common/entity/protocol"
 import {
@@ -26,8 +26,7 @@ import {
 } from "../common/entity/lifecycle"
 
 export function handleClmManagerCreated(event: CLMManagerCreatedEvent): void {
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   const managerAddress = event.params.proxy
 
@@ -80,7 +79,7 @@ export function handleClmManagerInitialized(event: ClmManagerInitialized): void 
   // this is a test to know if that is the case
   const strategyContract = ClmStrategyContract.bind(strategyAddress)
   const strategyPoolRes = strategyContract.try_pool()
-  if (strategyAddressRes.reverted) {
+  if (strategyPoolRes.reverted) {
     log.error("handleClmManagerInitialized: Strategy pool reverted for CLM {}", [managerAddress.toHexString()])
     return
   }
@@ -161,6 +160,14 @@ function fetchInitialCLMDataAndSave(clm: CLM): void {
 
   const strategyAddress = Address.fromBytes(clm.strategy)
   const strategyContract = ClmStrategyContract.bind(strategyAddress)
+
+  const strategyPoolRes = strategyContract.try_pool()
+  if (strategyPoolRes.value) {
+    clm.underlyingProtocolPool = strategyPoolRes.value
+  } else {
+    log.error("fetchInitialCLMDataAndSave: Strategy pool reverted for CLM {}", [clm.id.toHexString()])
+  }
+
   const outputTokenRes = strategyContract.try_output()
   if (!outputTokenRes.reverted) {
     const outputTokenAddress = outputTokenRes.value

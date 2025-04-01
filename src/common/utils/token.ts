@@ -4,6 +4,11 @@ import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import { getToken } from "../entity/token"
 
 export function fetchAndSaveTokenData(tokenAddress: Bytes): Token {
+  let tokenExists = Token.load(tokenAddress)
+  if (tokenExists) {
+    return tokenExists
+  }
+
   const tokenContract = IERC20Contract.bind(Address.fromBytes(tokenAddress))
   // use individual calls as there is a good change other subgraph has requested
   // this token's metadata and it's already in the graph-node cache

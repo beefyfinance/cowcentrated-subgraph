@@ -6,6 +6,7 @@ import {
   ClassicBoost,
   ClassicSnapshot,
   ClassicRewardPool,
+  ClassicErc4626Adapter,
 } from "../../../generated/schema"
 import { ADDRESS_ZERO } from "../../common/utils/address"
 import { ZERO_BI } from "../../common/utils/decimal"
@@ -13,6 +14,7 @@ import { getIntervalFromTimestamp } from "../../common/utils/time"
 import { getPreviousSnapshotIdSuffix, getSnapshotIdSuffix } from "../../common/utils/snapshot"
 import { getBeefyClassicProtocol } from "../../common/entity/protocol"
 import { PRODUCT_LIFECYCLE_INITIALIZING } from "../../common/entity/lifecycle"
+import { PLATFORM_UNKNOWN } from "../platform"
 
 export function isClassicInitialized(classic: Classic): boolean {
   return classic.lifecycle != PRODUCT_LIFECYCLE_INITIALIZING
@@ -34,20 +36,28 @@ export function getClassic(vaultAddress: Bytes): Classic {
     classic.lifecycle = PRODUCT_LIFECYCLE_INITIALIZING
 
     classic.vaultSharesToken = vaultAddress
+    classic.rewardPoolTokens = []
+    classic.rewardPoolTokensOrder = []
+    classic.erc4626AdapterTokens = []
+    classic.erc4626AdapterTokensOrder = []
+
+    classic.underlyingPlatform = PLATFORM_UNKNOWN
     classic.underlyingToken = ADDRESS_ZERO
     classic.underlyingBreakdownTokens = []
     classic.underlyingBreakdownTokensOrder = []
+
     classic.boostRewardTokens = []
     classic.boostRewardTokensOrder = []
-    classic.rewardPoolTokens = []
-    classic.rewardPoolTokensOrder = []
     classic.rewardTokens = []
     classic.rewardTokensOrder = []
 
     classic.vaultSharesTotalSupply = ZERO_BI
     classic.vaultUnderlyingTotalSupply = ZERO_BI
     classic.vaultUnderlyingBreakdownBalances = []
+    classic.vaultUnderlyingBalance = ZERO_BI
     classic.rewardPoolsTotalSupply = []
+    classic.erc4626AdaptersTotalSupply = []
+    classic.erc4626AdapterVaultSharesBalances = []
 
     classic.underlyingToNativePrice = ZERO_BI
     classic.underlyingBreakdownToNativePrices = []
@@ -139,6 +149,18 @@ export function getClassicRewardPool(rewardPoolAddress: Bytes): ClassicRewardPoo
   return rewardPool
 }
 
+export function getClassicErc4626Adapter(erc4626AdapterAddress: Bytes): ClassicErc4626Adapter {
+  let erc4626Adapter = ClassicErc4626Adapter.load(erc4626AdapterAddress)
+  if (!erc4626Adapter) {
+    erc4626Adapter = new ClassicErc4626Adapter(erc4626AdapterAddress)
+    erc4626Adapter.classic = ADDRESS_ZERO
+    erc4626Adapter.vault = ADDRESS_ZERO
+    erc4626Adapter.createdWith = ADDRESS_ZERO
+    erc4626Adapter.isInitialized = false
+  }
+  return erc4626Adapter
+}
+
 export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: BigInt): ClassicSnapshot {
   const interval = getIntervalFromTimestamp(timestamp, period)
   const snapshotId = classic.id.concat(getSnapshotIdSuffix(period, interval))
@@ -154,7 +176,10 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
     snapshot.vaultSharesTotalSupply = ZERO_BI
     snapshot.vaultUnderlyingTotalSupply = ZERO_BI
     snapshot.vaultUnderlyingBreakdownBalances = []
+    snapshot.vaultUnderlyingBalance = ZERO_BI
     snapshot.rewardPoolsTotalSupply = []
+    snapshot.erc4626AdaptersTotalSupply = []
+    snapshot.erc4626AdapterVaultSharesBalances = []
 
     snapshot.underlyingToNativePrice = ZERO_BI
     snapshot.underlyingBreakdownToNativePrices = []
@@ -171,11 +196,17 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
       snapshot.vaultSharesTotalSupply = previousSnapshot.vaultSharesTotalSupply
       snapshot.vaultUnderlyingTotalSupply = previousSnapshot.vaultUnderlyingTotalSupply
       snapshot.vaultUnderlyingBreakdownBalances = previousSnapshot.vaultUnderlyingBreakdownBalances
+      snapshot.vaultUnderlyingBalance = previousSnapshot.vaultUnderlyingBalance
+      snapshot.rewardPoolsTotalSupply = previousSnapshot.rewardPoolsTotalSupply
+      snapshot.erc4626AdaptersTotalSupply = previousSnapshot.erc4626AdaptersTotalSupply
+      snapshot.erc4626AdapterVaultSharesBalances = previousSnapshot.erc4626AdapterVaultSharesBalances
+
       snapshot.underlyingToNativePrice = previousSnapshot.underlyingToNativePrice
       snapshot.underlyingBreakdownToNativePrices = previousSnapshot.underlyingBreakdownToNativePrices
       snapshot.boostRewardToNativePrices = previousSnapshot.boostRewardToNativePrices
       snapshot.rewardToNativePrices = previousSnapshot.rewardToNativePrices
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
+
       snapshot.underlyingAmount = previousSnapshot.underlyingAmount
     }
   }

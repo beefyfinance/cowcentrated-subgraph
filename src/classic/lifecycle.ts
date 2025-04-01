@@ -1,4 +1,4 @@
-import { Address, log } from "@graphprotocol/graph-ts"
+import { Address, Bytes, log } from "@graphprotocol/graph-ts"
 import { ProxyCreated as VaultOrStrategyCreated } from "../../generated/ClassicVaultFactory/ClassicVaultFactory"
 import {
   ClassicVault as ClassicVaultContract,
@@ -9,6 +9,11 @@ import {
   ProxyCreated as ClassicStrategyCreated,
   ClassicStrategyFactory as ClassicStrategyFactoryContract,
 } from "../../generated/ClassicStrategyFactory/ClassicStrategyFactory"
+import { ProxyCreated as ClassicErc4626AdapterCreated } from "../../generated/ClassicErc4626AdapterFactory/ClassicErc4626AdapterFactory"
+import {
+  Initialized as ClassicErc4626AdapterInitialized,
+  ClassicErc4626Adapter as ClassicErc4626AdapterContract,
+} from "../../generated/templates/ClassicErc4626Adapter/ClassicErc4626Adapter"
 import { BoostDeployed as ClassicBoostDeployed } from "../../generated/ClassicBoostFactory/ClassicBoostFactory"
 import {
   Initialized as ClassicBoostInitialized,
@@ -23,11 +28,15 @@ import {
 import {
   ClassicVault as ClassicVaultTemplate,
   ClassicStrategy as ClassicStrategyTemplate,
+  ClassicStrategyStratHarvest0 as ClassicStrategyStratHarvest0Template,
+  ClassicStrategyStratHarvest1 as ClassicStrategyStratHarvest1Template,
   ClassicBoost as ClassicBoostTemplate,
+  ClassicErc4626Adapter as ClassicErc4626AdapterTemplate,
 } from "../../generated/templates"
 import {
   getClassic,
   getClassicBoost,
+  getClassicErc4626Adapter,
   getClassicStrategy,
   getClassicVault,
   hasClassicBeenRemoved,
@@ -35,18 +44,19 @@ import {
   removeClassicAndDependencies,
 } from "./entity/classic"
 import { Classic } from "../../generated/schema"
-import { getTransaction } from "../common/entity/transaction"
+import { getAndSaveTransaction } from "../common/entity/transaction"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { PRODUCT_LIFECYCLE_PAUSED, PRODUCT_LIFECYCLE_RUNNING } from "../common/entity/lifecycle"
 import { ADDRESS_ZERO } from "../common/utils/address"
 import { isClmManager, isClmRewardPool } from "../clm/entity/clm"
 import { fetchClassicUnderlyingCLM } from "./utils/classic-data"
+import { CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES, ONLY_KEEP_CLM_CLASSIC_VAULTS } from "../config"
+import { detectClassicVaultUnderlyingPlatform, getVaultTokenBreakdown } from "./platform"
 
 export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreated): void {
   const address = event.params.proxy
 
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   // test if we are creating a vault or a strategy
   const vaultContract = ClassicVaultContract.bind(address)
@@ -76,6 +86,15 @@ export function handleClassicVaultOrStrategyCreated(event: VaultOrStrategyCreate
     strategy.save()
 
     ClassicStrategyTemplate.create(address)
+    for (let i = 0; i < CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES.length; i++) {
+      const harvest1ForAddress = CLASSIC_STRAT_HARVEST_1_FOR_ADDRESSES[i]
+      if (harvest1ForAddress.equals(address)) {
+        ClassicStrategyStratHarvest1Template.create(address)
+      } else {
+        // most common case
+        ClassicStrategyStratHarvest0Template.create(address)
+      }
+    }
   }
 }
 
@@ -83,8 +102,7 @@ export function handleClassicStrategyCreated(event: ClassicStrategyCreated): voi
   const address = event.params.proxy
   log.info("Creating Classic Strategy: {}", [address.toHexString()])
 
-  const tx = getTransaction(event.block, event.transaction)
-  tx.save()
+  const tx = getAndSaveTransaction(event.block, event.transaction)
 
   const strategyContract = ClassicStrategyContract.bind(address)
   const strategyVaultRes = strategyContract.try_vault()
@@ -127,6 +145,28 @@ export function handleClassicVaultInitialized(event: ClassicVaultInitialized): v
   classic.save()
 
   const strategy = getClassicStrategy(strategyAddress)
+
+  // the strategy may or may not be initialized
+  // this is a test to know if it is the case
+  const strategyContract = ClassicStrategyContract.bind(strategyAddress)
+  const strategyVaultAddressRes = strategyContract.try_vault()
+  if (strategyVaultAddressRes.reverted) {
+    log.error("Failed to fetch vault address for strategy: {}", [strategyAddress.toHexString()])
+    return
+  }
+  const strategyVaultAddress = strategyVaultAddressRes.value
+
+  strategy.isInitialized = !strategyVaultAddress.equals(ADDRESS_ZERO)
+  strategy.save()
+
+  // we start watching strategy events
+  ClassicStrategyTemplate.create(strategyAddress)
+
+  log.info("handleClassicVaultInitialized: ClassicVault {} initialized with strategy {} on block {}", [
+    vaultAddress.toHexString(),
+    strategyAddress.toHexString(),
+    event.block.number.toString(),
+  ])
 
   if (strategy.isInitialized && vault.isInitialized) {
     fetchInitialClassicDataAndSave(classic)
@@ -180,7 +220,7 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
   const underlyingTokenAddress = underlyingTokenAddressRes.value
 
   const isClmUnderlying = isClmRewardPool(underlyingTokenAddress) || isClmManager(underlyingTokenAddress)
-  if (!isClmUnderlying) {
+  if (!isClmUnderlying && ONLY_KEEP_CLM_CLASSIC_VAULTS) {
     log.info("Underlying token address is not related to clm, removing: {}", [underlyingTokenAddress.toHexString()])
     removeClassicAndDependencies(classic)
     return
@@ -192,17 +232,31 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
   classic.vaultSharesToken = vaultSharesToken.id
   classic.underlyingToken = underlyingToken.id
   classic.lifecycle = PRODUCT_LIFECYCLE_RUNNING
+  classic.underlyingPlatform = detectClassicVaultUnderlyingPlatform(classic)
   classic.save()
 
   const clm = fetchClassicUnderlyingCLM(classic)
   if (clm == null) {
-    log.error("Failed to fetch CLM data for Classic: {}", [classic.id.toHexString()])
-    removeClassicAndDependencies(classic)
-    return
+    if (ONLY_KEEP_CLM_CLASSIC_VAULTS) {
+      log.error("Failed to fetch CLM data for Classic: {}", [classic.id.toHexString()])
+      removeClassicAndDependencies(classic)
+    } else {
+      const breakdown = getVaultTokenBreakdown(classic)
+      const underlyingBreakdownTokens = new Array<Bytes>()
+      const underlyingBreakdownTokensOrder = new Array<Bytes>()
+      for (let i = 0; i < breakdown.length; i++) {
+        underlyingBreakdownTokens.push(breakdown[i].tokenAddress)
+        underlyingBreakdownTokensOrder.push(breakdown[i].tokenAddress)
+      }
+      classic.underlyingBreakdownTokens = underlyingBreakdownTokens
+      classic.underlyingBreakdownTokensOrder = underlyingBreakdownTokensOrder
+      classic.save()
+    }
+  } else {
+    classic.underlyingBreakdownTokens = [clm.underlyingToken0, clm.underlyingToken1]
+    classic.underlyingBreakdownTokensOrder = [clm.underlyingToken0, clm.underlyingToken1]
+    classic.save()
   }
-  classic.underlyingBreakdownTokens = [clm.underlyingToken0, clm.underlyingToken1]
-  classic.underlyingBreakdownTokensOrder = [clm.underlyingToken0, clm.underlyingToken1]
-  classic.save()
 }
 
 export function handleClassicStrategyPaused(event: ClassicStrategyPaused): void {
@@ -271,8 +325,7 @@ export function handleClassicVaultUpgradeStrategy(event: ClassicVaultUpgradeStra
   newStrategy.vault = classic.id
   newStrategy.classic = classic.id
   if (newStrategy.createdWith.equals(ADDRESS_ZERO)) {
-    const tx = getTransaction(event.block, event.transaction)
-    tx.save()
+    const tx = getAndSaveTransaction(event.block, event.transaction)
     newStrategy.createdWith = tx.id
   }
   newStrategy.save()
@@ -356,6 +409,80 @@ export function handleClassicBoostInitialized(event: ClassicBoostInitialized): v
 
     classic.boostRewardTokens = boostRewardTokens
     classic.boostRewardTokensOrder = boostRewardTokensOrder
+
+    classic.save()
+  }
+}
+
+export function handleClassicErc4626AdapterCreated(event: ClassicErc4626AdapterCreated): void {
+  const erc4626AdapterAddress = event.params.proxy
+  log.info("Creating Classic Erc4626 Adapter: {}", [erc4626AdapterAddress.toHexString()])
+
+  const erc4626Adapter = getClassicErc4626Adapter(erc4626AdapterAddress)
+
+  // check if the erc4626 adapter is already initialized
+  const erc4626AdapterContract = ClassicErc4626AdapterContract.bind(erc4626AdapterAddress)
+  const vaultAddressRes = erc4626AdapterContract.try_vault()
+  if (!vaultAddressRes.reverted && !vaultAddressRes.value.equals(ADDRESS_ZERO)) {
+    erc4626Adapter.isInitialized = true
+  } else {
+    erc4626Adapter.isInitialized = false
+  }
+  erc4626Adapter.save()
+
+  ClassicErc4626AdapterTemplate.create(erc4626AdapterAddress)
+}
+
+export function handleClassicErc4626AdapterInitialized(event: ClassicErc4626AdapterInitialized): void {
+  const erc4626AdapterAddress = event.address
+  log.debug("Erc4626 Adapter initialized: {}", [erc4626AdapterAddress.toHexString()])
+
+  fetchAndSaveTokenData(erc4626AdapterAddress)
+
+  const erc4626AdapterContract = ClassicErc4626AdapterContract.bind(erc4626AdapterAddress)
+  const vaultAddressRes = erc4626AdapterContract.try_vault()
+  if (vaultAddressRes.reverted) {
+    log.error("Failed to fetch vault address for Classic Erc4626 Adapter: {}", [erc4626AdapterAddress.toHexString()])
+    return
+  }
+  const vaultAddress = vaultAddressRes.value
+  const classic = getClassic(vaultAddress)
+  if (hasClassicBeenRemoved(classic)) {
+    log.debug("Classic vault {} has been removed, ignoring handleClassicErc4626AdapterInitialized", [
+      classic.id.toHexString(),
+    ])
+    return
+  }
+
+  const tx = getAndSaveTransaction(event.block, event.transaction)
+
+  const erc4626Adapter = getClassicErc4626Adapter(erc4626AdapterAddress)
+  erc4626Adapter.isInitialized = true
+  erc4626Adapter.vault = classic.id
+  erc4626Adapter.classic = classic.id
+  if (erc4626Adapter.createdWith.equals(ADDRESS_ZERO)) {
+    erc4626Adapter.createdWith = tx.id
+  }
+  erc4626Adapter.save()
+
+  const currentErc4626AdapterAddresses = classic.erc4626AdapterTokensOrder
+  let foundToken = false
+  for (let i = 0; i < currentErc4626AdapterAddresses.length; i++) {
+    if (currentErc4626AdapterAddresses[i].equals(erc4626AdapterAddress)) {
+      foundToken = true
+      break
+    }
+  }
+
+  if (!foundToken) {
+    const erc4626AdapterTokens = classic.erc4626AdapterTokens
+    const erc4626AdapterTokensOrder = classic.erc4626AdapterTokensOrder
+
+    erc4626AdapterTokens.push(erc4626AdapterAddress)
+    erc4626AdapterTokensOrder.push(erc4626AdapterAddress)
+
+    classic.erc4626AdapterTokens = erc4626AdapterTokens
+    classic.erc4626AdapterTokensOrder = erc4626AdapterTokensOrder
 
     classic.save()
   }

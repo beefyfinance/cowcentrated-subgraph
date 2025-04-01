@@ -17,6 +17,8 @@
   "beefyClassicStrategyFactoryStartBlock": 38492090,
   "beefyClassicBoostFactoryAddress": "0x0000000000000000000000000000000000000000",
   "beefyClassicBoostFactoryStartBlock": 38492090,
+  "beefyClassicErc4626AdapterFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "beefyClassicErc4626AdapterFactoryStartBlock": 38492090,
   "clockTickBlocks": 50,
 
   "wrappedNativeAddress": "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
@@ -33,5 +35,10 @@
   "umbrellaRegistryPriceFeedDecimals": 8,
 
   "beefySwapperAddress": "0x83e61C634BCD5f7cD79B11d63f27B8005Aa8Fd54",
-  "beefyOracleAddress": "0x482f7aBa53d24DC7d3dDe58a36d3666DA2Eed3df"
+  "beefyOracleAddress": "0x482f7aBa53d24DC7d3dDe58a36d3666DA2Eed3df",
+
+  "classicStratHarvest1ForAddresses": [],
+
+  "onlyKeepClmClassicVaults": true,
+  "positionSnapshotEnabled": false
 }

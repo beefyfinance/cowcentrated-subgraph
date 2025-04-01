@@ -8,7 +8,7 @@ indexerHints:
 dataSources:
   - kind: ethereum/contract
     name: ClmManagerFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{clmManagerFactoryAddress}}"
       abi: ClmManagerFactory
@@ -55,10 +55,31 @@ dataSources:
           file: ./abis/beefy/classic/ClassicStrategyFactory.json
         - name: ClassicStrategy
           file: ./abis/beefy/classic/ClassicStrategy.json
+        - name: ClassicStrategyStratHarvest0
+          file: ./abis/beefy/classic/ClassicStrategyStratHarvest0.json
+        - name: ClassicStrategyStratHarvest1
+          file: ./abis/beefy/classic/ClassicStrategyStratHarvest1.json
         - name: ClassicBoostFactory
           file: ./abis/beefy/classic/ClassicBoostFactory.json
         - name: ClassicBoost
           file: ./abis/beefy/classic/ClassicBoost.json
+        - name: ClassicErc4626AdapterFactory
+          file: ./abis/beefy/classic/ClassicErc4626AdapterFactory.json
+        - name: ClassicErc4626Adapter
+          file: ./abis/beefy/classic/ClassicErc4626Adapter.json
+
+        - name: PendleMarket
+          file: ./abis/platform/PendleMarket.json
+        - name: PendleSyToken
+          file: ./abis/platform/PendleSyToken.json
+        - name: BalancerPool
+          file: ./abis/platform/BalancerPool.json
+        - name: BalancerVault
+          file: ./abis/platform/BalancerVault.json
+        - name: CurveToken
+          file: ./abis/platform/CurveToken.json
+        - name: CurvePool
+          file: ./abis/platform/CurvePool.json
 
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
@@ -70,7 +91,7 @@ dataSources:
           
   - kind: ethereum/contract
     name: ClmStrategyFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{clmStrategyFactoryAddress}}"
       abi: ClmStrategyFactory
@@ -88,7 +109,7 @@ dataSources:
           
   - kind: ethereum/contract
     name: RewardPoolFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{rewardPoolFactoryAddress}}"
       abi: RewardPoolFactory
@@ -106,7 +127,7 @@ dataSources:
 
   - kind: ethereum/contract
     name: Clock
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{clmManagerFactoryAddress}}"
       abi: ClmManagerFactory
@@ -127,7 +148,7 @@ dataSources:
 
   - kind: ethereum/contract
     name: ClassicVaultFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{beefyClassicVaultFactoryAddress}}"
       abi: ClassicVaultFactory
@@ -146,6 +167,7 @@ dataSources:
         - ClassicSnapshot
         - ClassicStrategy
         - ClassicVault
+        - ClassicErc4626Adapter
         - ClockTick
         - Investor
         - Protocol
@@ -158,7 +180,7 @@ dataSources:
 
   - kind: ethereum/contract
     name: ClassicStrategyFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{beefyClassicStrategyFactoryAddress}}"
       abi: ClassicStrategyFactory
@@ -176,7 +198,7 @@ dataSources:
 
   - kind: ethereum/contract
     name: ClassicBoostFactory
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       address: "{{beefyClassicBoostFactoryAddress}}"
       abi: ClassicBoostFactory
@@ -191,11 +213,29 @@ dataSources:
       eventHandlers:
         - event: BoostDeployed(indexed address)
           handler: handleClassicBoostCreated
-    
+  
+  - kind: ethereum/contract
+    name: ClassicErc4626AdapterFactory
+    network: "{{{network}}}"
+    source:
+      address: "{{beefyClassicErc4626AdapterFactoryAddress}}"
+      abi: ClassicErc4626AdapterFactory
+      startBlock: {{beefyClassicErc4626AdapterFactoryStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/erc4626-adapter-factory.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
+        - event: ProxyCreated(address)
+          handler: handleClassicErc4626AdapterCreated
+
 templates:
   - name: ClmManager
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: ClmManager
     mapping:
@@ -217,7 +257,7 @@ templates:
 
   - name: ClmStrategy
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: ClmStrategy
     mapping:
@@ -247,7 +287,7 @@ templates:
 
   - name: RewardPool
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: RewardPool
     mapping:
@@ -263,7 +303,7 @@ templates:
 
   - name: ClmRewardPool
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: RewardPool
     mapping:
@@ -285,7 +325,7 @@ templates:
 
   - name: ClassicRewardPool
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: RewardPool
     mapping:
@@ -309,7 +349,7 @@ templates:
 
   - name: ClassicVault
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: ClassicVault
     mapping:
@@ -329,7 +369,7 @@ templates:
 
   - name: ClassicStrategy
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: ClassicStrategy
     mapping:
@@ -346,12 +386,42 @@ templates:
           handler: handleClassicStrategyPaused
         - event: Unpaused(address)
           handler: handleClassicStrategyUnpaused
+
+  - name: ClassicStrategyStratHarvest0
+    kind: ethereum/contract
+    network: "{{{network}}}"
+    source:
+      abi: ClassicStrategyStratHarvest0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/strategy.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
         - event: StratHarvest(indexed address,uint256,uint256)
-          handler: handleClassicStrategyHarvest
+          handler: handleClassicStrategyHarvest0
+
+  - name: ClassicStrategyStratHarvest1
+    kind: ethereum/contract
+    network: "{{{network}}}"
+    source:
+      abi: ClassicStrategyStratHarvest1
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/strategy.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
+        - event: StratHarvest(indexed address,indexed uint256,indexed uint256)
+          handler: handleClassicStrategyHarvest1
 
   - name: ClassicBoost
     kind: ethereum/contract
-    network: {{network}}
+    network: "{{{network}}}"
     source:
       abi: ClassicBoost
     mapping:
@@ -370,3 +440,21 @@ templates:
           handler: handleClassicBoostWithdrawn
         - event: RewardPaid(indexed address,uint256)
           handler: handleClassicBoostRewardPaid
+
+  - name: ClassicErc4626Adapter
+    kind: ethereum/contract
+    network: "{{{network}}}"
+    source:
+      abi: ClassicErc4626Adapter
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/classic/mapping/erc4626-adapter.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
+        - event: Initialized(uint8)
+          handler: handleClassicErc4626AdapterInitialized
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleClassicErc4626AdapterTransfer
