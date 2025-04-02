@@ -265,17 +265,7 @@ export function handleClassicStrategyPaused(event: ClassicStrategyPaused): void 
 
   const strategy = getClassicStrategy(strategyAddress)
   let classic = getClassic(strategy.vault)
-  if (!isClassicInitialized(classic)) {
-    log.warning("Classic vault {} is not initialized, ignoring handleClassicStrategyPaused", [classic.id.toHexString()])
-    return
-  }
-  if (hasClassicBeenRemoved(classic)) {
-    log.debug("Classic vault {} has been removed, ignoring handleClassicStrategyPaused", [classic.id.toHexString()])
-    return
-  }
-
-  classic.lifecycle = PRODUCT_LIFECYCLE_PAUSED
-  classic.save()
+  handleClassicLifecycleStatusChanged(classic, PRODUCT_LIFECYCLE_PAUSED)
 }
 
 export function handleClassicStrategyUnpaused(event: ClassicStrategyUnpaused): void {
@@ -283,7 +273,11 @@ export function handleClassicStrategyUnpaused(event: ClassicStrategyUnpaused): v
   log.debug("Strategy unpaused: {}", [strategyAddress.toHexString()])
 
   const strategy = getClassicStrategy(strategyAddress)
-  let classic = getClassic(strategy.vault)
+  const classic = getClassic(strategy.vault)
+  handleClassicLifecycleStatusChanged(classic, PRODUCT_LIFECYCLE_RUNNING)
+}
+
+export function handleClassicLifecycleStatusChanged(classic: Classic, lifecycle: string): void {
   if (!isClassicInitialized(classic)) {
     log.warning("Classic vault {} is not initialized, ignoring handleClassicStrategyUnpaused", [
       classic.id.toHexString(),
@@ -294,7 +288,7 @@ export function handleClassicStrategyUnpaused(event: ClassicStrategyUnpaused): v
     log.debug("Classic vault {} has been removed, ignoring handleClassicStrategyUnpaused", [classic.id.toHexString()])
     return
   }
-  classic.lifecycle = PRODUCT_LIFECYCLE_RUNNING
+  classic.lifecycle = lifecycle
   classic.save()
 }
 

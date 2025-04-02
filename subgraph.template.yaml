@@ -68,6 +68,9 @@ dataSources:
         - name: ClassicErc4626Adapter
           file: ./abis/beefy/classic/ClassicErc4626Adapter.json
 
+        - name: LSTVault
+          file: ./abis/beefy/lst/LSTVault.json
+
         - name: PendleMarket
           file: ./abis/platform/PendleMarket.json
         - name: PendleSyToken
@@ -231,6 +234,37 @@ dataSources:
       eventHandlers:
         - event: ProxyCreated(address)
           handler: handleClassicErc4626AdapterCreated
+
+
+  {{#beefyLSTVaultAddress}}
+  - kind: ethereum/contract
+    name: LSTVault
+    network: "{{{network}}}"
+    source:
+      address: "{{beefyLSTVaultAddress}}"
+      abi: LSTVault
+      startBlock: {{beefyLSTVaultStartBlock}}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7 # 0xgraph's version
+      language: wasm/assemblyscript
+      file: ./src/lst/mapping/lst-vault.ts
+      entities: *classicEntities
+      abis: *abis
+      eventHandlers:
+        - event: Initialized(uint64)
+          handler: handleLSTVaultInitialized
+        - event: Paused(address)
+          handler: handleLSTVaultPaused
+        - event: Unpaused(address)
+          handler: handleLSTVaultUnpaused
+        - event: Notify(address,uint256)
+          handler: handleLSTVaultNotified
+        - event: ClaimedRewards(uint256)
+          handler: handleLSTVaultClaimedRewards
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleLSTVaultTransfer
+  {{/beefyLSTVaultAddress}}
 
 templates:
   - name: ClmManager

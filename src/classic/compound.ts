@@ -15,7 +15,7 @@ export function handleClassicStrategyHarvest1(event: HarvestEvent1): void {
   _handleClassicStrategyHarvest(event, event.params.wantHarvested)
 }
 
-function _handleClassicStrategyHarvest(event: ethereum.Event, compoundedAmount: BigInt): void {
+export function _handleClassicStrategyHarvest(event: ethereum.Event, compoundedAmount: BigInt): void {
   let strategy = getClassicStrategy(event.address)
   let classic = getClassic(strategy.classic)
   if (!isClassicInitialized(classic)) {

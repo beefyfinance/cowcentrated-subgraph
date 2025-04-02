@@ -23,6 +23,7 @@ import { getVaultTokenBreakdownNile, isNileVault } from "./nile"
 import { getVaultTokenBreakdownPendle, isPendleVault } from "./pendle"
 import { getVaultTokenBreakdownSolidly, isSolidlyVault } from "./solidly"
 import { getVaultTokenBreakdownSilo, isSiloVault } from "./silo"
+import { getVaultTokenBreakdownBeefyLstVault } from "./beefy_lst"
 
 const PLATFORM_AAVE = "AAVE"
 const PLATFORM_BALANCER_AURA = "BALANCER_AURA"
@@ -38,6 +39,7 @@ const PLATFORM_SOLIDLY = "SOLIDLY"
 const PLATFORM_SILO = "SILO"
 const PLATFORM_BEEFY_CLM = "BEEFY_CLM"
 const PLATFORM_BEEFY_CLM_VAULT = "BEEFY_CLM_VAULT"
+export const PLATFORM_BEEFY_LST_VAULT = "BEEFY_LST_VAULT"
 export const PLATFORM_UNKNOWN = "UNKNOWN"
 
 export function getVaultTokenBreakdown(vault: Classic): Array<TokenBalance> {
@@ -79,6 +81,8 @@ export function getVaultTokenBreakdown(vault: Classic): Array<TokenBalance> {
     return getVaultTokenBreakdownBeefyCLM(vault)
   } else if (vault.underlyingPlatform == PLATFORM_BEEFY_CLM_VAULT) {
     return getVaultTokenBreakdownBeefyCLMVault(vault)
+  } else if (vault.underlyingPlatform == PLATFORM_BEEFY_LST_VAULT) {
+    return getVaultTokenBreakdownBeefyLstVault(vault)
   }
 
   log.error("Not implemented platform {} for vault {}", [vault.underlyingPlatform, vault.id.toHexString()])
