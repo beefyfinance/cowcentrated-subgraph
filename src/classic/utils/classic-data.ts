@@ -8,6 +8,7 @@ import {
   CHAINLINK_NATIVE_PRICE_FEED_ADDRESS,
   CHAINLINK_NATIVE_PRICE_FEED_DECIMALS,
   PRICE_ORACLE_TYPE,
+  PRICE_STORE_DECIMALS_TOKEN_TO_NATIVE,
   PRICE_STORE_DECIMALS_USD,
   PYTH_NATIVE_PRICE_ID,
   PYTH_PRICE_FEED_ADDRESS,
@@ -23,7 +24,7 @@ import { CLASSIC_SNAPSHOT_PERIODS } from "./snapshot"
 import { getClassicSnapshot, hasClassicBeenRemoved } from "../entity/classic"
 import { getCLM, getClmRewardPool, isClmManager, isClmRewardPool } from "../../clm/entity/clm"
 import { getToken } from "../../common/entity/token"
-import { getVaultTokenBreakdown } from "../platform"
+import { getVaultTokenBreakdown, PLATFORM_BEEFY_LST_VAULT } from "../platform"
 
 export function fetchClassicUnderlyingCLM(classic: Classic): CLM | null {
   let clm: CLM | null = null
@@ -52,7 +53,9 @@ export function fetchClassicData(classic: Classic): ClassicData {
 
   const calls = [
     new Multicall3Params(vaultAddress, "totalSupply()", "uint256"),
-    new Multicall3Params(vaultAddress, "balance()", "uint256"),
+    classic.underlyingPlatform == PLATFORM_BEEFY_LST_VAULT
+      ? new Multicall3Params(vaultAddress, "totalAssets()", "uint256")
+      : new Multicall3Params(vaultAddress, "balance()", "uint256"),
     new Multicall3Params(underlyingTokenAddress, "totalSupply()", "uint256"),
   ]
 
@@ -438,6 +441,8 @@ export function fetchClassicData(classic: Classic): ClassicData {
         .times(changeValueEncoding(ONE_BI, ZERO_BI, WNATIVE_DECIMALS))
         .div(changeValueEncoding(clmManagerTotalSupply, clmManagerToken.decimals, WNATIVE_DECIMALS))
     }
+  } else if (underlyingTokenAddress.equals(WNATIVE_TOKEN_ADDRESS)) {
+    underlyingToNativePrice = changeValueEncoding(ONE_BI, ZERO_BI, PRICE_STORE_DECIMALS_TOKEN_TO_NATIVE)
   } else {
     const breakdown = getVaultTokenBreakdown(classic)
 

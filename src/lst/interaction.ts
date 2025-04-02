@@ -1,9 +1,13 @@
 import { handleClassicVaultTransfer } from "../classic/interaction"
-import { Transfer as LSTVaultTransfer, Notify as LSTVaultNotify } from "../../generated/LSTVault/LSTVault"
+import {
+  Transfer as LSTVaultTransfer,
+  Notify as LSTVaultNotify,
+  ClaimedRewards as LSTVaultClaimedRewards,
+} from "../../generated/LSTVault/LSTVault"
 import { Transfer as ClassicVaultTransfer } from "../../generated/templates/ClassicVault/ClassicVault"
 import { _handleClassicStrategyHarvest } from "../classic/compound"
 
-export function handleLSTVaultClaimedRewards(): void {
+export function handleLSTVaultClaimedRewards(event: LSTVaultClaimedRewards): void {
   // TODO
 }
 

@@ -1,14 +1,18 @@
-import { Address, Bytes, log } from "@graphprotocol/graph-ts"
-import { Initialized } from "../../generated/templates/ClassicVault/ClassicVault"
+import { Bytes, log } from "@graphprotocol/graph-ts"
 import { getClassic, getClassicStrategy, getClassicVault } from "../classic/entity/classic"
 import { getAndSaveTransaction } from "../common/entity/transaction"
-import { LSTVault as LstVaultContract, Paused, Unpaused } from "../../generated/LSTVault/LSTVault"
+import {
+  LSTVault as LstVaultContract,
+  Paused,
+  Unpaused,
+  Initialized as LSTVaultInitialized,
+} from "../../generated/LSTVault/LSTVault"
 import { getVaultTokenBreakdown, PLATFORM_BEEFY_LST_VAULT } from "../classic/platform"
 import { fetchAndSaveTokenData } from "../common/utils/token"
 import { PRODUCT_LIFECYCLE_PAUSED, PRODUCT_LIFECYCLE_RUNNING } from "../common/entity/lifecycle"
 import { handleClassicLifecycleStatusChanged } from "../classic/lifecycle"
 
-export function handleLSTVaultInitialized(event: Initialized): void {
+export function handleLSTVaultInitialized(event: LSTVaultInitialized): void {
   const tx = getAndSaveTransaction(event.block, event.transaction)
 
   const vaultAddress = event.address
