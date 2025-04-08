@@ -2,7 +2,12 @@ import { log } from "@graphprotocol/graph-ts"
 import { Classic } from "../../../generated/schema"
 import { TokenBalance } from "./common"
 import { getVaultTokenBreakdownAave, isAaveVault } from "./aave"
-import { getVaultTokenBreakdownBalancer, isBalancerVault } from "./balancer"
+import {
+  getVaultTokenBreakdownBalancer,
+  getVaultTokenBreakdownBalancerAura,
+  isBalancerAuraVault,
+  isBalancerVault,
+} from "./balancer"
 import {
   getVaultTokenBreakdownBeefyCLM,
   getVaultTokenBreakdownBeefyCLMVault,
@@ -26,6 +31,7 @@ import { getVaultTokenBreakdownSilo, isSiloVault } from "./silo"
 import { getVaultTokenBreakdownBeefyLstVault } from "./beefy_lst"
 
 const PLATFORM_AAVE = "AAVE"
+const PLATFORM_BALANCER = "BALANCER"
 const PLATFORM_BALANCER_AURA = "BALANCER_AURA"
 const PLATFORM_CURVE = "CURVE"
 const PLATFORM_GAMMA = "GAMMA"
@@ -56,6 +62,8 @@ export function getVaultTokenBreakdown(vault: Classic): Array<TokenBalance> {
   if (vault.underlyingPlatform == PLATFORM_PENDLE_EQUILIBRIA) {
     return getVaultTokenBreakdownPendle(vault)
   } else if (vault.underlyingPlatform == PLATFORM_BALANCER_AURA) {
+    return getVaultTokenBreakdownBalancerAura(vault)
+  } else if (vault.underlyingPlatform == PLATFORM_BALANCER) {
     return getVaultTokenBreakdownBalancer(vault)
   } else if (vault.underlyingPlatform == PLATFORM_SILO) {
     return getVaultTokenBreakdownSilo(vault)
@@ -110,8 +118,12 @@ export function detectClassicVaultUnderlyingPlatform(vault: Classic): string {
     return PLATFORM_PENDLE_EQUILIBRIA
   }
 
-  if (isBalancerVault(vault)) {
+  if (isBalancerAuraVault(vault)) {
     return PLATFORM_BALANCER_AURA
+  }
+
+  if (isBalancerVault(vault)) {
+    return PLATFORM_BALANCER
   }
 
   if (isMendiLendingVault(vault)) {
