@@ -441,8 +441,6 @@ export function fetchClassicData(classic: Classic): ClassicData {
         .times(changeValueEncoding(ONE_BI, ZERO_BI, WNATIVE_DECIMALS))
         .div(changeValueEncoding(clmManagerTotalSupply, clmManagerToken.decimals, WNATIVE_DECIMALS))
     }
-  } else if (underlyingTokenAddress.equals(WNATIVE_TOKEN_ADDRESS)) {
-    underlyingToNativePrice = changeValueEncoding(ONE_BI, ZERO_BI, PRICE_STORE_DECIMALS_TOKEN_TO_NATIVE)
   } else {
     const breakdown = getVaultTokenBreakdown(classic)
 
@@ -461,27 +459,32 @@ export function fetchClassicData(classic: Classic): ClassicData {
       }
     }
 
-    // convert the breakdown balances to native prices
-    let totalNativeEquivalentAmount = ZERO_BI
-    for (let i = 0; i < underlyingBreakdownTokenAddresses.length; i++) {
-      const token = getToken(underlyingBreakdownTokenAddresses[i])
-      const tokenBalance = vaultUnderlyingBreakdownBalances[i]
-      const tokenToNativePrice = underlyingBreakdownToNativePrices[i]
-      const tokenNativeAmount = changeValueEncoding(
-        tokenBalance.times(tokenToNativePrice),
-        token.decimals.plus(WNATIVE_DECIMALS),
-        WNATIVE_DECIMALS,
-      )
-      totalNativeEquivalentAmount = totalNativeEquivalentAmount.plus(tokenNativeAmount)
-    }
-
-    if (underlyingAmount.notEqual(ZERO_BI)) {
-      const underlyingToken = getToken(underlyingTokenAddress)
-      underlyingToNativePrice = totalNativeEquivalentAmount
-        .times(changeValueEncoding(ONE_BI, ZERO_BI, underlyingToken.decimals))
-        .div(underlyingAmount)
+    // underlying token is WNATIVE, price to native is 1-1
+    if (underlyingTokenAddress.equals(WNATIVE_TOKEN_ADDRESS)) {
+      underlyingToNativePrice = changeValueEncoding(ONE_BI, ZERO_BI, PRICE_STORE_DECIMALS_TOKEN_TO_NATIVE)
     } else {
-      log.error("Failed to fetch underlyingAmount for Classic {}", [classic.id.toHexString()])
+      // convert the breakdown balances to native prices
+      let totalNativeEquivalentAmount = ZERO_BI
+      for (let i = 0; i < underlyingBreakdownTokenAddresses.length; i++) {
+        const token = getToken(underlyingBreakdownTokenAddresses[i])
+        const tokenBalance = vaultUnderlyingBreakdownBalances[i]
+        const tokenToNativePrice = underlyingBreakdownToNativePrices[i]
+        const tokenNativeAmount = changeValueEncoding(
+          tokenBalance.times(tokenToNativePrice),
+          token.decimals.plus(WNATIVE_DECIMALS),
+          WNATIVE_DECIMALS,
+        )
+        totalNativeEquivalentAmount = totalNativeEquivalentAmount.plus(tokenNativeAmount)
+      }
+
+      if (underlyingAmount.notEqual(ZERO_BI)) {
+        const underlyingToken = getToken(underlyingTokenAddress)
+        underlyingToNativePrice = totalNativeEquivalentAmount
+          .times(changeValueEncoding(ONE_BI, ZERO_BI, underlyingToken.decimals))
+          .div(underlyingAmount)
+      } else {
+        log.error("Failed to fetch underlyingAmount for Classic {}", [classic.id.toHexString()])
+      }
     }
   }
 

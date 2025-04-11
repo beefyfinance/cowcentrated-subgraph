@@ -2,10 +2,15 @@ import { Classic } from "../../../generated/schema"
 import { TokenBalance } from "./common"
 import { Address } from "@graphprotocol/graph-ts"
 import { Multicall3Params, allResultsSuccess, multicall } from "../../common/utils/multicall"
+import { ClassicStrategy as ClassicStrategyContract } from "../../../generated/templates/ClassicVault/ClassicStrategy"
 
 export function isGammaVault(classic: Classic): boolean {
-  const breakdown = getVaultTokenBreakdownGamma(classic)
-  return breakdown.length > 0
+  const strategyContract = ClassicStrategyContract.bind(Address.fromBytes(classic.strategy))
+  const gammaProxyAddressResult = strategyContract.try_gammaProxy()
+  if (gammaProxyAddressResult.reverted) {
+    return false
+  }
+  return true
 }
 
 export function getVaultTokenBreakdownGamma(classic: Classic): Array<TokenBalance> {

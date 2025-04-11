@@ -507,5 +507,18 @@
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "gammaProxy",
+    "outputs": [
+      {
+        "internalType": "contract IGammaUniProxy",
+        "name": "uniProxy",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
 ]

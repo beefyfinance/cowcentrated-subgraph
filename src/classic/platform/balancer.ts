@@ -13,8 +13,12 @@ export function isBalancerAuraVault(classic: Classic): boolean {
 }
 
 export function isBalancerVault(classic: Classic): boolean {
-  const breakdown = getVaultTokenBreakdownBalancer(classic)
-  return breakdown.length > 0
+  const strategyContract = ClassicStrategyContract.bind(Address.fromBytes(classic.strategy))
+  const balancerVaultAddressResult = strategyContract.try_balancerVault()
+  if (balancerVaultAddressResult.reverted) {
+    return false
+  }
+  return true
 }
 
 export function getVaultTokenBreakdownBalancerAura(classic: Classic): Array<TokenBalance> {
