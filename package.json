@@ -8,7 +8,7 @@
     "build": "graph build",
     "format": "prettier . --write",
     "test": "yarn run --silent test:lint && yarn run --silent test:unit",
-    "test:unit": "graph test",
+    "test:unit": "npx @graphprotocol/graph-cli@0.97.0 test",
     "test:lint": "prettier . --check",
     "infra:start": "docker compose up -d",
     "infra:stop": "docker compose down",

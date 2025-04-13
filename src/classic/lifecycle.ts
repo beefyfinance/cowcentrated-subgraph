@@ -247,6 +247,7 @@ function fetchInitialClassicDataAndSave(classic: Classic): void {
       for (let i = 0; i < breakdown.length; i++) {
         underlyingBreakdownTokens.push(breakdown[i].tokenAddress)
         underlyingBreakdownTokensOrder.push(breakdown[i].tokenAddress)
+        fetchAndSaveTokenData(breakdown[i].tokenAddress)
       }
       classic.underlyingBreakdownTokens = underlyingBreakdownTokens
       classic.underlyingBreakdownTokensOrder = underlyingBreakdownTokensOrder

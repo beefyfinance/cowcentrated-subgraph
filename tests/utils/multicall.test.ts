@@ -41,7 +41,7 @@ describe("multicall", () => {
 
     assert.assertTrue(
       functionCall.equals(
-        Bytes.fromHexString("0x96834ad3ff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace"),
+        Bytes.fromHexString("0x96834ad3f490b178d0c85683b7a0f2388b40af2e6f7c90cbe0f96b31f315f08d0e5a2d6d"),
       ),
     )
   })

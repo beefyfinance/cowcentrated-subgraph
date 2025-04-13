@@ -25,6 +25,7 @@ import { getClassicSnapshot, hasClassicBeenRemoved } from "../entity/classic"
 import { getCLM, getClmRewardPool, isClmManager, isClmRewardPool } from "../../clm/entity/clm"
 import { getToken } from "../../common/entity/token"
 import { getVaultTokenBreakdown, PLATFORM_BEEFY_LST_VAULT } from "../platform"
+import { getTokenToNativePrice } from "../../common/oracle"
 
 export function fetchClassicUnderlyingCLM(classic: Classic): CLM | null {
   let clm: CLM | null = null
@@ -347,6 +348,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
     const underlyingBreakdownTokenAddress = underlyingBreakdownTokenAddresses[i]
     const amountOutRes = underlyingBreakdownToNativeRes[i]
     if (!amountOutRes.reverted) {
+      const underlyingBreakdownToken = getToken(underlyingBreakdownTokenAddress)
       let amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
 
       // manual beefy oracle fixes
@@ -365,11 +367,23 @@ export function fetchClassicData(classic: Classic): ClassicData {
           underlyingBreakdownTokenAddress.toHexString(),
           amountOut.toString(),
         ])
-        const underlyingToken = getToken(underlyingBreakdownTokenAddress)
-        amountOut = changeValueEncoding(ONE_BI, ZERO_BI, underlyingToken.decimals) // set price to 1-1
+        amountOut = changeValueEncoding(ONE_BI, ZERO_BI, underlyingBreakdownToken.decimals) // set price to 1-1
       }
 
-      underlyingBreakdownToNativePrices.push(amountOut)
+      // amount out is 0, try to fallback to our slower oracle
+      // this happens when the beefy oracle is not setup or was setup very late and we are missing
+      // past data prices
+      if (amountOut.equals(ZERO_BI)) {
+        const oraclePrice = getTokenToNativePrice(underlyingBreakdownToken)
+        log.debug("Fallback to oracle for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
+          classic.id.toHexString(),
+          underlyingBreakdownTokenAddress.toHexString(),
+          oraclePrice.toString(),
+        ])
+        underlyingBreakdownToNativePrices.push(oraclePrice)
+      } else {
+        underlyingBreakdownToNativePrices.push(amountOut)
+      }
     } else {
       underlyingBreakdownToNativePrices.push(ZERO_BI)
       log.error("Failed to fetch underlyingBreakdownToNativePrices for Classic {}", [classic.id.toHexString()])
