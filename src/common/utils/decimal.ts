@@ -18,7 +18,7 @@ export function changeValueEncoding(
   }
 }
 
-function exponentToBigInt(decimals: BigInt): BigInt {
+export function exponentToBigInt(decimals: BigInt): BigInt {
   let bd = ONE_BI
   let n = decimals.toI32()
   for (let i = 0; i < n; i++) {

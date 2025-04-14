@@ -3,6 +3,7 @@ import { Token } from "../../../generated/schema"
 import { ZERO_BI } from "../utils/decimal"
 import { NETWORK_NAME, WNATIVE_TOKEN_ADDRESS } from "../../config"
 import { getUniv2TokenToNativePrice } from "./univ2"
+import { getBeefyClassicWrapperTokenToNativePrice } from "./beefyWrapper"
 
 /**
  * Detect missing swapper infos with the following query:
@@ -110,9 +111,7 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
     }
 
     if (inputToken.id.equals(SONIC_wmooSiloV2SonicUSDCe)) {
-      // TODO: unwrap manually
-      log.info("TODO implement oracle for SONIC_wmooSiloV2SonicUSDCe: {}", [inputToken.id.toHexString()])
-      return ZERO_BI
+      return getBeefyClassicWrapperTokenToNativePrice(inputToken)
     }
 
     if (inputToken.id.equals(SONIC_GFI)) {
