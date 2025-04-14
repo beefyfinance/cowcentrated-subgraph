@@ -2,7 +2,6 @@ import { BigInt, Bytes, log } from "@graphprotocol/graph-ts"
 import { Token } from "../../../generated/schema"
 import { ZERO_BI } from "../utils/decimal"
 import { NETWORK_NAME, WNATIVE_TOKEN_ADDRESS } from "../../config"
-import { getUniv2TokenToNativePrice } from "./univ2"
 import { getBeefyClassicWrapperTokenToNativePrice } from "./beefyWrapper"
 import { getSolidlyTokenToNativePrice } from "./solidly"
 import { getSwapxCLMultiHopTokenToNativePrice, getSwapxTokenToNativePrice } from "./swapx"
@@ -32,26 +31,27 @@ ORDER BY count(*) DESC;
 
 Or:
 
-select
-
-        (
-            toDecimal256 (snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
-        ) * (
-            toDecimal256 (snapshot.underlyingToNativePrice, 18) / pow(10, 18)
-        ) * (
-            toDecimal256 (snapshot.nativeToUSDPrice, 18) / pow(10, 18)
-        ) as underlying_token_amount_usd,
-snapshot.timestamp,
-toDateTime(snapshot.timestamp) as datetime,
- snapshot.underlyingBreakdownToNativePrices,
- classic.underlyingBreakdownTokensOrder
- from `ClassicSnapshot` snapshot
- JOIN `Classic` classic ON snapshot.classic = classic.id
- LEFT JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
-where snapshot.vaultSharesTotalSupply > 0
-and snapshot.period = 86400
-and has(snapshot.underlyingBreakdownToNativePrices, '0')
-order by snapshot.timestamp desc
+SELECT
+    (
+        toDecimal256(snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
+    ) * (
+        toDecimal256(snapshot.underlyingToNativePrice, 18) / pow(10, 18)
+    ) * (
+        toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)
+    ) AS underlying_token_amount_usd,
+    snapshot.timestamp,
+    toDate(snapshot.timestamp) AS datetime,
+    snapshot.underlyingBreakdownToNativePrices,
+    classic.underlyingBreakdownTokensOrder,
+    -- Retrieve the token corresponding to the first zero in underlyingBreakdownToNativePrices
+    arrayElement(classic.underlyingBreakdownTokensOrder, indexOf(snapshot.underlyingBreakdownToNativePrices, '0')) AS token_with_zero_price
+FROM ClassicSnapshot AS snapshot
+JOIN Classic AS classic ON snapshot.classic = classic.id
+LEFT JOIN Token AS t_underlying ON classic.underlyingToken = t_underlying.id
+WHERE snapshot.vaultSharesTotalSupply > 0
+  AND snapshot.period = 86400
+  AND has(snapshot.underlyingBreakdownToNativePrices, '0')
+ORDER BY snapshot.timestamp DESC;
 ;
  */
 
