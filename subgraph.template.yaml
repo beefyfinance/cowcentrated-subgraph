@@ -86,6 +86,8 @@ dataSources:
 
         - name: Univ2QuoterV2
           file: ./abis/oracle/Univ2QuoterV2.json
+        - name: Univ3QuoterV2
+          file: ./abis/oracle/Univ3QuoterV2.json
 
         - name: IERC20
           file: ./abis/IERC20/IERC20.json

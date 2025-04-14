@@ -28,6 +28,7 @@ ORDER BY count(*) DESC;
  */
 
 const SONIC_SWAPX_QUOTER_V2 = Bytes.fromHexString("0xd74a9Bd1C98B2CbaB5823107eb2BE9C474bEe09A")
+const SONIC_SHADOW_QUOTER_V2 = Bytes.fromHexString("0x219b7ADebc0935a3eC889a148c6924D51A07535A")
 const SONIC_sfrxETH = Bytes.fromHexString("0x3Ec3849C33291a9eF4c5dB86De593EB4A37fDe45")
 const SONIC_frxETH = Bytes.fromHexString("0x43edd7f3831b08fe70b7555ddd373c8bf65a9050")
 const SONIC_scETH = Bytes.fromHexString("0x3bce5cb273f0f148010bbea2470e7b5df84c7812")
@@ -79,7 +80,7 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
     }
 
     if (inputToken.id.equals(SONIC_bUSDCe20)) {
-      const path = [SONIC_bUSDCe20, SONIC_wstkscUSD, SONIC_scUSD, SONIC_OS, SONIC_wS]
+      const path = [SONIC_bUSDCe20, SONIC_scUSD, SONIC_OS, SONIC_wS]
       return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
