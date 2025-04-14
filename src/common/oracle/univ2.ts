@@ -35,15 +35,7 @@ export function getUniv2TokenToNativePrice(inputToken: Token, quoterV2Address: B
   }
 
   const amountIn = changeValueEncoding(ONE_BI, ZERO_BI, inputToken.decimals).div(BEEFY_SWAPPER_VALUE_SCALER)
-
-  const pathBytes = new Uint8Array(tokenPath.length * 20)
-  for (let i = 0; i < tokenPath.length; i++) {
-    const tokenAddress = tokenPath[i]
-    for (let j = 0; j < 20; j++) {
-      pathBytes[i * 20 + j] = tokenAddress[j]
-    }
-  }
-  const path = Bytes.fromUint8Array(pathBytes)
+  const path = buildUniv2Path(tokenPath)
 
   const result = quoter.try_quoteExactInput(path, amountIn)
   if (!result.reverted) {
@@ -54,4 +46,17 @@ export function getUniv2TokenToNativePrice(inputToken: Token, quoterV2Address: B
   log.error("Failed to get price for token {} using path {}", [inputToken.id.toHex(), path.toHex()])
 
   return ZERO_BI
+}
+
+export function buildUniv2Path(tokenPath: Array<Bytes>): Bytes {
+  const pathBytes = new Uint8Array(tokenPath.length * 20)
+  for (let i = 0; i < tokenPath.length; i++) {
+    const tokenAddress = tokenPath[i]
+    for (let j = 0; j < 20; j++) {
+      pathBytes[i * 20 + j] = tokenAddress[j]
+    }
+  }
+  const path = Bytes.fromUint8Array(pathBytes)
+
+  return path
 }

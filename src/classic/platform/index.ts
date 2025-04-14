@@ -28,12 +28,14 @@ import { getVaultTokenBreakdownNile, isNileVault } from "./nile"
 import { getVaultTokenBreakdownPendle, isPendleVault } from "./pendle"
 import { getVaultTokenBreakdownSolidly, isSolidlyVault } from "./solidly"
 import { getVaultTokenBreakdownSilo, isSiloVault } from "./silo"
-import { getVaultTokenBreakdownBeefyLstVault } from "./beefy_lst"
+import { getVaultTokenBreakdownBeefyLstVault, isBeefyLstVault } from "./beefy_lst"
+import { isDefiveVault, getVaultTokenBreakdownDefive } from "./defive"
 
 const PLATFORM_AAVE = "AAVE"
 const PLATFORM_BALANCER = "BALANCER"
 const PLATFORM_BALANCER_AURA = "BALANCER_AURA"
 const PLATFORM_CURVE = "CURVE"
+const PLATFORM_DEFIVE = "DEFIVE"
 const PLATFORM_GAMMA = "GAMMA"
 const PLATFORM_ICHI_LYNEX = "ICHI_LYNEX"
 const PLATFORM_LYNEX = "LYNEX"
@@ -91,6 +93,8 @@ export function getVaultTokenBreakdown(vault: Classic): Array<TokenBalance> {
     return getVaultTokenBreakdownBeefyCLMVault(vault)
   } else if (vault.underlyingPlatform == PLATFORM_BEEFY_LST_VAULT) {
     return getVaultTokenBreakdownBeefyLstVault(vault)
+  } else if (vault.underlyingPlatform == PLATFORM_DEFIVE) {
+    return getVaultTokenBreakdownDefive(vault)
   }
 
   log.error("Not implemented platform {} for vault {}", [vault.underlyingPlatform, vault.id.toHexString()])
@@ -98,6 +102,10 @@ export function getVaultTokenBreakdown(vault: Classic): Array<TokenBalance> {
 }
 
 export function detectClassicVaultUnderlyingPlatform(vault: Classic): string {
+  if (isDefiveVault(vault)) {
+    return PLATFORM_DEFIVE
+  }
+
   if (isSiloVault(vault)) {
     return PLATFORM_SILO
   }
@@ -108,10 +116,6 @@ export function detectClassicVaultUnderlyingPlatform(vault: Classic): string {
 
   if (isCurveVault(vault)) {
     return PLATFORM_CURVE
-  }
-
-  if (isAaveVault(vault)) {
-    return PLATFORM_AAVE
   }
 
   if (isPendleVault(vault)) {
@@ -150,8 +154,16 @@ export function detectClassicVaultUnderlyingPlatform(vault: Classic): string {
     return PLATFORM_NILE
   }
 
+  if (isAaveVault(vault)) {
+    return PLATFORM_AAVE
+  }
+
   if (isBeefyCLMVault(vault)) {
     return PLATFORM_BEEFY_CLM_VAULT
+  }
+
+  if (isBeefyLstVault(vault)) {
+    return PLATFORM_BEEFY_LST_VAULT
   }
 
   if (isBeefyCLM(vault)) {

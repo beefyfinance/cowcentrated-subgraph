@@ -5,6 +5,7 @@ import { NETWORK_NAME, WNATIVE_TOKEN_ADDRESS } from "../../config"
 import { getUniv2TokenToNativePrice } from "./univ2"
 import { getBeefyClassicWrapperTokenToNativePrice } from "./beefyWrapper"
 import { getSolidlyTokenToNativePrice } from "./solidly"
+import { getSwapxCLMultiHopTokenToNativePrice, getSwapxTokenToNativePrice } from "./swapx"
 
 /**
  * Detect missing swapper infos with the following query:
@@ -77,6 +78,7 @@ const SONIC_GFI = Bytes.fromHexString("0xbf5899166ac476370b3117c9256b7fc45624f4e
 const SONIC_frxUSD = Bytes.fromHexString("0x80eede496655fb9047dd39d9f418d5483ed600df")
 const SONIC_Silo = Bytes.fromHexString("0x53f753e4b17f4075d6fa2c6909033d224b81e698")
 const SONIC_EGGS = Bytes.fromHexString("0xf26ff70573ddc8a90bd7865af8d7d70b8ff019bc")
+const SONIC_USDT = Bytes.fromHexString("0x6047828dc181963ba44974801ff68e538da5eaf9")
 
 const SONIC_wS = WNATIVE_TOKEN_ADDRESS
 
@@ -84,64 +86,64 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
   // sonic-sentio or sonic-mainnet
   if (NETWORK_NAME === "146" || NETWORK_NAME === "sonic") {
     if (inputToken.id.equals(SONIC_scETH)) {
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, [SONIC_scETH, SONIC_wS])
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, [SONIC_scETH, SONIC_wS])
     }
 
     if (inputToken.id.equals(SONIC_sfrxETH)) {
       const path = [SONIC_sfrxETH, SONIC_frxETH, SONIC_scETH, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_frxETH)) {
       const path = [SONIC_frxETH, SONIC_scETH, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_OS)) {
       const path = [SONIC_OS, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_SWPx)) {
       const path = [SONIC_SWPx, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_WBTC)) {
       const path = [SONIC_WBTC, SONIC_scBTC, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_bUSDCe20)) {
       const path = [SONIC_bUSDCe20, SONIC_scUSD, SONIC_OS, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_wstkscUSD)) {
       const path = [SONIC_wstkscUSD, SONIC_scUSD, SONIC_OS, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_scBTC)) {
       const path = [SONIC_scBTC, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_beSonic)) {
       const path = [SONIC_beSonic, SONIC_OS, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_stkscUSD)) {
       const path = [SONIC_stkscUSD, SONIC_scUSD, SONIC_OS, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_aSonUSDC)) {
       // @dev: this is assuming aSonUSDC is equal to USDC.e, this is not true but close enough for our purpose
       //       of attributing user points and showing PnL in USD
       const path = [SONIC_USDC, SONIC_OS, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_wmooSiloV2SonicUSDCe)) {
@@ -154,17 +156,22 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
 
     if (inputToken.id.equals(SONIC_frxUSD)) {
       const path = [SONIC_frxUSD, SONIC_scUSD, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxCLMultiHopTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_Silo)) {
       const path = [SONIC_Silo, SONIC_OS, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_EGGS)) {
       const path = [SONIC_EGGS, SONIC_OS, SONIC_wS]
-      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+    }
+
+    if (inputToken.id.equals(SONIC_USDT)) {
+      const path = [SONIC_USDT, SONIC_USDC, SONIC_wS]
+      return getSwapxCLMultiHopTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     log.error("Unhandled oracle for token: {}", [inputToken.id.toHexString()])

@@ -2,6 +2,12 @@ import { Classic } from "../../../generated/schema"
 import { TokenBalance } from "./common"
 import { Multicall3Params, allResultsSuccess, multicall } from "../../common/utils/multicall"
 
+export function isBeefyLstVault(classic: Classic): boolean {
+  const signatures = [new Multicall3Params(classic.strategy, "validatorsLength()", "uint256")]
+  const results = multicall(signatures)
+  return allResultsSuccess(results)
+}
+
 export function getVaultTokenBreakdownBeefyLstVault(classic: Classic): Array<TokenBalance> {
   let balances = new Array<TokenBalance>()
 
