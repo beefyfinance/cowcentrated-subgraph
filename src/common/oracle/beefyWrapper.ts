@@ -1,11 +1,12 @@
-import { BigInt } from "@graphprotocol/graph-ts"
-import { Classic, ClassicErc4626Adapter as ClassicErc4626AdapterContract, Token } from "../../../generated/schema"
+import { Address, BigInt } from "@graphprotocol/graph-ts"
+import { Classic, Token } from "../../../generated/schema"
+import { ClassicErc4626Adapter as ClassicErc4626AdapterContract } from "../../../generated/templates/ClassicErc4626Adapter/ClassicErc4626Adapter"
 import { exponentToBigInt, ZERO_BI } from "../utils/decimal"
 import { fetchClassicData } from "../../classic/utils/classic-data"
 import { getToken } from "../entity/token"
 
 export function getBeefyClassicWrapperTokenToNativePrice(inputToken: Token): BigInt {
-  const beetsWrapperContract = ClassicErc4626AdapterContract.bind(inputToken.id)
+  const beetsWrapperContract = ClassicErc4626AdapterContract.bind(Address.fromBytes(inputToken.id))
 
   const vault = beetsWrapperContract.try_vault()
   if (vault.reverted) {

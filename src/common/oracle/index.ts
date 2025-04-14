@@ -106,7 +106,9 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
     }
 
     if (inputToken.id.equals(SONIC_aSonUSDC)) {
-      const path = [SONIC_aSonUSDC, SONIC_USDC, SONIC_OS, SONIC_wS]
+      // @dev: this is assuming aSonUSDC is equal to USDC.e, this is not true but close enough for our purpose
+      //       of attributing user points and showing PnL in USD
+      const path = [SONIC_USDC, SONIC_OS, SONIC_wS]
       return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
