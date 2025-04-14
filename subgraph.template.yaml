@@ -84,6 +84,8 @@ dataSources:
         - name: CurvePool
           file: ./abis/platform/CurvePool.json
 
+        - name: SolidlyRouter02
+          file: ./abis/oracle/SolidlyRouter02.json  
         - name: Univ2QuoterV2
           file: ./abis/oracle/Univ2QuoterV2.json
         - name: Univ3QuoterV2

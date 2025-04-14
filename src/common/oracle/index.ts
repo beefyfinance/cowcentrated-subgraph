@@ -4,6 +4,7 @@ import { ZERO_BI } from "../utils/decimal"
 import { NETWORK_NAME, WNATIVE_TOKEN_ADDRESS } from "../../config"
 import { getUniv2TokenToNativePrice } from "./univ2"
 import { getBeefyClassicWrapperTokenToNativePrice } from "./beefyWrapper"
+import { getSolidlyTokenToNativePrice } from "./solidly"
 
 /**
  * Detect missing swapper infos with the following query:
@@ -26,10 +27,37 @@ FROM token_prices
 WHERE price = '0'
 GROUP BY token
 ORDER BY count(*) DESC;
+
+
+Or:
+
+select
+
+        (
+            toDecimal256 (snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
+        ) * (
+            toDecimal256 (snapshot.underlyingToNativePrice, 18) / pow(10, 18)
+        ) * (
+            toDecimal256 (snapshot.nativeToUSDPrice, 18) / pow(10, 18)
+        ) as underlying_token_amount_usd,
+snapshot.timestamp,
+toDateTime(snapshot.timestamp) as datetime,
+ snapshot.underlyingBreakdownToNativePrices,
+ classic.underlyingBreakdownTokensOrder
+ from `ClassicSnapshot` snapshot
+ JOIN `Classic` classic ON snapshot.classic = classic.id
+ LEFT JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
+where snapshot.vaultSharesTotalSupply > 0
+and snapshot.period = 86400
+and has(snapshot.underlyingBreakdownToNativePrices, '0')
+order by snapshot.timestamp desc
+;
  */
 
 const SONIC_SWAPX_QUOTER_V2 = Bytes.fromHexString("0xd74a9Bd1C98B2CbaB5823107eb2BE9C474bEe09A")
 const SONIC_SHADOW_QUOTER_V2 = Bytes.fromHexString("0x219b7ADebc0935a3eC889a148c6924D51A07535A")
+const SONIC_EQUALIZER_ROUTER = Bytes.fromHexString("0xcc6169aa1e879d3a4227536671f85afdb2d23fad")
+
 const SONIC_sfrxETH = Bytes.fromHexString("0x3Ec3849C33291a9eF4c5dB86De593EB4A37fDe45")
 const SONIC_frxETH = Bytes.fromHexString("0x43edd7f3831b08fe70b7555ddd373c8bf65a9050")
 const SONIC_scETH = Bytes.fromHexString("0x3bce5cb273f0f148010bbea2470e7b5df84c7812")
@@ -55,6 +83,10 @@ const SONIC_wS = WNATIVE_TOKEN_ADDRESS
 export function getTokenToNativePrice(inputToken: Token): BigInt {
   // sonic-sentio or sonic-mainnet
   if (NETWORK_NAME === "146" || NETWORK_NAME === "sonic") {
+    if (inputToken.id.equals(SONIC_scETH)) {
+      return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, [SONIC_scETH, SONIC_wS])
+    }
+
     if (inputToken.id.equals(SONIC_sfrxETH)) {
       const path = [SONIC_sfrxETH, SONIC_frxETH, SONIC_scETH, SONIC_wS]
       return getUniv2TokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
@@ -117,9 +149,7 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
     }
 
     if (inputToken.id.equals(SONIC_GFI)) {
-      // TODO: add gravity oracle: https://dexscreener.com/search?q=0xbf5899166ac476370b3117c9256b7fc45624f4ea
-      log.info("TODO implement oracle for SONIC_GFI: {}", [inputToken.id.toHexString()])
-      return ZERO_BI
+      return getSolidlyTokenToNativePrice(inputToken, SONIC_EQUALIZER_ROUTER)
     }
 
     if (inputToken.id.equals(SONIC_frxUSD)) {
