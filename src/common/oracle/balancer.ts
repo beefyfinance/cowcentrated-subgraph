@@ -11,7 +11,7 @@ const TWO_18 = ONE_18.plus(ONE_18)
 const FOUR_18 = TWO_18.plus(TWO_18)
 
 export function getBalancerWeightedPoolTokenPrice(tokenIn: Token, tokenOutAddress: Bytes, poolId: Bytes): BigInt {
-  const poolAddress = Address.fromUint8Array(poolId.slice(0, 20))
+  const poolAddress = Address.fromBytes(Bytes.fromUint8Array(poolId.slice(0, 20)))
 
   const poolContract = BalancerWeightedPoolContract.bind(poolAddress)
   const vaultAddressResult = poolContract.try_getVault()
