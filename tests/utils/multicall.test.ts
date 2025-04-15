@@ -1,4 +1,4 @@
-import { assert, test, describe } from "matchstick-as/assembly/index"
+import { assert, test, describe } from "matchstick-as"
 import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts"
 import { BEEFY_ORACLE_ADDRESS, PYTH_NATIVE_PRICE_ID, PYTH_PRICE_FEED_ADDRESS } from "../../src/config"
 import { Multicall3Params, _multicall3ParamsToCallData } from "../../src/common/utils/multicall"

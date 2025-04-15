@@ -22,14 +22,6 @@ export function getUniv2TokenToNativePrice(inputToken: Token, quoterV2Address: B
     return ONE_BI
   }
 
-  if (inputToken.id.notEqual(tokenPath[0])) {
-    throw new Error("Input token is not the first token in the path")
-  }
-
-  if (WNATIVE_TOKEN_ADDRESS.notEqual(tokenPath[tokenPath.length - 1])) {
-    throw new Error("Last token in the path is not the native token")
-  }
-
   if (tokenPath.length < 2) {
     throw new Error("Path must contain at least two tokens")
   }

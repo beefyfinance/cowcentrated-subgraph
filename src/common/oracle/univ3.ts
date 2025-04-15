@@ -26,14 +26,6 @@ export function getUniv3TokenToNativePrice(
     return ONE_BI
   }
 
-  if (inputToken.id.notEqual(tokenAndFeePath[0])) {
-    throw new Error("Input token is not the first token in the path")
-  }
-
-  if (WNATIVE_TOKEN_ADDRESS.notEqual(tokenAndFeePath[tokenAndFeePath.length - 1])) {
-    throw new Error("Last token in the path is not the native token")
-  }
-
   if (tokenAndFeePath.length < 3) {
     throw new Error("Path must contain at least 2 tokens and 1 fee")
   }

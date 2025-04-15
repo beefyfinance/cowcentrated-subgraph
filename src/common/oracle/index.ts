@@ -1,58 +1,71 @@
 import { BigInt, Bytes, log } from "@graphprotocol/graph-ts"
 import { Token } from "../../../generated/schema"
 import { ZERO_BI } from "../utils/decimal"
-import { NETWORK_NAME, WNATIVE_TOKEN_ADDRESS } from "../../config"
+import { NETWORK_NAME, WNATIVE_DECIMALS, WNATIVE_TOKEN_ADDRESS } from "../../config"
 import { getBeefyClassicWrapperTokenToNativePrice } from "./beefyWrapper"
 import { getSolidlyTokenToNativePrice } from "./solidly"
 import { getSwapxCLMultiHopTokenToNativePrice, getSwapxTokenToNativePrice } from "./swapx"
+import { getBalancerWeightedPoolTokenPrice } from "./balancer"
 
 /**
- * Detect missing swapper infos with the following query:
-WITH indices AS (
-    SELECT 
-        arrayEnumerate(underlyingBreakdownToNativePrices) AS indices
-    FROM Classic
-    WHERE has(underlyingBreakdownToNativePrices, '0')
-),
-token_prices AS (
-    SELECT 
-        arrayElement(underlyingBreakdownToNativePrices, index) AS price,
-        arrayElement(underlyingBreakdownTokensOrder, index) AS token
-    FROM Classic, indices
-    ARRAY JOIN indices AS index
-    WHERE has(underlyingBreakdownToNativePrices, '0')
-)
-SELECT token, count(*)
-FROM token_prices
-WHERE price = '0'
-GROUP BY token
-ORDER BY count(*) DESC;
+ * Detect missing swapper infos with the following queries:
+ 
 
+ select
 
-Or:
-
-SELECT
     (
-        toDecimal256(snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
+        toDecimal256 (classic.underlyingAmount, 18) / pow(10, t_underlying.decimals)
     ) * (
-        toDecimal256(snapshot.underlyingToNativePrice, 18) / pow(10, 18)
+        toDecimal256 (classic.underlyingToNativePrice, 18) / pow(10, 18)
     ) * (
-        toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)
-    ) AS underlying_token_amount_usd,
-    snapshot.timestamp,
-    toDate(snapshot.timestamp) AS datetime,
-    snapshot.underlyingBreakdownToNativePrices,
-    classic.underlyingBreakdownTokensOrder,
-    -- Retrieve the token corresponding to the first zero in underlyingBreakdownToNativePrices
-    arrayElement(classic.underlyingBreakdownTokensOrder, indexOf(snapshot.underlyingBreakdownToNativePrices, '0')) AS token_with_zero_price
-FROM ClassicSnapshot AS snapshot
-JOIN Classic AS classic ON snapshot.classic = classic.id
-LEFT JOIN Token AS t_underlying ON classic.underlyingToken = t_underlying.id
-WHERE snapshot.vaultSharesTotalSupply > 0
-  AND snapshot.period = 86400
-  AND has(snapshot.underlyingBreakdownToNativePrices, '0')
-ORDER BY snapshot.timestamp DESC;
-;
+        toDecimal256 (classic.nativeToUSDPrice, 18) / pow(10, 18)
+    ) as underlying_token_amount_usd,
+    classic.underlyingBreakdownToNativePrices,
+    classic.underlyingBreakdownTokens
+ from `Classic` classic
+ LEFT JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
+where vaultSharesTotalSupply > 0
+and has(underlyingBreakdownToNativePrices, '0');
+ 
+
+
+
+
+WITH
+    -- Precompute USD value and extract breakdown tokens/prices
+    snapshot_data AS (
+        SELECT
+            (
+                toDecimal256(s.underlyingAmount, 18) / pow(10, t.decimals)
+            ) * (
+                toDecimal256(s.underlyingToNativePrice, 18) / pow(10, 18)
+            ) * (
+                toDecimal256(s.nativeToUSDPrice, 18) / pow(10, 18)
+            ) AS underlying_token_amount_usd,
+            s.timestamp,
+            toDate(s.timestamp) AS datetime,
+            c.id AS classic_id,
+            c.underlyingBreakdownTokensOrder AS breakdown_tokens,
+            s.underlyingBreakdownToNativePrices AS breakdown_prices
+        FROM ClassicSnapshot AS s
+        INNER JOIN Classic AS c ON s.classic = c.id
+        LEFT JOIN Token AS t ON c.underlyingToken = t.id
+        WHERE s.vaultSharesTotalSupply > 0
+          AND s.period = 86400
+    )
+SELECT
+    t.id AS token_id,
+    t.symbol,
+    t.name,
+    COUNT(*) AS total_occurrences,
+    countIf(bp = '0') AS zero_price_occurrences
+FROM snapshot_data sd
+ARRAY JOIN
+    sd.breakdown_tokens AS bt,
+    sd.breakdown_prices AS bp
+LEFT JOIN Token AS t ON bt = t.id
+GROUP BY t.id, t.symbol, t.name
+ORDER BY zero_price_occurrences DESC, total_occurrences DESC;
  */
 
 const SONIC_SWAPX_QUOTER_V2 = Bytes.fromHexString("0xd74a9Bd1C98B2CbaB5823107eb2BE9C474bEe09A")
@@ -79,7 +92,8 @@ const SONIC_frxUSD = Bytes.fromHexString("0x80eede496655fb9047dd39d9f418d5483ed6
 const SONIC_Silo = Bytes.fromHexString("0x53f753e4b17f4075d6fa2c6909033d224b81e698")
 const SONIC_EGGS = Bytes.fromHexString("0xf26ff70573ddc8a90bd7865af8d7d70b8ff019bc")
 const SONIC_USDT = Bytes.fromHexString("0x6047828dc181963ba44974801ff68e538da5eaf9")
-
+const SONIC_LUDWIG = Bytes.fromHexString("0xe6cc4d855b4fd4a9d02f46b9adae4c5efb1764b5")
+const SONIC_Beets_stS = Bytes.fromHexString("0xE5DA20F15420aD15DE0fa650600aFc998bbE3955")
 const SONIC_wS = WNATIVE_TOKEN_ADDRESS
 
 export function getTokenToNativePrice(inputToken: Token): BigInt {
@@ -115,7 +129,9 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
     }
 
     if (inputToken.id.equals(SONIC_bUSDCe20)) {
-      const path = [SONIC_bUSDCe20, SONIC_scUSD, SONIC_OS, SONIC_wS]
+      // there is a stable swap between bUSDCe20 and scUSD
+      // so we can consider them equivalent
+      const path = [SONIC_scUSD, SONIC_frxUSD, SONIC_wS]
       return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
@@ -172,6 +188,18 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
     if (inputToken.id.equals(SONIC_USDT)) {
       const path = [SONIC_USDT, SONIC_USDC, SONIC_wS]
       return getSwapxCLMultiHopTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+    }
+
+    if (inputToken.id.equals(SONIC_LUDWIG)) {
+      // first get the price of Beets_stS
+      const weightedPoolId = Bytes.fromHexString("0x21fed4063bf8ebf4f51f4adf4ecfc9717aa4ca9d000100000000000000000044")
+      const ludwigPriceInBeets_stS = getBalancerWeightedPoolTokenPrice(inputToken, SONIC_Beets_stS, weightedPoolId)
+
+      // then get the price of Beets_stS in wS
+      const path = [SONIC_Beets_stS, SONIC_wS]
+      const beets_stS_priceInwS = getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+
+      return ludwigPriceInBeets_stS.times(beets_stS_priceInwS).div(BigInt.fromI32(18 /* decimals of Beets_stS */))
     }
 
     log.error("Unhandled oracle for token: {}", [inputToken.id.toHexString()])

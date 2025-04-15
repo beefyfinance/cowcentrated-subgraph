@@ -1,4 +1,4 @@
-import { assert, test, describe } from "matchstick-as/assembly/index"
+import { assert, test, describe } from "matchstick-as"
 import { BigInt } from "@graphprotocol/graph-ts"
 import {
   DAY,
