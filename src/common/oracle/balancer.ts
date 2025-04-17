@@ -27,7 +27,7 @@ export function getBalancerWeightedPoolTokenPrice(tokenIn: Token, tokenOutAddres
   const tokenWeights = tokenWeightsResult.value
 
   const vaultContract = BalancerVaultContract.bind(vaultAddress)
-  const poolInfoResult = vaultContract.try_getPoolTokens(poolAddress)
+  const poolInfoResult = vaultContract.try_getPoolTokens(poolId)
   if (poolInfoResult.reverted) {
     return ZERO_BI
   }
