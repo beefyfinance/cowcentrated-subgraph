@@ -484,12 +484,16 @@ function updateUserPositionAndSnapshots(
       // happens when position is created before the second erc4626 adapter is added
       positionErc4626AdapterVaultSharesBalances.push(ZERO_BI)
     }
-    const balanceDelta = erc4626AdapterBalanceDelta[i]
+    const newAdapterVaultSharesBalance = positionErc4626AdapterBalances[i]
       .times(classicData.erc4626AdapterVaultSharesBalances[i])
       .div(classicData.erc4626AdaptersTotalSupply[i])
 
-    positionErc4626AdapterVaultSharesBalances[i] = positionErc4626AdapterVaultSharesBalances[i].plus(balanceDelta)
-    positionErc4626AdapterVaultSharesBalancesDelta.push(balanceDelta)
+    const newAdapterVaultSharesBalanceDelta = positionErc4626AdapterVaultSharesBalances[i]
+      .minus(newAdapterVaultSharesBalance)
+      .times(BigInt.fromI32(-1))
+
+    positionErc4626AdapterVaultSharesBalances[i] = newAdapterVaultSharesBalance
+    positionErc4626AdapterVaultSharesBalancesDelta.push(newAdapterVaultSharesBalanceDelta)
   }
   position.erc4626AdapterVaultSharesBalances = positionErc4626AdapterVaultSharesBalances
 
