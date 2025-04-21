@@ -18,6 +18,7 @@ export function changeValueEncoding(
   }
 }
 
+// Computes 10^decimals as a BigInt
 export function exponentToBigInt(decimals: BigInt): BigInt {
   let bd = ONE_BI
   let n = decimals.toI32()

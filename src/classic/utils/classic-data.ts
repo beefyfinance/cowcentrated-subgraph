@@ -375,13 +375,18 @@ export function fetchClassicData(classic: Classic): ClassicData {
       // past data prices
       if (amountOut.equals(ZERO_BI)) {
         const oraclePrice = getTokenToNativePrice(underlyingBreakdownToken)
-        log.debug("Fallback to oracle for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
+        log.warning("Fallback to oracle for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
           classic.id.toHexString(),
           underlyingBreakdownTokenAddress.toHexString(),
           oraclePrice.toString(),
         ])
         underlyingBreakdownToNativePrices.push(oraclePrice)
       } else {
+        log.debug("Amount out is {} for Classic {} underlyingBreakdownTokenAddress: {}", [
+          amountOut.toString(),
+          classic.id.toHexString(),
+          underlyingBreakdownTokenAddress.toHexString(),
+        ])
         underlyingBreakdownToNativePrices.push(amountOut)
       }
     } else {
@@ -476,6 +481,7 @@ export function fetchClassicData(classic: Classic): ClassicData {
     // underlying token is WNATIVE, price to native is 1-1
     if (underlyingTokenAddress.equals(WNATIVE_TOKEN_ADDRESS)) {
       underlyingToNativePrice = changeValueEncoding(ONE_BI, ZERO_BI, PRICE_STORE_DECIMALS_TOKEN_TO_NATIVE)
+      log.debug("Underlying token is WNATIVE, price to native is 1-1 {}", [classic.id.toHexString()])
     } else {
       // convert the breakdown balances to native prices
       let totalNativeEquivalentAmount = ZERO_BI
@@ -496,6 +502,10 @@ export function fetchClassicData(classic: Classic): ClassicData {
         underlyingToNativePrice = totalNativeEquivalentAmount
           .times(changeValueEncoding(ONE_BI, ZERO_BI, underlyingToken.decimals))
           .div(underlyingAmount)
+        log.debug("Price to native is {} for underlyingToken: {}", [
+          underlyingToNativePrice.toString(),
+          underlyingToken.id.toHexString(),
+        ])
       } else {
         log.error("Failed to fetch underlyingAmount for Classic {}", [classic.id.toHexString()])
       }
