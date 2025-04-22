@@ -1,6 +1,6 @@
 import { BigInt, Bytes, log } from "@graphprotocol/graph-ts"
 import { Token } from "../../../generated/schema"
-import { ZERO_BI } from "../utils/decimal"
+import { exponentToBigInt, ZERO_BI } from "../utils/decimal"
 import { NETWORK_NAME, WNATIVE_DECIMALS, WNATIVE_TOKEN_ADDRESS } from "../../config"
 import { getBeefyClassicWrapperTokenToNativePrice } from "./beefyWrapper"
 import { getSolidlyTokenToNativePrice } from "./solidly"
@@ -199,7 +199,9 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
       const path = [SONIC_Beets_stS, SONIC_wS]
       const beets_stS_priceInwS = getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
 
-      return ludwigPriceInBeets_stS.times(beets_stS_priceInwS).div(BigInt.fromI32(18 /* decimals of Beets_stS */))
+      return ludwigPriceInBeets_stS
+        .times(beets_stS_priceInwS)
+        .div(exponentToBigInt(BigInt.fromI32(18 /* decimals of Beets_stS */)))
     }
 
     log.error("Unhandled oracle for token: {}", [inputToken.id.toHexString()])
