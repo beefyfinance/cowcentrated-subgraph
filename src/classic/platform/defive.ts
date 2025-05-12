@@ -16,6 +16,7 @@ export function getVaultTokenBreakdownDefive(classic: Classic): Array<TokenBalan
     new Multicall3Params(classic.strategy, "balanceOf()", "uint256"),
     new Multicall3Params(classic.strategy, "lpToken0()", "address"),
     new Multicall3Params(classic.strategy, "lpToken1()", "address"),
+    new Multicall3Params(classic.strategy, "stratName()", "string"),
   ]
 
   const results = multicall(signatures)
@@ -28,6 +29,11 @@ export function getVaultTokenBreakdownDefive(classic: Classic): Array<TokenBalan
   const vaultBalanceOfLp = results[2].value.toBigInt()
   const token0 = results[3].value.toAddress()
   const token1 = results[4].value.toAddress()
+  const stratName = results[5].value.toString()
+
+  if (stratName != "CommonChefLP") {
+    return []
+  }
 
   const reserve0 = reserves[0].toBigInt()
   const reserve1 = reserves[1].toBigInt()
