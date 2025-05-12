@@ -30,11 +30,13 @@ import { getVaultTokenBreakdownSolidly, isSolidlyVault } from "./solidly"
 import { getVaultTokenBreakdownSilo, isSiloVault } from "./silo"
 import { getVaultTokenBreakdownBeefyLstVault, isBeefyLstVault } from "./beefy_lst"
 import { isDefiveVault, getVaultTokenBreakdownDefive } from "./defive"
+import { isEulerVault, getVaultTokenBreakdownEuler } from "./euler"
 
 const PLATFORM_AAVE = "AAVE"
 const PLATFORM_BALANCER = "BALANCER"
 const PLATFORM_BALANCER_AURA = "BALANCER_AURA"
 const PLATFORM_CURVE = "CURVE"
+const PLATFORM_EULER = "EULER"
 const PLATFORM_DEFIVE = "DEFIVE"
 const PLATFORM_GAMMA = "GAMMA"
 const PLATFORM_ICHI_LYNEX = "ICHI_LYNEX"
@@ -95,6 +97,8 @@ export function getVaultTokenBreakdown(vault: Classic): Array<TokenBalance> {
     return getVaultTokenBreakdownBeefyLstVault(vault)
   } else if (vault.underlyingPlatform == PLATFORM_DEFIVE) {
     return getVaultTokenBreakdownDefive(vault)
+  } else if (vault.underlyingPlatform == PLATFORM_EULER) {
+    return getVaultTokenBreakdownEuler(vault)
   }
 
   log.error("Not implemented platform {} for vault {}", [vault.underlyingPlatform, vault.id.toHexString()])
@@ -116,6 +120,10 @@ export function detectClassicVaultUnderlyingPlatform(vault: Classic): string {
 
   if (isCurveVault(vault)) {
     return PLATFORM_CURVE
+  }
+
+  if (isEulerVault(vault)) {
+    return PLATFORM_EULER
   }
 
   if (isPendleVault(vault)) {
