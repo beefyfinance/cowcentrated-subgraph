@@ -28,6 +28,7 @@ jobs:
           - "optimism"
           - "polygon"
           - "rootstock"
+          - "saga"
           - "scroll"
           - "sei"
           - "sonic"

@@ -1,0 +1,42 @@
+{
+  "network": "saga-evm",
+
+  "multicall3Address": "0x864DDc9B50B9A0dF676d826c9B9EDe9F8913a160",
+  "shareTokenMintAddress": "0x0000000000000000000000000000000000000000",
+  "burnAddress": "0x000000000000000000000000000000000000dead",
+
+  "clmManagerFactoryAddress": "0xc26314091EB7a9c75E5536f7f54A8F63e829547D",
+  "clmManagerFactoryStartBlock": 2544914,
+  "clmStrategyFactoryAddress": "0x5dAEd8dEe03CF685D072414cBc82Bf3933D9ed7f",
+  "clmStrategyFactoryStartBlock": 2544919,
+  "rewardPoolFactoryAddress": "0xF08cc9422a43Be7c1d6663DF2890Cf7E36E79307",
+  "rewardPoolFactoryStartBlock": 2544916,
+  "beefyClassicVaultFactoryAddress": "0xD19ab62F83380908D65E344567378cF104cE46c2",
+  "beefyClassicVaultFactoryStartBlock": 2544719,
+  "beefyClassicStrategyFactoryAddress": "0x43d05dB4C288e11096eD1e3e3a749Ef209AF5b2F",
+  "beefyClassicStrategyFactoryStartBlock": 2545574,
+  "beefyClassicBoostFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "beefyClassicBoostFactoryStartBlock": 2545574,
+  "beefyClassicErc4626AdapterFactoryAddress": "0x0000000000000000000000000000000000000000",
+  "beefyClassicErc4626AdapterFactoryStartBlock": 2545574,
+  "clockTickBlocks": 60,
+
+  "wrappedNativeAddress": "0xfc960C233B8E98e0Cf282e29BDE8d3f105fc24d5",
+  "wrappedNativeDecimals": 6,
+
+  "priceOracleType": "beefy",
+  "chainlinkNativePriceFeedAddress": "0x0000000000000000000000000000000000000000",
+  "chainlinkNativePriceFeedDecimals": 8,
+  "pythPriceFeedAddress": "0x2880ab155794e7179c9ee2e38200202908c17b43",
+  "pythNativePriceId": "0xf490b178d0c85683b7a0f2388b40af2e6f7c90cbe0f96b31f315f08d0e5a2d6d",
+  "umbrellaRegistryAddress": "0x0000000000000000000000000000000000000000",
+  "umbrellaRegistryPriceFeedName": "WRBTC-rUSDT",
+  "umbrellaRegistryPriceFeedNameBytes32": "0xd2a0ad2667ba45a57ce6a98d6f51a4a4d256d704f578b3b90d7ee12e2f6af854",
+  "umbrellaRegistryPriceFeedDecimals": 8,
+
+  "beefySwapperAddress": "0xe103ab2f922aa1a56EC058AbfDA2CeEa1e95bCd7",
+  "beefyOracleAddress": "0xA5Cd8A60a05571141370D184e255777e5c2d5968",
+
+  "onlyKeepClmClassicVaults": true,
+  "positionSnapshotEnabled": false
+}
