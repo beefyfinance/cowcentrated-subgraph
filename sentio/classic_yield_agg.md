@@ -24,22 +24,36 @@ List of pools in the protocol.
 | pool_symbol               | The symbol of the pool.                                                         | string |
 
 ```SQL
-with data_res as (
+with breakdown_tokens as (
+    SELECT
+        classic.id as classic_id,
+        token_address,
+        token_index
+    FROM Classic classic
+    ARRAY JOIN
+        classic.underlyingBreakdownTokensOrder as token_address,
+        arrayMap((x, i) -> i, classic.underlyingBreakdownTokensOrder, range(length(classic.underlyingBreakdownTokensOrder))) as token_index
+),
+data_res as (
     SELECT
         146 as chain_id,
         tx.blockTimestamp as timestamp,
         tx.blockNumber as creation_block_number,
-        classic.underlyingToken as underlying_token_address,
-        0 as underlying_token_index,
-        t_underlying.symbol as underlying_token_symbol,
-        t_underlying.decimals as underlying_token_decimals,
+
+        bt.token_address as underlying_token_address,
+        bt.token_index as underlying_token_index,
+        t_breakdown.symbol as underlying_token_symbol,
+        t_breakdown.decimals as underlying_token_decimals,
+
         classic.vaultSharesToken as receipt_token_address,
         t_shares.symbol as receipt_token_symbol,
         t_shares.decimals as receipt_token_decimals,
+
         classic.id as pool_address,
         t_shares.symbol as pool_symbol
     FROM Classic classic
-    JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
+    JOIN breakdown_tokens bt ON classic.id = bt.classic_id
+    JOIN Token t_breakdown ON bt.token_address = t_breakdown.id
     JOIN Token t_shares ON classic.vaultSharesToken = t_shares.id
     JOIN ClassicVault vault ON classic.vault = vault.id
     JOIN Transaction tx ON vault.createdWith = tx.id
@@ -67,24 +81,34 @@ Snapshot of the pool users.
 | total_fees_usd              | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
 
 ```SQL
-WITH data_res AS (
+WITH breakdown_tokens as (
+    SELECT
+        classic.id as classic_id,
+        token_address,
+        token_index
+    FROM Classic classic
+    ARRAY JOIN
+        classic.underlyingBreakdownTokensOrder as token_address,
+        arrayMap((x, i) -> i, classic.underlyingBreakdownTokensOrder, range(length(classic.underlyingBreakdownTokensOrder))) as token_index
+),
+data_res AS (
     SELECT
         snapshot.timestamp,
         formatDateTime(toDate(fromUnixTimestamp(toInt64(snapshot.roundedTimestamp))), '%Y-%m-%d') as block_date,
         146 as chain_id,
         classic.id as pool_address,
         snapshot.investor as user_address,
-        classic.underlyingToken as underlying_token_address,
-        0 as underlying_token_index,
+        bt.token_address as underlying_token_address,
+        bt.token_index as underlying_token_index,
         (
             toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)
         ) * (
             (
-                toDecimal256 (snapshot.vaultUnderlyingBalance, 18) / pow(10, t_underlying.decimals)
+                toDecimal256(snapshot.vaultUnderlyingBreakdownBalances[bt.token_index + 1], 18) / pow(10, t_breakdown.decimals)
             )
             /
             (
-                toDecimal256 (snapshot.vaultSharesTotalSupply, 18) / pow(10, t_share.decimals)
+                toDecimal256(snapshot.vaultSharesTotalSupply, 18) / pow(10, t_share.decimals)
             )
         ) as underlying_token_amount,
 
@@ -92,23 +116,24 @@ WITH data_res AS (
             toDecimal256(snapshot.totalBalance, 18) / pow(10, t_share.decimals)
         ) * (
             (
-                toDecimal256 (snapshot.vaultUnderlyingBalance, 18) / pow(10, t_underlying.decimals)
+                toDecimal256(snapshot.vaultUnderlyingBreakdownBalances[bt.token_index + 1], 18) / pow(10, t_breakdown.decimals)
             )
             /
             (
-                toDecimal256 (snapshot.vaultSharesTotalSupply, 18) / pow(10, t_share.decimals)
+                toDecimal256(snapshot.vaultSharesTotalSupply, 18) / pow(10, t_share.decimals)
             )
         ) * (
-            toDecimal256 (snapshot.underlyingToNativePrice, 18) / pow(10, 18)
+            toDecimal256(snapshot.underlyingBreakdownToNativePrices[bt.token_index + 1], 18) / pow(10, 18)
         ) * (
-            toDecimal256 (snapshot.nativeToUSDPrice, 18) / pow(10, 18)
+            toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)
         ) as underlying_token_amount_usd,
 
         0 as total_fees_usd
     FROM ClassicPositionSnapshot snapshot
     JOIN Classic classic ON snapshot.classic = classic.id
+    JOIN breakdown_tokens bt ON classic.id = bt.classic_id
+    JOIN Token t_breakdown ON bt.token_address = t_breakdown.id
     JOIN Token t_share ON classic.vaultSharesToken = t_share.id
-    JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
     WHERE snapshot.period = 86400
 )
 select *
@@ -133,31 +158,41 @@ TVL, fees, and incentives data at the pool level.
 | total_fees_usd              | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
 
 ```SQL
-WITH data_res AS (
+WITH breakdown_tokens as (
+    SELECT
+        classic.id as classic_id,
+        token_address,
+        token_index
+    FROM Classic classic
+    ARRAY JOIN
+        classic.underlyingBreakdownTokensOrder as token_address,
+        arrayMap((x, i) -> i, classic.underlyingBreakdownTokensOrder, range(length(classic.underlyingBreakdownTokensOrder))) as token_index
+),
+data_res AS (
     SELECT
         snapshot.timestamp,
         formatDateTime(toDate(fromUnixTimestamp(toInt64(snapshot.roundedTimestamp))), '%Y-%m-%d') as block_date,
         146 as chain_id,
-        classic.underlyingToken as underlying_token_address,
-        0 as underlying_token_index,
+        bt.token_address as underlying_token_address,
+        bt.token_index as underlying_token_index,
         classic.id as pool_address,
         (
-            toDecimal256 (snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
-        )
-        as underlying_token_amount,
+            toDecimal256(snapshot.vaultUnderlyingBreakdownBalances[bt.token_index + 1], 18) / pow(10, t_breakdown.decimals)
+        ) as underlying_token_amount,
 
         (
-            toDecimal256 (snapshot.underlyingAmount, 18) / pow(10, t_underlying.decimals)
+            toDecimal256(snapshot.vaultUnderlyingBreakdownBalances[bt.token_index + 1], 18) / pow(10, t_breakdown.decimals)
         ) * (
-            toDecimal256 (snapshot.underlyingToNativePrice, 18) / pow(10, 18)
+            toDecimal256(snapshot.underlyingBreakdownToNativePrices[bt.token_index + 1], 18) / pow(10, 18)
         ) * (
-            toDecimal256 (snapshot.nativeToUSDPrice, 18) / pow(10, 18)
+            toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)
         ) as underlying_token_amount_usd,
 
         0 as total_fees_usd
     FROM ClassicSnapshot snapshot
     JOIN Classic classic ON snapshot.classic = classic.id
-    JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
+    JOIN breakdown_tokens bt ON classic.id = bt.classic_id
+    JOIN Token t_breakdown ON bt.token_address = t_breakdown.id
     WHERE snapshot.period = 86400
 )
 select *
