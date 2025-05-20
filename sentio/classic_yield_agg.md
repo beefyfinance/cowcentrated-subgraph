@@ -135,6 +135,7 @@ data_res AS (
     JOIN Token t_breakdown ON bt.token_address = t_breakdown.id
     JOIN Token t_share ON classic.vaultSharesToken = t_share.id
     WHERE snapshot.period = 86400
+    and snapshot.investor not in ('0x03c2e2e84031d913d45b1f5b5ddc8e50fcb28652')
 )
 select *
 from data_res
@@ -260,6 +261,8 @@ WITH events AS (
     JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
     JOIN Transaction tx ON i.createdWith = tx.id
     WHERE i.type__ IN ('VAULT_DEPOSIT', 'VAULT_WITHDRAW', 'CLASSIC_ERC4626_ADAPTER_STAKE', 'CLASSIC_ERC4626_ADAPTER_UNSTAKE')
+      and i.investor not in ('0x03c2e2e84031d913d45b1f5b5ddc8e50fcb28652')
+      and tx.sender not in ('0x03c2e2e84031d913d45b1f5b5ddc8e50fcb28652')
 ),
 data_res as (
     SELECT
@@ -316,6 +319,8 @@ raw_arrays AS (
     JOIN Classic classic ON i.classic = classic.id
     JOIN Transaction tx ON i.createdWith = tx.id
     WHERE i.type__ IN ('CLASSIC_REWARD_POOL_CLAIM', 'BOOST_REWARD_CLAIM')
+      and i.investor not in ('0x03c2e2e84031d913d45b1f5b5ddc8e50fcb28652')
+      and tx.sender not in ('0x03c2e2e84031d913d45b1f5b5ddc8e50fcb28652')
 ),
 calculated_amounts AS (
     SELECT
