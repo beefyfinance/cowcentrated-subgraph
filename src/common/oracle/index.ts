@@ -129,9 +129,7 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
     }
 
     if (inputToken.id.equals(SONIC_bUSDCe20)) {
-      // there is a stable swap between bUSDCe20 and scUSD
-      // so we can consider them equivalent
-      const path = [SONIC_scUSD, SONIC_frxUSD, SONIC_wS]
+      const path = [SONIC_bUSDCe20, SONIC_wstkscUSD, SONIC_scUSD, SONIC_OS, SONIC_wS]
       return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
