@@ -66,6 +66,10 @@ export function getClassic(vaultAddress: Bytes): Classic {
     classic.nativeToUSDPrice = ZERO_BI
 
     classic.underlyingAmount = ZERO_BI
+
+    classic.totalCallFees = ZERO_BI
+    classic.totalBeefyFees = ZERO_BI
+    classic.totalStrategistFees = ZERO_BI
   }
   return classic
 }
@@ -189,6 +193,10 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
 
     snapshot.underlyingAmount = ZERO_BI
 
+    snapshot.totalCallFees = ZERO_BI
+    snapshot.totalBeefyFees = ZERO_BI
+    snapshot.totalStrategistFees = ZERO_BI
+
     // copy non-reseting values from the previous snapshot to the new snapshot
     const previousSnapshotId = classic.id.concat(getPreviousSnapshotIdSuffix(period, interval))
     const previousSnapshot = ClassicSnapshot.load(previousSnapshotId)
@@ -208,6 +216,10 @@ export function getClassicSnapshot(classic: Classic, timestamp: BigInt, period: 
       snapshot.nativeToUSDPrice = previousSnapshot.nativeToUSDPrice
 
       snapshot.underlyingAmount = previousSnapshot.underlyingAmount
+
+      snapshot.totalCallFees = ZERO_BI
+      snapshot.totalBeefyFees = ZERO_BI
+      snapshot.totalStrategistFees = ZERO_BI
     }
   }
 

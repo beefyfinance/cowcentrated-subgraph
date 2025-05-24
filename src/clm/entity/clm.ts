@@ -58,6 +58,10 @@ export function getCLM(managerAddress: Bytes): CLM {
     clm.underlyingMainAmount1 = ZERO_BI
     clm.underlyingAltAmount0 = ZERO_BI
     clm.underlyingAltAmount1 = ZERO_BI
+
+    clm.totalCallFees = ZERO_BI
+    clm.totalBeefyFees = ZERO_BI
+    clm.totalStrategistFees = ZERO_BI
   }
   return clm
 }
@@ -144,6 +148,10 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
     snapshot.underlyingAltAmount0 = ZERO_BI
     snapshot.underlyingAltAmount1 = ZERO_BI
 
+    snapshot.totalCallFees = ZERO_BI
+    snapshot.totalBeefyFees = ZERO_BI
+    snapshot.totalStrategistFees = ZERO_BI
+
     // copy non-reseting values from the previous snapshot to the new snapshot
     const previousSnapshotId = clm.id.concat(getPreviousSnapshotIdSuffix(period, interval))
     const previousSnapshot = ClmSnapshot.load(previousSnapshotId)
@@ -164,6 +172,10 @@ export function getClmSnapshot(clm: CLM, timestamp: BigInt, period: BigInt): Clm
       snapshot.underlyingMainAmount1 = previousSnapshot.underlyingMainAmount1
       snapshot.underlyingAltAmount0 = previousSnapshot.underlyingAltAmount0
       snapshot.underlyingAltAmount1 = previousSnapshot.underlyingAltAmount1
+
+      snapshot.totalCallFees = ZERO_BI
+      snapshot.totalBeefyFees = ZERO_BI
+      snapshot.totalStrategistFees = ZERO_BI
     }
   }
 

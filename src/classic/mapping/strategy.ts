@@ -1,4 +1,11 @@
-export { handleClassicStrategyInitialized } from "../lifecycle"
-export { handleClassicStrategyPaused } from "../lifecycle"
-export { handleClassicStrategyUnpaused } from "../lifecycle"
-export { handleClassicStrategyHarvest0, handleClassicStrategyHarvest1 } from "../compound"
+export {
+  handleClassicStrategyInitialized,
+  handleClassicStrategyPaused,
+  handleClassicStrategyUnpaused,
+} from "../lifecycle"
+export {
+  handleClassicStrategyHarvest0,
+  handleClassicStrategyHarvest1,
+  handleClassicStrategyCharged2Fees,
+  handleClassicStrategyCharged3Fees,
+} from "../compound"

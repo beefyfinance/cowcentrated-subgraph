@@ -232,6 +232,13 @@ type Classic @entity {
   "Amount of underlying token in the vault"
   underlyingAmount: BigInt!
 
+  "Total amount of charged call fees"
+  totalCallFees: BigInt!
+  "Total amount of charged beefy fees"
+  totalBeefyFees: BigInt!
+  "Total amount of charged strategist fees"
+  totalStrategistFees: BigInt!
+
   "All positions in the Classic"
   positions: [ClassicPosition!]! @derivedFrom(field: "classic")
 
@@ -299,6 +306,13 @@ type ClassicSnapshot @entity {
   rewardToNativePrices: [BigInt!]!
   "Latest native token price of this snapshot. Expressed with 18 decimals."
   nativeToUSDPrice: BigInt!
+
+  "Total amount of charged call fees in this snapshot"
+  totalCallFees: BigInt!
+  "Total amount of charged beefy fees in this snapshot"
+  totalBeefyFees: BigInt!
+  "Total amount of charged strategist fees in this snapshot"
+  totalStrategistFees: BigInt!
 
   "Amount of underlying tokens in the vault"
   underlyingAmount: BigInt!
@@ -715,6 +729,13 @@ type CLM @entity {
   "Amount of underlying tokens in the CLM assigned to the alt position in the second token."
   underlyingAltAmount1: BigInt!
 
+  "Total amount of charged call fees"
+  totalCallFees: BigInt!
+  "Total amount of charged beefy fees"
+  totalBeefyFees: BigInt!
+  "Total amount of charged strategist fees"
+  totalStrategistFees: BigInt!
+
   "All positions in the CLM"
   positions: [ClmPosition!]! @derivedFrom(field: "clm")
 
@@ -809,6 +830,13 @@ type ClmSnapshot @entity {
   underlyingAltAmount0: BigInt!
   "Amount of underlying tokens in the CLM assigned to the alt position in the second token."
   underlyingAltAmount1: BigInt!
+
+  "Total amount of charged call fees in this snapshot"
+  totalCallFees: BigInt!
+  "Total amount of charged beefy fees in this snapshot"
+  totalBeefyFees: BigInt!
+  "Total amount of charged strategist fees in this snapshot"
+  totalStrategistFees: BigInt!
 }
 
 """

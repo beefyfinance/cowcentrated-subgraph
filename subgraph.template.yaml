@@ -327,6 +327,10 @@ templates:
           handler: handleClmStrategyClaimedRewards
         - event: TVL(uint256,uint256)
           handler: handleClmStrategyTVL
+        - event: ChargedFees(uint256,uint256)
+          handler: handleClmStrategyCharged2Fees
+        - event: ChargedFees(uint256,uint256,uint256)
+          handler: handleClmStrategyCharged3Fees
 
   - name: RewardPool
     kind: ethereum/contract
@@ -429,6 +433,10 @@ templates:
           handler: handleClassicStrategyPaused
         - event: Unpaused(address)
           handler: handleClassicStrategyUnpaused
+        - event: ChargedFees(uint256,uint256)
+          handler: handleClassicStrategyCharged2Fees
+        - event: ChargedFees(uint256,uint256,uint256)
+          handler: handleClassicStrategyCharged3Fees
 
   - name: ClassicStrategyStratHarvest0
     kind: ethereum/contract

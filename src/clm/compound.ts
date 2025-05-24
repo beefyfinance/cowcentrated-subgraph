@@ -4,13 +4,16 @@ import {
   HarvestRewards as CLMHarvestRewardsEvent,
   ClaimedFees as CLMClaimedFeesEvent,
   ClaimedRewards as CLMClaimedRewardsEvent,
+  ChargedFees as CLMCharged2FeesEvent,
+  ChargedFees1 as CLMCharged3FeesEvent,
 } from "../../generated/templates/ClmStrategy/ClmStrategy"
-import { getClmStrategy, getCLM, isClmInitialized } from "./entity/clm"
+import { getClmStrategy, getCLM, isClmInitialized, getClmSnapshot } from "./entity/clm"
 import { getAndSaveTransaction } from "../common/entity/transaction"
 import { ClmHarvestEvent, ClmManagerCollectionEvent } from "../../generated/schema"
 import { ZERO_BI } from "../common/utils/decimal"
 import { getEventIdentifier } from "../common/utils/event"
 import { updateCLMDataAndSnapshots, fetchCLMData } from "./utils/clm-data"
+import { CLM_SNAPSHOT_PERIODS } from "./utils/snapshot"
 
 export function handleClmStrategyHarvestAmounts(event: CLMHarvestEvent): void {
   handleClmStrategyHarvest(event, event.params.fee0, event.params.fee1, [])
@@ -155,5 +158,46 @@ function handleClmStrategyFees(
     collect.rewardToNativePrices = clmData.rewardToNativePrices
     collect.nativeToUSDPrice = clmData.nativeToUSDPrice
     collect.save()
+  }
+}
+
+export function handleClmStrategyCharged2Fees(event: CLMCharged2FeesEvent): void {
+  const callFees = ZERO_BI
+  const beefyFees = event.params.beefyFee
+  const strategistFees = event.params.liquidityFee
+  _handleClmStrategyChargedFees(event, callFees, beefyFees, strategistFees)
+}
+
+export function handleClmStrategyCharged3Fees(event: CLMCharged3FeesEvent): void {
+  const callFees = event.params.callFeeAmount
+  const beefyFees = event.params.beefyFeeAmount
+  const strategistFees = event.params.strategistFeeAmount
+  _handleClmStrategyChargedFees(event, callFees, beefyFees, strategistFees)
+}
+
+function _handleClmStrategyChargedFees(
+  event: ethereum.Event,
+  callFees: BigInt,
+  beefyFees: BigInt,
+  strategistFees: BigInt,
+): void {
+  let strategy = getClmStrategy(event.address)
+  let clm = getCLM(strategy.clm)
+  if (!isClmInitialized(clm)) {
+    return
+  }
+
+  clm.totalCallFees = clm.totalCallFees.plus(callFees)
+  clm.totalBeefyFees = clm.totalBeefyFees.plus(beefyFees)
+  clm.totalStrategistFees = clm.totalStrategistFees.plus(strategistFees)
+  clm.save()
+
+  for (let i = 0; i < CLM_SNAPSHOT_PERIODS.length; i++) {
+    const period = CLM_SNAPSHOT_PERIODS[i]
+    const snapshot = getClmSnapshot(clm, event.block.timestamp, period)
+    snapshot.totalCallFees = snapshot.totalCallFees.plus(callFees)
+    snapshot.totalBeefyFees = snapshot.totalBeefyFees.plus(beefyFees)
+    snapshot.totalStrategistFees = snapshot.totalStrategistFees.plus(strategistFees)
+    snapshot.save()
   }
 }

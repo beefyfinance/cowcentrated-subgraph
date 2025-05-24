@@ -73,6 +73,15 @@
     "stateMutability": "view"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "beefyFee", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "liquidityFee", "type": "uint256" }
+    ],
+    "name": "ChargedFees",
+    "type": "event"
+  },
+  {
     "type": "event",
     "name": "ChargedFees",
     "inputs": [

@@ -43,6 +43,15 @@
   {
     "anonymous": false,
     "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "beefyFee", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "liquidityFee", "type": "uint256" }
+    ],
+    "name": "ChargedFees",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
       { "indexed": false, "internalType": "uint256", "name": "callFees", "type": "uint256" },
       { "indexed": false, "internalType": "uint256", "name": "beefyFees", "type": "uint256" },
       { "indexed": false, "internalType": "uint256", "name": "strategistFees", "type": "uint256" }

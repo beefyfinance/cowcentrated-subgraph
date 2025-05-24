@@ -198,6 +198,16 @@
   },
   {
     "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "callFees", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "beefyFees", "type": "uint256" },
+      { "indexed": false, "internalType": "uint256", "name": "strategistFees", "type": "uint256" }
+    ],
+    "name": "ChargedFees",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
     "inputs": [{ "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" }],
     "name": "ClaimedRewards",
     "type": "event"
