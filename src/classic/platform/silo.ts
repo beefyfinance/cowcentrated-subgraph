@@ -1,14 +1,26 @@
 import { Classic } from "../../../generated/schema"
 import { TokenBalance } from "./common"
-import { ClassicVault as ClassicVaultContract } from "../../../generated/templates/ClassicVault/ClassicVault"
-import { Address } from "@graphprotocol/graph-ts"
 import { allResultsSuccess } from "../../common/utils/multicall"
 import { multicall, Multicall3Params } from "../../common/utils/multicall"
 
 export function isSiloVault(classic: Classic): boolean {
-  const signatures = [new Multicall3Params(classic.strategy, "silo()", "address")]
+  const signatures = [
+    new Multicall3Params(classic.strategy, "silo()", "address"),
+    new Multicall3Params(classic.strategy, "siloVault()", "address"),
+  ]
+
   const results = multicall(signatures)
-  return allResultsSuccess(results)
+
+  // if the strategy has either "silo" or "siloVault" field
+  // then it is a silo vault
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i]
+    if (!result.reverted) {
+      return true
+    }
+  }
+
+  return false
 }
 
 export function getVaultTokenBreakdownSilo(classic: Classic): Array<TokenBalance> {
