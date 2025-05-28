@@ -171,7 +171,11 @@ WITH data_res AS (
         (toDecimal256(snapshot.totalUnderlyingAmount0, 18) / pow(10, t0.decimals)) *
         (toDecimal256(snapshot.token0ToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as underlying_token_amount_usd,
-        0 as total_fees_usd
+        (
+            toDecimal256(snapshot.totalCallFees + snapshot.totalBeefyFees + snapshot.totalStrategistFees, 18) / pow(10, 18)
+        ) * (
+            toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)
+        ) as total_fees_usd
     FROM ClmSnapshot snapshot
     JOIN CLM clm ON snapshot.clm = clm.id
     JOIN ClmStrategy strategy ON clm.strategy = strategy.id
@@ -191,7 +195,12 @@ WITH data_res AS (
         (toDecimal256(snapshot.totalUnderlyingAmount1, 18) / pow(10, t1.decimals)) *
         (toDecimal256(snapshot.token1ToNativePrice, 18) / pow(10, 18)) *
         (toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)) as underlying_token_amount_usd,
-        0 as total_fees_usd
+
+        (
+            toDecimal256(snapshot.totalCallFees + snapshot.totalBeefyFees + snapshot.totalStrategistFees, 18) / pow(10, 18)
+        ) * (
+            toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)
+        ) as total_fees_usd
     FROM ClmSnapshot snapshot
     JOIN CLM clm ON snapshot.clm = clm.id
     JOIN ClmStrategy strategy ON clm.strategy = strategy.id

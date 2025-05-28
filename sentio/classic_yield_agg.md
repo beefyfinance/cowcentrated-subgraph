@@ -282,7 +282,11 @@ data_res AS (
             toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)
         ) as underlying_token_amount_usd,
 
-        0 as total_fees_usd
+        (
+            toDecimal256(snapshot.totalCallFees + snapshot.totalBeefyFees + snapshot.totalStrategistFees, 18) / pow(10, 18)
+        ) * (
+            toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)
+        ) as total_fees_usd
     FROM ClassicSnapshot snapshot
     JOIN Classic classic ON snapshot.classic = classic.id
     JOIN breakdown_tokens bt ON classic.id = bt.classic_id
