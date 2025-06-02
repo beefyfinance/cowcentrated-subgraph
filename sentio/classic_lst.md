@@ -96,11 +96,11 @@ WITH data_res AS (
             )
         ) as total_value_locked_usd,
 
-        (
+        sum((
             toDecimal256(snapshot.totalCallFees + snapshot.totalBeefyFees + snapshot.totalStrategistFees, 18) / pow(10, 18)
         ) * (
             toDecimal256(snapshot.nativeToUSDPrice, 18) / pow(10, 18)
-        ) as fees_usd
+        )) as fees_usd
     FROM ClassicSnapshot snapshot
     JOIN Classic classic ON snapshot.classic = classic.id
     JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
