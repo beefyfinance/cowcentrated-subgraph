@@ -14,6 +14,7 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 - [Berachain](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-berachain/latest/gn)
 - [Bsc](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-bsc/latest/gn)
 - [Gnosis](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-gnosis/latest/gn)
+- [Hyperevm](https://api.goldsky.com/api/public/project_clu2walvem1qm01w40v3yhw1f/subgraphs/beefy-clm-hyperevm/latest/gn)
 - [Linea](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-linea/latest/gn)
 - [Lisk](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-lisk/latest/gn)
 - [Manta](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-manta/latest/gn)

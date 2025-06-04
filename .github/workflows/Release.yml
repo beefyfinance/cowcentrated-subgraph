@@ -19,6 +19,7 @@ jobs:
           - "berachain"
           - "bsc"
           - "gnosis"
+          - "hyperevm"
           - "linea"
           - "lisk"
           - "manta"
