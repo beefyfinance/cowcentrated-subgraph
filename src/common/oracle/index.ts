@@ -94,6 +94,8 @@ const SONIC_EGGS = Bytes.fromHexString("0xf26ff70573ddc8a90bd7865af8d7d70b8ff019
 const SONIC_USDT = Bytes.fromHexString("0x6047828dc181963ba44974801ff68e538da5eaf9")
 const SONIC_LUDWIG = Bytes.fromHexString("0xe6cc4d855b4fd4a9d02f46b9adae4c5efb1764b5")
 const SONIC_Beets_stS = Bytes.fromHexString("0xE5DA20F15420aD15DE0fa650600aFc998bbE3955")
+const SONIC_stkscETH = Bytes.fromHexString("0x455d5f11Fea33A8fa9D3e285930b478B6bF85265")
+const SONIC_wstkscETH = Bytes.fromHexString("0xe8a41c62bb4d5863c6eadc96792cfe90a1f37c47")
 const SONIC_wS = WNATIVE_TOKEN_ADDRESS
 
 export function getTokenToNativePrice(inputToken: Token): BigInt {
