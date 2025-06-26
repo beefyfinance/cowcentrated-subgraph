@@ -24,47 +24,7 @@ List of pools in the protocol.
 | pool_symbol               | The symbol of the pool.                                                         | string |
 
 ```SQL
-with obl_whitelist as (
-    SELECT [
-        '0xe5da20f15420ad15de0fa650600afc998bbe3955',
-        '0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38',
-        '0xd3dce716f3ef535c5ff8d041c1a41c3bd89b97ae',
-        '0x3bce5cb273f0f148010bbea2470e7b5df84c7812',
-        '0x4d85ba8c3918359c78ed09581e5bc7578ba932ba',
-        '0x9fb76f7ce5fceaa2c42887ff441d46095e494206',
-        '0x455d5f11fea33a8fa9d3e285930b478b6bf85265',
-        '0x0c4e186eae8acaa7f7de1315d5ad174be39ec987',
-        '0xfa85fe5a8f5560e9039c04f2b0a90de1415abd70',
-        '0xb1e25689d55734fd3fffc939c4c3eb52dff8a794',
-        '0x9f0df7799f6fdad409300080cff680f5a23df4b1',
-        '0xe8a41c62bb4d5863c6eadc96792cfe90a1f37c47',
-        '0x29219dd400f2bf60e5a23d13be72b486d4038894',
-        '0x6047828dc181963ba44974801ff68e538da5eaf9',
-        '0xbb30e76d9bb2cc9631f7fc5eb8e87b5aff32bfbd',
-        '0xd0851030c94433c261b405fecbf1dec5e15948d0',
-        '0x0000000000000000000000000000000000000000',
-        '0x50c42deacd8fc9773493ed674b675be577f2634b',
-        '0x3333111a391cc08fa51353e9195526a70b333333',
-        '0xdb58c4db1a0f45dda3d2f8e44c3300bb6510c866',
-        '0x578ee1ca3a8e1b54554da1bf7c583506c4cd11c6',
-        '0x322e1d5384aa4ed66aeca770b95686271de61dc3',
-        '0x871a101dcf22fe4fe37be7b654098c801cba1c88',
-        '0x2d0e0814e62d80056181f5cd932274405966e4f0',
-        '0x3333b97138d4b086720b5ae8a7844b1345a33333',
-        '0x0555e30da8f98308edb960aa94c0db47230d2b9c'
-    ] as token_address
-),
-sql_unwrapped_tokens as (
-    SELECT [
-        '0x7870ddfd5aca4e977b2287e9a212bcbe8fc4135a'
-    ] as token_address
-),
-whitelisted_tokens as (
-    SELECT arrayConcat(
-        (SELECT token_address FROM obl_whitelist),
-        (SELECT token_address FROM sql_unwrapped_tokens)
-    ) as token_address
-),
+with
 breakdown_tokens as (
     SELECT
         classic.id as classic_id,
@@ -77,7 +37,6 @@ breakdown_tokens as (
     ARRAY JOIN
         classic.underlyingBreakdownTokensOrder as token_address,
         arrayMap((x, i) -> i, classic.underlyingBreakdownTokensOrder, range(length(classic.underlyingBreakdownTokensOrder))) as token_index
-    WHERE hasAll((SELECT token_address FROM whitelisted_tokens), classic.underlyingBreakdownTokensOrder)
 ),
 data_res as (
     SELECT
@@ -126,41 +85,7 @@ Snapshot of the pool users.
 | total_fees_usd              | The total amount of revenue and fees paid in this pool in the given snapshot, in USD.                             | number |
 
 ```SQL
-with obl_whitelist as (
-    SELECT [
-        '0xe5da20f15420ad15de0fa650600afc998bbe3955',
-        '0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38',
-        '0xd3dce716f3ef535c5ff8d041c1a41c3bd89b97ae',
-        '0x3bce5cb273f0f148010bbea2470e7b5df84c7812',
-        '0x4d85ba8c3918359c78ed09581e5bc7578ba932ba',
-        '0x9fb76f7ce5fceaa2c42887ff441d46095e494206',
-        '0x455d5f11fea33a8fa9d3e285930b478b6bf85265',
-        '0x0c4e186eae8acaa7f7de1315d5ad174be39ec987',
-        '0xfa85fe5a8f5560e9039c04f2b0a90de1415abd70',
-        '0xb1e25689d55734fd3fffc939c4c3eb52dff8a794',
-        '0x9f0df7799f6fdad409300080cff680f5a23df4b1',
-        '0xe8a41c62bb4d5863c6eadc96792cfe90a1f37c47',
-        '0x29219dd400f2bf60e5a23d13be72b486d4038894',
-        '0x6047828dc181963ba44974801ff68e538da5eaf9',
-        '0xbb30e76d9bb2cc9631f7fc5eb8e87b5aff32bfbd',
-        '0xd0851030c94433c261b405fecbf1dec5e15948d0',
-        '0x0000000000000000000000000000000000000000',
-        '0x50c42deacd8fc9773493ed674b675be577f2634b',
-        '0x3333111a391cc08fa51353e9195526a70b333333',
-        '0xdb58c4db1a0f45dda3d2f8e44c3300bb6510c866',
-        '0x578ee1ca3a8e1b54554da1bf7c583506c4cd11c6',
-        '0x322e1d5384aa4ed66aeca770b95686271de61dc3',
-        '0x871a101dcf22fe4fe37be7b654098c801cba1c88',
-        '0x2d0e0814e62d80056181f5cd932274405966e4f0',
-        '0x3333b97138d4b086720b5ae8a7844b1345a33333',
-        '0x0555e30da8f98308edb960aa94c0db47230d2b9c'
-    ] as token_address
-),
-sql_unwrapped_tokens as (
-    SELECT [
-        '0x7870ddfd5aca4e977b2287e9a212bcbe8fc4135a'
-    ] as token_address
-),
+with
 swapx_pools as (
     SELECT [
         '0x73b1933aea13cf2355fc95839bc926461c7e14f8',
@@ -206,12 +131,6 @@ swapx_pools as (
         '0x40dfab668d42f4cca5c744cacfcde31d30ed01f4'
     ] as strategy_address
 ),
-whitelisted_tokens as (
-    SELECT arrayConcat(
-        (SELECT token_address FROM obl_whitelist),
-        (SELECT token_address FROM sql_unwrapped_tokens)
-    ) as token_address
-),
 breakdown_tokens_wrapper_not_mapped as (
     SELECT
         classic.id as classic_id,
@@ -222,7 +141,6 @@ breakdown_tokens_wrapper_not_mapped as (
     ARRAY JOIN
         classic.underlyingBreakdownTokensOrder as token_address,
         arrayMap((x, i) -> i, classic.underlyingBreakdownTokensOrder, range(length(classic.underlyingBreakdownTokensOrder))) as token_index
-    WHERE hasAll((SELECT token_address FROM whitelisted_tokens), classic.underlyingBreakdownTokensOrder)
 ),
 data_res_wrapper_not_mapped AS (
     SELECT
@@ -331,47 +249,7 @@ TVL, fees, and incentives data at the pool level.
 
 ```SQL
 
-with obl_whitelist as (
-    SELECT [
-        '0xe5da20f15420ad15de0fa650600afc998bbe3955',
-        '0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38',
-        '0xd3dce716f3ef535c5ff8d041c1a41c3bd89b97ae',
-        '0x3bce5cb273f0f148010bbea2470e7b5df84c7812',
-        '0x4d85ba8c3918359c78ed09581e5bc7578ba932ba',
-        '0x9fb76f7ce5fceaa2c42887ff441d46095e494206',
-        '0x455d5f11fea33a8fa9d3e285930b478b6bf85265',
-        '0x0c4e186eae8acaa7f7de1315d5ad174be39ec987',
-        '0xfa85fe5a8f5560e9039c04f2b0a90de1415abd70',
-        '0xb1e25689d55734fd3fffc939c4c3eb52dff8a794',
-        '0x9f0df7799f6fdad409300080cff680f5a23df4b1',
-        '0xe8a41c62bb4d5863c6eadc96792cfe90a1f37c47',
-        '0x29219dd400f2bf60e5a23d13be72b486d4038894',
-        '0x6047828dc181963ba44974801ff68e538da5eaf9',
-        '0xbb30e76d9bb2cc9631f7fc5eb8e87b5aff32bfbd',
-        '0xd0851030c94433c261b405fecbf1dec5e15948d0',
-        '0x0000000000000000000000000000000000000000',
-        '0x50c42deacd8fc9773493ed674b675be577f2634b',
-        '0x3333111a391cc08fa51353e9195526a70b333333',
-        '0xdb58c4db1a0f45dda3d2f8e44c3300bb6510c866',
-        '0x578ee1ca3a8e1b54554da1bf7c583506c4cd11c6',
-        '0x322e1d5384aa4ed66aeca770b95686271de61dc3',
-        '0x871a101dcf22fe4fe37be7b654098c801cba1c88',
-        '0x2d0e0814e62d80056181f5cd932274405966e4f0',
-        '0x3333b97138d4b086720b5ae8a7844b1345a33333',
-        '0x0555e30da8f98308edb960aa94c0db47230d2b9c'
-    ] as token_address
-),
-sql_unwrapped_tokens as (
-    SELECT [
-        '0x7870ddfd5aca4e977b2287e9a212bcbe8fc4135a'
-    ] as token_address
-),
-whitelisted_tokens as (
-    SELECT arrayConcat(
-        (SELECT token_address FROM obl_whitelist),
-        (SELECT token_address FROM sql_unwrapped_tokens)
-    ) as token_address
-),
+with
 breakdown_tokens_wrapper_not_mapped as (
     SELECT
         classic.id as classic_id,
@@ -381,7 +259,6 @@ breakdown_tokens_wrapper_not_mapped as (
     ARRAY JOIN
         classic.underlyingBreakdownTokensOrder as token_address,
         arrayMap((x, i) -> i, classic.underlyingBreakdownTokensOrder, range(length(classic.underlyingBreakdownTokensOrder))) as token_index
-    WHERE hasAll((SELECT token_address FROM whitelisted_tokens), classic.underlyingBreakdownTokensOrder)
 ),
 data_res_wrapper_not_mapped AS (
     SELECT
@@ -477,36 +354,7 @@ All user events (ie, Deposit, Withdrawal)
 
 ```SQL
 
-with whitelisted_tokens as (
-    SELECT [
-        '0xe5da20f15420ad15de0fa650600afc998bbe3955',
-        '0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38',
-        '0xd3dce716f3ef535c5ff8d041c1a41c3bd89b97ae',
-        '0x3bce5cb273f0f148010bbea2470e7b5df84c7812',
-        '0x4d85ba8c3918359c78ed09581e5bc7578ba932ba',
-        '0x9fb76f7ce5fceaa2c42887ff441d46095e494206',
-        '0x455d5f11fea33a8fa9d3e285930b478b6bf85265',
-        '0x0c4e186eae8acaa7f7de1315d5ad174be39ec987',
-        '0xfa85fe5a8f5560e9039c04f2b0a90de1415abd70',
-        '0xb1e25689d55734fd3fffc939c4c3eb52dff8a794',
-        '0x9f0df7799f6fdad409300080cff680f5a23df4b1',
-        '0xe8a41c62bb4d5863c6eadc96792cfe90a1f37c47',
-        '0x29219dd400f2bf60e5a23d13be72b486d4038894',
-        '0x6047828dc181963ba44974801ff68e538da5eaf9',
-        '0xbb30e76d9bb2cc9631f7fc5eb8e87b5aff32bfbd',
-        '0xd0851030c94433c261b405fecbf1dec5e15948d0',
-        '0x0000000000000000000000000000000000000000',
-        '0x50c42deacd8fc9773493ed674b675be577f2634b',
-        '0x3333111a391cc08fa51353e9195526a70b333333',
-        '0xdb58c4db1a0f45dda3d2f8e44c3300bb6510c866',
-        '0x578ee1ca3a8e1b54554da1bf7c583506c4cd11c6',
-        '0x322e1d5384aa4ed66aeca770b95686271de61dc3',
-        '0x871a101dcf22fe4fe37be7b654098c801cba1c88',
-        '0x2d0e0814e62d80056181f5cd932274405966e4f0',
-        '0x3333b97138d4b086720b5ae8a7844b1345a33333',
-        '0x0555e30da8f98308edb960aa94c0db47230d2b9c'
-    ] as token_addresses
-),
+with
 breakdown_tokens as (
     SELECT
         classic.id as classic_id,
@@ -516,7 +364,6 @@ breakdown_tokens as (
     ARRAY JOIN
         classic.underlyingBreakdownTokensOrder as token_address,
         arrayMap((x, i) -> i, classic.underlyingBreakdownTokensOrder, range(length(classic.underlyingBreakdownTokensOrder))) as token_index
-    WHERE hasAll((SELECT token_addresses FROM whitelisted_tokens), classic.underlyingBreakdownTokensOrder)
 ),
 events AS (
     SELECT
@@ -602,36 +449,7 @@ Transactional data on user level incentives claimed data.
 | other_incentive_usd   | (Optional) Any incentives outside of the claimed token, in this transaction, summed up in USD terms. | number |
 
 ```SQL
-with whitelisted_tokens as (
-    SELECT [
-        '0xe5da20f15420ad15de0fa650600afc998bbe3955',
-        '0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38',
-        '0xd3dce716f3ef535c5ff8d041c1a41c3bd89b97ae',
-        '0x3bce5cb273f0f148010bbea2470e7b5df84c7812',
-        '0x4d85ba8c3918359c78ed09581e5bc7578ba932ba',
-        '0x9fb76f7ce5fceaa2c42887ff441d46095e494206',
-        '0x455d5f11fea33a8fa9d3e285930b478b6bf85265',
-        '0x0c4e186eae8acaa7f7de1315d5ad174be39ec987',
-        '0xfa85fe5a8f5560e9039c04f2b0a90de1415abd70',
-        '0xb1e25689d55734fd3fffc939c4c3eb52dff8a794',
-        '0x9f0df7799f6fdad409300080cff680f5a23df4b1',
-        '0xe8a41c62bb4d5863c6eadc96792cfe90a1f37c47',
-        '0x29219dd400f2bf60e5a23d13be72b486d4038894',
-        '0x6047828dc181963ba44974801ff68e538da5eaf9',
-        '0xbb30e76d9bb2cc9631f7fc5eb8e87b5aff32bfbd',
-        '0xd0851030c94433c261b405fecbf1dec5e15948d0',
-        '0x0000000000000000000000000000000000000000',
-        '0x50c42deacd8fc9773493ed674b675be577f2634b',
-        '0x3333111a391cc08fa51353e9195526a70b333333',
-        '0xdb58c4db1a0f45dda3d2f8e44c3300bb6510c866',
-        '0x578ee1ca3a8e1b54554da1bf7c583506c4cd11c6',
-        '0x322e1d5384aa4ed66aeca770b95686271de61dc3',
-        '0x871a101dcf22fe4fe37be7b654098c801cba1c88',
-        '0x2d0e0814e62d80056181f5cd932274405966e4f0',
-        '0x3333b97138d4b086720b5ae8a7844b1345a33333',
-        '0x0555e30da8f98308edb960aa94c0db47230d2b9c'
-    ] as token_addresses
-),
+with
 breakdown_tokens as (
     SELECT
         classic.id as classic_id,
@@ -641,7 +459,6 @@ breakdown_tokens as (
     ARRAY JOIN
         classic.underlyingBreakdownTokensOrder as token_address,
         arrayMap((x, i) -> i, classic.underlyingBreakdownTokensOrder, range(length(classic.underlyingBreakdownTokensOrder))) as token_index
-    WHERE hasAll((SELECT token_addresses FROM whitelisted_tokens), classic.underlyingBreakdownTokensOrder)
 ),
 raw_arrays AS (
     SELECT
