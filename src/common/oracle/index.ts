@@ -96,6 +96,7 @@ const SONIC_LUDWIG = Bytes.fromHexString("0xe6cc4d855b4fd4a9d02f46b9adae4c5efb17
 const SONIC_Beets_stS = Bytes.fromHexString("0xE5DA20F15420aD15DE0fa650600aFc998bbE3955")
 const SONIC_stkscETH = Bytes.fromHexString("0x455d5f11Fea33A8fa9D3e285930b478B6bF85265")
 const SONIC_wstkscETH = Bytes.fromHexString("0xe8a41c62bb4d5863c6eadc96792cfe90a1f37c47")
+const SONIC_STRIKE = Bytes.fromHexString("0x8bb21b10f32a10bed94041746ffd32003bad6534")
 const SONIC_wS = WNATIVE_TOKEN_ADDRESS
 
 export function getTokenToNativePrice(inputToken: Token): BigInt {
@@ -188,6 +189,11 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
     if (inputToken.id.equals(SONIC_USDT)) {
       const path = [SONIC_USDT, SONIC_USDC, SONIC_wS]
       return getSwapxCLMultiHopTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+    }
+
+    if (inputToken.id.equals(SONIC_STRIKE)) {
+      const path = [SONIC_STRIKE, SONIC_USDC, SONIC_wS]
+      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
     }
 
     if (inputToken.id.equals(SONIC_LUDWIG)) {
