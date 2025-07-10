@@ -1,5 +1,5 @@
 import { BigInt, log, ethereum, Address, Bytes } from "@graphprotocol/graph-ts"
-import { CLM, Classic } from "../../../generated/schema"
+import { CLM, Classic, Token } from "../../../generated/schema"
 import { ONE_BI, ZERO_BI, changeValueEncoding } from "../../common/utils/decimal"
 import {
   BEEFY_ORACLE_ADDRESS,
@@ -287,13 +287,8 @@ export function fetchClassicData(classic: Classic): ClassicData {
   let boostRewardToNativePrices: BigInt[] = []
   for (let i = 0; i < boostRewardTokenOutputAmountsRes.length; i++) {
     const amountOutRes = boostRewardTokenOutputAmountsRes[i]
-    if (!amountOutRes.reverted) {
-      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-      boostRewardToNativePrices.push(amountOut)
-    } else {
-      boostRewardToNativePrices.push(ZERO_BI)
-      log.error("Failed to fetch boostRewardToNativePrices for Classic {}", [classic.id.toHexString()])
-    }
+    const boostToken = getToken(boostRewardTokenAddresses[i])
+    boostRewardToNativePrices.push(priceToNativeWithFallback(classic, boostToken, amountOutRes))
   }
 
   // only some clms have a reward pool token
@@ -334,65 +329,16 @@ export function fetchClassicData(classic: Classic): ClassicData {
   let rewardToNativePrices = new Array<BigInt>()
   for (let i = 0; i < rewardTokenOutputAmountsRes.length; i++) {
     const amountOutRes = rewardTokenOutputAmountsRes[i]
-    if (!amountOutRes.reverted) {
-      const amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-      rewardToNativePrices.push(amountOut)
-    } else {
-      rewardToNativePrices.push(ZERO_BI)
-      log.error("Failed to fetch rewardToNativePrices for Classic {}", [classic.id.toHexString()])
-    }
+    const rewardToken = getToken(rewardTokenAddresses[i])
+    rewardToNativePrices.push(priceToNativeWithFallback(classic, rewardToken, amountOutRes))
   }
 
   let underlyingBreakdownToNativePrices = new Array<BigInt>()
   for (let i = 0; i < underlyingBreakdownToNativeRes.length; i++) {
     const underlyingBreakdownTokenAddress = underlyingBreakdownTokenAddresses[i]
     const amountOutRes = underlyingBreakdownToNativeRes[i]
-    if (!amountOutRes.reverted) {
-      const underlyingBreakdownToken = getToken(underlyingBreakdownTokenAddress)
-      let amountOut = amountOutRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-
-      // manual beefy oracle fixes
-      const isObviouslyWrongAmount = BigInt.fromString("10000000000000000000000000000000").equals(amountOut)
-      const isVeryLargeAmount = amountOut.gt(BigInt.fromString("1000000000000000000000000"))
-      if (isObviouslyWrongAmount) {
-        log.error("Obviously wrong amount out for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
-          classic.id.toHexString(),
-          underlyingBreakdownTokenAddress.toHexString(),
-          amountOut.toString(),
-        ])
-        amountOut = ZERO_BI
-      } else if (isVeryLargeAmount) {
-        log.error("Very large amount out for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
-          classic.id.toHexString(),
-          underlyingBreakdownTokenAddress.toHexString(),
-          amountOut.toString(),
-        ])
-        amountOut = changeValueEncoding(ONE_BI, ZERO_BI, underlyingBreakdownToken.decimals) // set price to 1-1
-      }
-
-      // amount out is 0, try to fallback to our slower oracle
-      // this happens when the beefy oracle is not setup or was setup very late and we are missing
-      // past data prices
-      if (amountOut.equals(ZERO_BI)) {
-        const oraclePrice = getTokenToNativePrice(underlyingBreakdownToken)
-        log.warning("Fallback to oracle for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
-          classic.id.toHexString(),
-          underlyingBreakdownTokenAddress.toHexString(),
-          oraclePrice.toString(),
-        ])
-        underlyingBreakdownToNativePrices.push(oraclePrice)
-      } else {
-        log.debug("Amount out is {} for Classic {} underlyingBreakdownTokenAddress: {}", [
-          amountOut.toString(),
-          classic.id.toHexString(),
-          underlyingBreakdownTokenAddress.toHexString(),
-        ])
-        underlyingBreakdownToNativePrices.push(amountOut)
-      }
-    } else {
-      underlyingBreakdownToNativePrices.push(ZERO_BI)
-      log.error("Failed to fetch underlyingBreakdownToNativePrices for Classic {}", [classic.id.toHexString()])
-    }
+    const underlyingBreakdownToken = getToken(underlyingBreakdownTokenAddress)
+    underlyingBreakdownToNativePrices.push(priceToNativeWithFallback(classic, underlyingBreakdownToken, amountOutRes))
   }
 
   let underlyingToNativePrice = ZERO_BI
@@ -409,19 +355,11 @@ export function fetchClassicData(classic: Classic): ClassicData {
 
       const token0ToNativePriceRes = underlyingBreakdownToNativeRes[0]
       let token0ToNativePrice = ZERO_BI
-      if (!token0ToNativePriceRes.reverted) {
-        token0ToNativePrice = token0ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-      } else {
-        log.error("Failed to fetch token0ToNativePrice for Classic {}", [classic.id.toHexString()])
-      }
+      token0ToNativePrice = priceToNativeWithFallback(classic, token0, token0ToNativePriceRes)
 
       const token1ToNativePriceRes = underlyingBreakdownToNativeRes[1]
       let token1ToNativePrice = ZERO_BI
-      if (!token1ToNativePriceRes.reverted) {
-        token1ToNativePrice = token1ToNativePriceRes.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
-      } else {
-        log.error("Failed to fetch token1ToNativePrice for Classic {}", [classic.id.toHexString()])
-      }
+      token1ToNativePrice = priceToNativeWithFallback(classic, token1, token1ToNativePriceRes)
 
       let clmManagerTotalSupply = ZERO_BI
       if (!clmManagerTotalSupplyRes.reverted) {
@@ -595,4 +533,55 @@ export function updateClassicDataAndSnapshots(
   }
 
   return classic
+}
+
+function priceToNativeWithFallback(classic: Classic, token: Token, swapperResult: MulticallResult): BigInt {
+  let amountOut = ZERO_BI
+  if (!swapperResult.reverted) {
+    amountOut = swapperResult.value.toBigInt().times(BEEFY_SWAPPER_VALUE_SCALER)
+  } else {
+    log.error("Failed to fetch priceToNativeWithFallback for Classic {} token: {}, swapperResult reverted", [
+      classic.id.toHexString(),
+      token.id.toHexString(),
+    ])
+  }
+
+  // manual beefy oracle fixes
+  const isObviouslyWrongAmount = BigInt.fromString("10000000000000000000000000000000").equals(amountOut)
+  const isVeryLargeAmount = amountOut.gt(BigInt.fromString("1000000000000000000000000"))
+  if (isObviouslyWrongAmount) {
+    log.error("Obviously wrong amount out for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
+      classic.id.toHexString(),
+      token.id.toHexString(),
+      amountOut.toString(),
+    ])
+    amountOut = ZERO_BI
+  } else if (isVeryLargeAmount) {
+    log.error("Very large amount out for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
+      classic.id.toHexString(),
+      token.id.toHexString(),
+      amountOut.toString(),
+    ])
+    amountOut = changeValueEncoding(ONE_BI, ZERO_BI, token.decimals) // set price to 1-1
+  }
+
+  // amount out is 0, try to fallback to our slower oracle
+  // this happens when the beefy oracle is not setup or was setup very late and we are missing
+  // past data prices
+  if (amountOut.equals(ZERO_BI)) {
+    const oraclePrice = getTokenToNativePrice(token)
+    log.warning("Fallback to oracle for Classic {} underlyingBreakdownTokenAddress: {}, amountOut: {}", [
+      classic.id.toHexString(),
+      token.id.toHexString(),
+      oraclePrice.toString(),
+    ])
+    return oraclePrice
+  }
+
+  log.debug("Amount out is {} for Classic {} underlyingBreakdownTokenAddress: {}", [
+    amountOut.toString(),
+    classic.id.toHexString(),
+    token.id.toHexString(),
+  ])
+  return amountOut
 }
