@@ -1,4 +1,4 @@
-import { BigInt, Bytes, log } from "@graphprotocol/graph-ts"
+import { Address, BigInt, Bytes, log } from "@graphprotocol/graph-ts"
 import { Token } from "../../../generated/schema"
 import { exponentToBigInt, ZERO_BI } from "../utils/decimal"
 import { NETWORK_NAME, WNATIVE_DECIMALS, WNATIVE_TOKEN_ADDRESS } from "../../config"
@@ -6,6 +6,7 @@ import { getBeefyClassicWrapperTokenToNativePrice } from "./beefyWrapper"
 import { getSolidlyTokenToNativePrice } from "./solidly"
 import { getSwapxCLMultiHopTokenToNativePrice, getSwapxTokenToNativePrice } from "./swapx"
 import { getBalancerWeightedPoolTokenPrice } from "./balancer"
+import { getAlgebraTokenToNativePrice, AlgebraPathItem } from "./algebra"
 
 /**
  * Detect missing swapper infos with the following queries:
@@ -192,8 +193,23 @@ export function getTokenToNativePrice(inputToken: Token): BigInt {
     }
 
     if (inputToken.id.equals(SONIC_STRIKE)) {
-      const path = [SONIC_STRIKE, SONIC_USDC, SONIC_wS]
-      return getSwapxTokenToNativePrice(inputToken, SONIC_SWAPX_QUOTER_V2, path)
+      const path = [
+        // STRIKE -> USDC
+        new AlgebraPathItem(
+          Address.fromBytes(Bytes.fromHexString("0xbCDBed4aC295dE3ea173469FDb9Cf5fD17ecf214")),
+          6, // USDC
+          18, // STRIKE
+          false, // token1 -> token0
+        ),
+        // USDC -> wS
+        new AlgebraPathItem(
+          Address.fromBytes(Bytes.fromHexString("0x5c4b7d607aaf7b5cde9f09b5f03cf3b5c923aeea")),
+          18, // wS
+          6, // USDC
+          false, // token1 -> token0
+        ),
+      ]
+      return getAlgebraTokenToNativePrice(path)
     }
 
     if (inputToken.id.equals(SONIC_LUDWIG)) {

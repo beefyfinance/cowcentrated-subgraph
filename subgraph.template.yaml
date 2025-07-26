@@ -92,6 +92,8 @@ dataSources:
           file: ./abis/oracle/Univ3QuoterV2.json
         - name: BalancerWeightedPool
           file: ./abis/oracle/BalancerWeightedPool.json
+        - name: AlgebraPool
+          file: ./abis/oracle/AlgebraPool.json
 
         - name: IERC20
           file: ./abis/IERC20/IERC20.json
