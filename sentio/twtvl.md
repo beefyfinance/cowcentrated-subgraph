@@ -37,109 +37,73 @@ This query uses `ClassicPositionSnapshot` hourly data to calculate accurate time
 ## Classic TWTVL Query
 
 ```sql
-WITH classic_position_snapshots_scope AS (
-  -- Get hourly position snapshots with computed fields from cps only
-  SELECT
-    cps.*,
-    3600 as duration_seconds
-  FROM ClassicPositionSnapshot cps
-  WHERE cps.period = 3600  -- Use hourly snapshots (3600 seconds)
-    --AND cps.classic = '0x60511f14f4bb7371d116806d86a06188f8511e47'
+SELECT
+    cps.investor,
+    sum(
+        coalesce(
+            -- shares_balance
+            (toDecimal256(cps.totalBalance, 18) / pow(10, 18 /* shares decimals */))
+            -- usd_per_share
+            * (
+                (toDecimal256(cps.vaultUnderlyingBalance, 18) / pow(10, t_underlying.decimals)) *
+                (toDecimal256(cps.underlyingToNativePrice, 18) / pow(10, 18)) *
+                (toDecimal256(cps.nativeToUSDPrice, 18) / pow(10, 18)) /
+                (toDecimal256(cps.vaultSharesTotalSupply, 18) / pow(10, 18 /* shares decimals */))
+            )
+        , 0)
+        -- duration_seconds
+        * 3600
+     ) as total_twtvl,
+     max(cps.roundedTimestamp) as max_rounded_timestamp
+FROM ClassicPositionSnapshot cps
+JOIN Classic classic ON cps.classic = classic.id
+JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id
+WHERE cps.period = 3600  -- Use hourly snapshots (3600 seconds)
     AND cps.totalBalance > 0
     AND cps.vaultSharesTotalSupply > 0
-),
-
-hourly_classic_position_metrics AS (
-  -- Join with Classic and Token tables to get additional metadata
-  SELECT
-    cps.*,
-    (toDecimal256(cps.totalBalance, 18) / pow(10, t_shares.decimals)) as shares_balance,
-    (toDecimal256(cps.vaultUnderlyingBalance, 18) / pow(10, 18)) *
-    (toDecimal256(cps.underlyingToNativePrice, 18) / pow(10, 18)) *
-    (toDecimal256(cps.nativeToUSDPrice, 18) / pow(10, 18)) /
-    (toDecimal256(cps.vaultSharesTotalSupply, 18) / pow(10, t_shares.decimals)) as usd_per_share
-  FROM classic_position_snapshots_scope cps
-  JOIN Classic classic ON cps.classic = classic.id
-  JOIN Token t_shares ON classic.vaultSharesToken = t_shares.id
-),
-
-hourly_classic_twtvl_contributions AS (
-  -- Calculate TWTVL contribution for each user-vault-hour
-  SELECT
-    investor,
-    roundedTimestamp,
-    shares_balance * usd_per_share * duration_seconds as twtvl_contribution
-  FROM hourly_classic_position_metrics
-)
-
--- Final aggregation: sum TWTVL across all vaults and time periods per user
-SELECT
-  investor,
-  SUM(twtvl_contribution) as total_twtvl,
-  MAX(roundedTimestamp) as max_rounded_timestamp
-FROM hourly_classic_twtvl_contributions
 GROUP BY investor
-HAVING SUM(twtvl_contribution) > 0
-ORDER BY total_twtvl DESC
 ```
 
 ## CLM TWTVL Query
 
 ```sql
-WITH clm_position_snapshots_scope AS (
-  -- Get hourly position snapshots with computed fields from cps only
-  SELECT
-    cps.*,
-    3600 as duration_seconds
-  FROM ClmPositionSnapshot cps
-  WHERE cps.period = 3600  -- Use hourly snapshots (3600 seconds)
-    --AND cps.clm = '0x640ce0aaa22ba039f8dc7811910d44db00eeda56'
-    AND cps.totalBalance > 0
-),
-
-hourly_clm_position_metrics AS (
-  -- Join with CLM and Token tables to get additional metadata
-  SELECT
-    cps.*,
-    (toDecimal256(cps.underlyingBalance0, 18) / pow(10, t0.decimals)) *
-    (toDecimal256(cps.token0ToNativePrice, 18) / pow(10, 18)) *
-    (toDecimal256(cps.nativeToUSDPrice, 18) / pow(10, 18)) as token0_usd_value,
-    (toDecimal256(cps.underlyingBalance1, 18) / pow(10, t1.decimals)) *
-    (toDecimal256(cps.token1ToNativePrice, 18) / pow(10, 18)) *
-    (toDecimal256(cps.nativeToUSDPrice, 18) / pow(10, 18)) as token1_usd_value
-  FROM clm_position_snapshots_scope cps
-  JOIN CLM clm ON cps.clm = clm.id
-  JOIN Token t0 ON clm.underlyingToken0 = t0.id
-  JOIN Token t1 ON clm.underlyingToken1 = t1.id
-),
-
-hourly_clm_twtvl_contributions AS (
-  -- Calculate TWTVL contribution for each user-clm-hour
-  SELECT
-    investor,
-    roundedTimestamp,
-    (token0_usd_value + token1_usd_value) * duration_seconds as twtvl_contribution
-  FROM hourly_clm_position_metrics
-)
-
--- Final aggregation: sum TWTVL across all CLMs and time periods per user
 SELECT
-  investor,
-  SUM(twtvl_contribution) as total_twtvl,
-  MAX(roundedTimestamp) as max_rounded_timestamp
-FROM hourly_clm_twtvl_contributions
-WHERE
-    -- exclude strategies of classic vaults compounding clm products
-    investor not in (select id from ClassicStrategy)
-    AND investor not in (
-        -- this is a silo contrat
-        '0x19926d2163fde0d77f7d50bb88701a6f51f45fab',
-        -- this is an algebra pool
-        '0x97fe831cc56da84321f404a300e2be81b5bd668a'
+  cps.investor,
+  sum(
+    coalesce(
+      -- token0_usd_value
+      (
+        (toDecimal256(cps.underlyingBalance0, 18) / pow(10, t0.decimals)) *
+        (toDecimal256(cps.token0ToNativePrice, 18) / pow(10, 18)) *
+        (toDecimal256(cps.nativeToUSDPrice, 18) / pow(10, 18))
+      )
+      -- token1_usd_value
+      + (
+        (toDecimal256(cps.underlyingBalance1, 18) / pow(10, t1.decimals)) *
+        (toDecimal256(cps.token1ToNativePrice, 18) / pow(10, 18)) *
+        (toDecimal256(cps.nativeToUSDPrice, 18) / pow(10, 18))
+      ),
+      0
     )
+    -- duration_seconds
+    * 3600
+  ) as total_twtvl,
+  max(cps.roundedTimestamp) as max_rounded_timestamp
+FROM ClmPositionSnapshot cps
+JOIN CLM clm ON cps.clm = clm.id
+JOIN Token t0 ON clm.underlyingToken0 = t0.id
+JOIN Token t1 ON clm.underlyingToken1 = t1.id
+WHERE cps.period = 3600  -- Use hourly snapshots (3600 seconds)
+  AND cps.totalBalance > 0
+  -- exclude strategies of classic vaults compounding clm products
+  AND cps.investor not in (select id from ClassicStrategy)
+  AND cps.investor not in (
+      -- this is a silo contrat
+      '0x19926d2163fde0d77f7d50bb88701a6f51f45fab',
+      -- this is an algebra pool
+      '0x97fe831cc56da84321f404a300e2be81b5bd668a'
+  )
 GROUP BY investor
-HAVING SUM(twtvl_contribution) > 0
-ORDER BY total_twtvl DESC
 ```
 
 ## Output Schema
@@ -153,23 +117,17 @@ ORDER BY total_twtvl DESC
 ## Merged query
 
 ```sql
-WITH classic_twtvl AS (
-   <CLASSIC_TWTVL_QUERY>
-),
-clm_twtvl AS (
-   <CLM_TWTVL_QUERY>
-),
-all_twtvl AS (
-   select investor, total_twtvl as twtvl, max_rounded_timestamp from classic_twtvl
+WITH all_twtvl AS (
+   select investor, total_twtvl, max_rounded_timestamp from `sonic_twtvl_classic`
     UNION ALL
-   select investor, total_twtvl as twtvl, max_rounded_timestamp from clm_twtvl
+   select investor, total_twtvl, max_rounded_timestamp from `sonic_twtvl_clm`
 )
 select
-    investor,
-    SUM(twtvl) as total_twtvl,
-    MAX(max_rounded_timestamp) as max_rounded_timestamp
+    -- rename to smaller col names to optimize json size
+    investor as `user`,
+    round(SUM(total_twtvl)) as tt--,
+    --MAX(max_rounded_timestamp) as ts
 from all_twtvl
 GROUP BY investor
-HAVING SUM(twtvl) > 0
-ORDER BY total_twtvl DESC
+ORDER BY 2 DESC
 ```
