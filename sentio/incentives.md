@@ -49,8 +49,8 @@ SELECT
     r.evt_tx_from as transaction_signer,
     r.who as user_address,
     '0x039e2fb66102314ce7b64ce5ce3e5183bc94ad38' as claimed_token_address, -- wS
-    r.amount / pow(10, 18) as amount,
-    r.amount / pow(10, 18) * COALESCE(p.price, 0) as amount_usd,
+    r.amountOfS / pow(10, 18) as amount,
+    r.amountOfS / pow(10, 18) * COALESCE(p.price, 0) as amount_usd,
     0.0 as other_incentive_usd -- Placeholder for other incentives
 FROM beefy_sonic.beefygemsfactory_evt_redeemed r
 LEFT JOIN prices.minute p ON
