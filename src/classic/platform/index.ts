@@ -31,6 +31,7 @@ import { getVaultTokenBreakdownSilo, isSiloVault } from "./silo"
 import { getVaultTokenBreakdownBeefyLstVault, isBeefyLstVault } from "./beefy_lst"
 import { isDefiveVault, getVaultTokenBreakdownDefive } from "./defive"
 import { isEulerVault, getVaultTokenBreakdownEuler } from "./euler"
+import { getVaultTokenBreakdownStakedaoV2, isStakedaoV2Vault } from "./stakedao"
 
 const PLATFORM_AAVE = "AAVE"
 const PLATFORM_BALANCER = "BALANCER"
@@ -49,6 +50,7 @@ const PLATFORM_SOLIDLY = "SOLIDLY"
 const PLATFORM_SILO = "SILO"
 const PLATFORM_BEEFY_CLM = "BEEFY_CLM"
 const PLATFORM_BEEFY_CLM_VAULT = "BEEFY_CLM_VAULT"
+const PLATFORM_STAKEDAO_V2 = "STAKEDAO_V2"
 export const PLATFORM_BEEFY_LST_VAULT = "BEEFY_LST_VAULT"
 export const PLATFORM_UNKNOWN = "UNKNOWN"
 
@@ -99,6 +101,8 @@ export function getVaultTokenBreakdown(vault: Classic): Array<TokenBalance> {
     return getVaultTokenBreakdownDefive(vault)
   } else if (vault.underlyingPlatform == PLATFORM_EULER) {
     return getVaultTokenBreakdownEuler(vault)
+  } else if (vault.underlyingPlatform == PLATFORM_STAKEDAO_V2) {
+    return getVaultTokenBreakdownStakedaoV2(vault)
   }
 
   log.error("Not implemented platform {} for vault {}", [vault.underlyingPlatform, vault.id.toHexString()])
@@ -108,6 +112,10 @@ export function getVaultTokenBreakdown(vault: Classic): Array<TokenBalance> {
 export function detectClassicVaultUnderlyingPlatform(vault: Classic): string {
   if (isDefiveVault(vault)) {
     return PLATFORM_DEFIVE
+  }
+
+  if (isStakedaoV2Vault(vault)) {
+    return PLATFORM_STAKEDAO_V2
   }
 
   if (isSiloVault(vault)) {
