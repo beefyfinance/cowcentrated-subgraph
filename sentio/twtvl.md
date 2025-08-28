@@ -80,7 +80,7 @@ WITH latestView_ClassicPositionSnapshot AS (
         argMax(vaultUnderlyingBalance, __genBlockNumber__) AS vaultUnderlyingBalance,
         argMax(underlyingToNativePrice, __genBlockNumber__) AS underlyingToNativePrice,
         argMax(nativeToUSDPrice, __genBlockNumber__) AS nativeToUSDPrice
-    FROM prod_subgraph.jT7kA9ye_view_ClassicPositionSnapshot
+    FROM prod_subgraph.M6jk2nzM_view_ClassicPositionSnapshot
     WHERE
         __genBlockChain__ = '146'
         AND period = 3600
