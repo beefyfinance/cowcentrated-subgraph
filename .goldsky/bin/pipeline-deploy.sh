@@ -23,6 +23,8 @@ fi
 case "$chain" in
     "gnosis") version="1.4.5" ;;
     "sei") version="1.4.5-1" ;;
+    "linea") version="1.4.5-1" ;;
+    "plasma") version="1.4.5" ;;
     *) version="1.4.5" ;;
 esac
 
@@ -32,6 +34,8 @@ chain_name=$(echo "$chain" | sed 's/-/_/g')
 case "$chain_name" in
     "gnosis") version="1.4.5-1" ;;
     "sei") version="1.4.5-1" ;;
+    "linea") version="1.4.5-1" ;;
+    "plasma") version="1.4.5" ;;
     *) version="1.4.6" ;;
 esac
 
