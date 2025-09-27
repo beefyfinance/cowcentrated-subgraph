@@ -27,6 +27,7 @@ jobs:
           - "mode"
           - "moonbeam"
           - "optimism"
+          - "plasma"
           - "polygon"
           - "rootstock"
           - "saga"
