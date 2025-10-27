@@ -20,7 +20,30 @@ User level snapshot of holders in this protocol.
 | amount_usd    | The amount held in USD.                                                                                           | double    |
 
 ```SQL
-WITH data_res AS (
+WITH
+fast_classic_position_snapshot as (
+    SELECT DISTINCT
+        id,
+        period, -- needed to filter by period
+        classic, -- needed to filter by classic
+        argMax(investor, __genBlockNumber__) AS investor,
+        argMax(timestamp, __genBlockNumber__) AS timestamp,
+        argMax(totalBalance, __genBlockNumber__) AS totalBalance,
+        argMax(vaultUnderlyingBreakdownBalances, __genBlockNumber__) AS vaultUnderlyingBreakdownBalances,
+        argMax(underlyingBreakdownToNativePrices, __genBlockNumber__) AS underlyingBreakdownToNativePrices,
+        argMax(vaultSharesTotalSupply, __genBlockNumber__) AS vaultSharesTotalSupply,
+        argMax(vaultUnderlyingBalance, __genBlockNumber__) AS vaultUnderlyingBalance,
+        argMax(underlyingToNativePrice, __genBlockNumber__) AS underlyingToNativePrice,
+        argMax(nativeToUSDPrice, __genBlockNumber__) AS nativeToUSDPrice,
+        argMax(roundedTimestamp, __genBlockNumber__) as roundedTimestamp
+    FROM ClassicPositionSnapshot_raw
+    WHERE
+        not meta.deleted
+        AND period = 86400
+        AND classic = '0x871a101dcf22fe4fe37be7b654098c801cba1c88'
+    GROUP BY id, period, classic
+),
+data_res AS (
     SELECT
         snapshot.timestamp,
         formatDateTime(toDate(fromUnixTimestamp(toInt64(snapshot.roundedTimestamp))), '%Y-%m-%d') as block_date,
@@ -55,7 +78,7 @@ WITH data_res AS (
         ) * (
             toDecimal256 (snapshot.nativeToUSDPrice, 18) / pow(10, 18)
         ) as amount_usd
-    FROM ClassicPositionSnapshot snapshot
+    FROM fast_classic_position_snapshot snapshot
     JOIN Classic classic ON snapshot.classic = classic.id
     JOIN Token t_share ON classic.vaultSharesToken = t_share.id
     JOIN Token t_underlying ON classic.underlyingToken = t_underlying.id

@@ -86,6 +86,27 @@ Snapshot of the pool users.
 
 ```SQL
 with
+fast_classic_position_snapshot as (
+    SELECT DISTINCT
+        id,
+        period, -- needed to filter by period
+        argMax(classic, __genBlockNumber__) AS classic,
+        argMax(investor, __genBlockNumber__) AS investor,
+        argMax(timestamp, __genBlockNumber__) AS timestamp,
+        argMax(totalBalance, __genBlockNumber__) AS totalBalance,
+        argMax(vaultUnderlyingBreakdownBalances, __genBlockNumber__) AS vaultUnderlyingBreakdownBalances,
+        argMax(underlyingBreakdownToNativePrices, __genBlockNumber__) AS underlyingBreakdownToNativePrices,
+        argMax(vaultSharesTotalSupply, __genBlockNumber__) AS vaultSharesTotalSupply,
+        --argMax(vaultUnderlyingBalance, __genBlockNumber__) AS vaultUnderlyingBalance,
+        --argMax(underlyingToNativePrice, __genBlockNumber__) AS underlyingToNativePrice,
+        argMax(nativeToUSDPrice, __genBlockNumber__) AS nativeToUSDPrice,
+        argMax(roundedTimestamp, __genBlockNumber__) as roundedTimestamp
+    FROM ClassicPositionSnapshot_raw
+    WHERE
+        not meta.deleted
+        AND period = 86400
+    GROUP BY id, period
+),
 swapx_pools as (
     SELECT [
         '0x73b1933aea13cf2355fc95839bc926461c7e14f8',
@@ -180,7 +201,7 @@ data_res_wrapper_not_mapped AS (
         ) as underlying_token_amount_usd,
 
         0 as total_fees_usd
-    FROM ClassicPositionSnapshot snapshot
+    FROM fast_classic_position_snapshot snapshot
     JOIN Classic classic ON snapshot.classic = classic.id
     JOIN breakdown_tokens_wrapper_not_mapped bt ON classic.id = bt.classic_id
     JOIN Token t_breakdown ON bt.token_address = t_breakdown.id
