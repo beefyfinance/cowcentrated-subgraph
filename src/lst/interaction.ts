@@ -3,9 +3,11 @@ import {
   Transfer as LSTVaultTransfer,
   Notify as LSTVaultNotify,
   ClaimedRewards as LSTVaultClaimedRewards,
+  ChargedFees as LSTVaultChargedFees,
 } from "../../generated/LSTVault/LSTVault"
 import { Transfer as ClassicVaultTransfer } from "../../generated/templates/ClassicVault/ClassicVault"
-import { _handleClassicStrategyHarvest } from "../classic/compound"
+import { _handleClassicStrategyHarvest, _handleClassicStrategyChargedFees } from "../classic/compound"
+import { ZERO_BI } from "../common/utils/decimal"
 
 export function handleLSTVaultClaimedRewards(event: LSTVaultClaimedRewards): void {
   // TODO
@@ -13,6 +15,13 @@ export function handleLSTVaultClaimedRewards(event: LSTVaultClaimedRewards): voi
 
 export function handleLSTVaultNotified(event: LSTVaultNotify): void {
   _handleClassicStrategyHarvest(event, event.params.amount)
+}
+
+export function handleLSTVaultChargedFees(event: LSTVaultChargedFees): void {
+  const callFees = ZERO_BI
+  const beefyFees = event.params.beefyFee
+  const strategistFees = event.params.liquidityFee
+  _handleClassicStrategyChargedFees(event, callFees, beefyFees, strategistFees)
 }
 
 export function handleLSTVaultTransfer(event: LSTVaultTransfer): void {

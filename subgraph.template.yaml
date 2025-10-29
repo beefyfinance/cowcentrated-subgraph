@@ -275,6 +275,8 @@ dataSources:
           handler: handleLSTVaultClaimedRewards
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleLSTVaultTransfer
+        - event: ChargedFees(uint256,uint256)
+          handler: handleLSTVaultChargedFees
   {{/beefyLSTVaultAddress}}
 
 templates:

@@ -84,7 +84,7 @@ export function handleClassicStrategyCharged3Fees(event: ClassicCharged3FeesEven
   _handleClassicStrategyChargedFees(event, callFees, beefyFees, strategistFees)
 }
 
-function _handleClassicStrategyChargedFees(
+export function _handleClassicStrategyChargedFees(
   event: ethereum.Event,
   callFees: BigInt,
   beefyFees: BigInt,
