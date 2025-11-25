@@ -25,6 +25,7 @@ jobs:
           - "manta"
           - "mantle"
           - "mode"
+          - "monad"
           - "moonbeam"
           - "optimism"
           - "plasma"
