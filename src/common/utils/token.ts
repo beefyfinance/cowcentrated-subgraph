@@ -27,7 +27,11 @@ export function fetchAndSaveTokenData(tokenAddress: Bytes): Token {
   token.name = tokenName
   token.symbol = tokenSymbol
   token.decimals = BigInt.fromI32(tokenDecimals)
-  token.save()
+
+  // prevent issues just in case there is a race condition
+  if (!Token.load(tokenAddress)) {
+    token.save()
+  }
 
   return token
 }
