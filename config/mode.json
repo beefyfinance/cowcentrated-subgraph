@@ -35,5 +35,10 @@
   "umbrellaRegistryPriceFeedDecimals": 8,
 
   "beefySwapperAddress": "0x78A89b50F3F36cF9F83c8e41c747DD2dA2476b9a",
-  "beefyOracleAddress": "0xa07704e69fa64408BEfb3ac1891166d8bbC2585c"
+  "beefyOracleAddress": "0xa07704e69fa64408BEfb3ac1891166d8bbC2585c",
+
+  "classicStratHarvest1ForAddresses": [],
+
+  "onlyKeepClmClassicVaults": true,
+  "positionSnapshotEnabled": false
 }

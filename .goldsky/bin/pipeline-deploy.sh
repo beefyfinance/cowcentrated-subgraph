@@ -32,12 +32,8 @@ chain_name=$(echo "$chain" | sed 's/-/_/g')
 
 # define version
 case "$chain_name" in
-    "gnosis") version="1.4.5-1" ;;
-    "sei") version="1.4.5-1" ;;
-    "linea") version="1.4.5-1" ;;
-    "plasma") version="1.4.5" ;;
-    "monad") version="1.4.5" ;;
-    *) version="1.4.6" ;;
+    "gnosis") version="1.5.0" ;;
+    *) version="1.5.0" ;;
 esac
 
 # define target schema

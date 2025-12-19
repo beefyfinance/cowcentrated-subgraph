@@ -19,7 +19,7 @@ for chain in $(ls config | sed 's/\.json//g'); do
 
     # define version
     case "$chain_name" in
-        *) version="1.4.6" ;;
+        *) version="1.5.0" ;;
     esac
     
     is_last="false"
