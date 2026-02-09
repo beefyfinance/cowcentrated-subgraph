@@ -24,6 +24,7 @@ jobs:
           - "lisk"
           - "manta"
           - "mantle"
+          - "megaeth"
           - "mode"
           - "monad"
           - "moonbeam"
