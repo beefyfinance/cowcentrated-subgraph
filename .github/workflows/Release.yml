@@ -18,6 +18,7 @@ jobs:
           - "base"
           - "berachain"
           - "bsc"
+          - "ethereum"
           - "gnosis"
           - "hyperevm"
           - "linea"
