@@ -33,6 +33,7 @@ jobs:
           - "plasma"
           - "polygon"
           - "rootstock"
+          - "robinhood"
           - "saga"
           - "scroll"
           - "sei"
