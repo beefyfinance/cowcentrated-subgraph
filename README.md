@@ -9,6 +9,7 @@ This Subgraph sources events from the Beefy CLM contracts in different networks.
 ### Latest endpoints
 
 - [Arbitrum](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-arbitrum/latest/gn)
+- [Arc](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-arc/latest/gn)
 - [Avax](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-avax/latest/gn)
 - [Base](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-base/latest/gn)
 - [Berachain](https://api.goldsky.com/api/public/project_clu2walwem1qm01w40v3yhw1f/subgraphs/beefy-clm-berachain/latest/gn)
