@@ -394,9 +394,17 @@ export function fetchClassicData(classic: Classic): ClassicData {
       const totalNativeAmountInClm = totalNativeAmount0.plus(totalNativeAmount1)
       const clmManagerToken = getToken(clm.managerToken)
 
-      underlyingToNativePrice = totalNativeAmountInClm
-        .times(changeValueEncoding(ONE_BI, ZERO_BI, WNATIVE_DECIMALS))
-        .div(changeValueEncoding(clmManagerTotalSupply, clmManagerToken.decimals, WNATIVE_DECIMALS))
+      // Scale native value up to the 18-dec price store. Downscaling an 18-dec CLM
+      // supply to 6-dec native (Arc) truncates small first deposits to 0.
+      if (clmManagerTotalSupply.equals(ZERO_BI)) {
+        log.error("clmManagerTotalSupply is zero for Classic {}", [classic.id.toHexString()])
+      } else {
+        underlyingToNativePrice = tokenAmountToNativePrice(
+          totalNativeAmountInClm,
+          clmManagerTotalSupply,
+          clmManagerToken.decimals,
+        )
+      }
     }
   } else {
     const breakdown = getVaultTokenBreakdown(classic)
@@ -437,9 +445,11 @@ export function fetchClassicData(classic: Classic): ClassicData {
 
       if (underlyingAmount.notEqual(ZERO_BI)) {
         const underlyingToken = getToken(underlyingTokenAddress)
-        underlyingToNativePrice = totalNativeEquivalentAmount
-          .times(changeValueEncoding(ONE_BI, ZERO_BI, underlyingToken.decimals))
-          .div(underlyingAmount)
+        underlyingToNativePrice = tokenAmountToNativePrice(
+          totalNativeEquivalentAmount,
+          underlyingAmount,
+          underlyingToken.decimals,
+        )
         log.debug("Price to native is {} for underlyingToken: {}", [
           underlyingToNativePrice.toString(),
           underlyingToken.id.toHexString(),
@@ -533,6 +543,19 @@ export function updateClassicDataAndSnapshots(
   }
 
   return classic
+}
+
+/**
+ * Price of 1 whole token in native, stored with PRICE_STORE_DECIMALS_TOKEN_TO_NATIVE (18).
+ * `totalNativeAmount` is in WNATIVE_DECIMALS; `tokenAmount` is in `tokenDecimals`.
+ */
+function tokenAmountToNativePrice(totalNativeAmount: BigInt, tokenAmount: BigInt, tokenDecimals: BigInt): BigInt {
+  if (tokenAmount.equals(ZERO_BI)) {
+    return ZERO_BI
+  }
+  return changeValueEncoding(totalNativeAmount, WNATIVE_DECIMALS, PRICE_STORE_DECIMALS_TOKEN_TO_NATIVE)
+    .times(changeValueEncoding(ONE_BI, ZERO_BI, tokenDecimals))
+    .div(tokenAmount)
 }
 
 function priceToNativeWithFallback(classic: Classic, token: Token, swapperResult: MulticallResult): BigInt {
